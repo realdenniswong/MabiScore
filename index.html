@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#202a48" />
+    <meta name="description" content="A responsive, pure JavaScript Mabinogi MML composer with MIDI import." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="MabiScore — Mabinogi MML Composer" />
+    <meta property="og:description" content="Compose on a piano roll, import MIDI or MML, and export game-ready tracks—all in pure JavaScript." />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MabiScore — Mabinogi MML Composer" />
+    <meta name="twitter:description" content="Compose on a piano roll, import MIDI or MML, and export game-ready tracks." />
+    <meta name="twitter:image" content="/og.png" />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <title>MabiScore — Mabinogi MML Composer</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand" aria-label="MabiScore home">
+          <span class="brand-mark" aria-hidden="true">♫</span>
+          <span class="brand-name">MabiScore</span>
+          <span class="brand-pill">MML composer</span>
+        </div>
+        <div class="project-title-wrap">
+          <input id="project-title" class="project-title" aria-label="Score title" value="New day in Tir Chonaill" />
+          <span id="save-state" class="save-state is-saved">✓ Saved</span>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button help-button" data-modal="help" aria-label="Help">?</button>
+          <button id="save-project" class="secondary-button save-button"><span aria-hidden="true">↓</span><span>Save draft</span></button>
+          <button class="primary-button" data-modal="export"><span aria-hidden="true">↗</span><span>Export MML</span></button>
+        </div>
+      </header>
+
+      <section class="controlbar" aria-label="Composer controls">
+        <div class="control-group transport">
+          <button id="play-toggle" class="play-button" aria-label="Play score">▶</button>
+          <button id="return-start" class="icon-button" aria-label="Return to beginning">↺</button>
+          <button id="loop-toggle" class="loop-button">Loop</button>
+        </div>
+        <div class="control-divider"></div>
+        <label class="field-control tempo-control">
+          <span><span aria-hidden="true">◷</span> Tempo</span>
+          <span class="select-shell">
+            <select id="tempo" aria-label="Tempo in beats per minute">
+              <option value="60">60 BPM</option><option value="72">72 BPM</option><option value="80">80 BPM</option>
+              <option value="90">90 BPM</option><option value="100">100 BPM</option><option value="110">110 BPM</option>
+              <option value="120" selected>120 BPM</option><option value="128">128 BPM</option><option value="140">140 BPM</option>
+              <option value="160">160 BPM</option><option value="180">180 BPM</option><option value="200">200 BPM</option>
+            </select><span class="select-arrow">⌄</span>
+          </span>
+        </label>
+        <label class="field-control">
+          <span>Grid</span>
+          <span class="select-shell compact-select"><select id="snap" aria-label="Grid snapping"><option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option></select><span class="select-arrow">⌄</span></span>
+        </label>
+        <label class="field-control">
+          <span>Length</span>
+          <span class="select-shell compact-select"><select id="note-duration" aria-label="New note length"><option value="1">1/16</option><option value="2">1/8</option><option value="4" selected>1/4</option><option value="8">1/2</option></select><span class="select-arrow">⌄</span></span>
+        </label>
+        <div class="control-spacer"></div>
+        <div class="history-actions">
+          <button id="undo-action" class="icon-button" disabled aria-label="Undo">↶</button>
+          <button id="redo-action" class="icon-button" disabled aria-label="Redo">↷</button>
+        </div>
+        <button class="import-button" data-modal="mml"><span aria-hidden="true">▣</span><span>Import MML</span></button>
+        <button id="import-midi" class="import-button"><span aria-hidden="true">♪</span><span>Import MIDI</span></button>
+        <input id="midi-file" hidden type="file" accept=".mid,.midi,audio/midi,audio/x-midi" />
+      </section>
+
+      <section class="workspace">
+        <aside class="track-panel" aria-label="Score tracks">
+          <div class="track-panel-heading">
+            <div><span>Tracks</span><span id="track-count" class="count-badge">2</span></div>
+            <button id="add-track" class="add-track-button"><span aria-hidden="true">＋</span><span>Add</span></button>
+          </div>
+          <div id="track-list" class="track-list"></div>
+          <div class="track-tip"><span aria-hidden="true">✦</span><span>Tap the grid to add a note. Drag a note to move it.</span></div>
+        </aside>
+
+        <section class="roll-panel" aria-label="Piano roll editor">
+          <div class="roll-heading">
+            <div class="active-track-label"><span id="active-dot" class="active-dot"></span><strong id="active-track-name"></strong><span id="active-instrument"></span></div>
+            <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
+          </div>
+          <div class="timeline-wrap">
+            <div class="timeline-corner">Bars</div>
+            <div id="timeline-scroll" class="timeline-scroll"><div id="timeline" class="timeline"><div id="timeline-playhead" class="timeline-playhead"></div></div></div>
+            <div id="key-scroll" class="key-scroll" aria-hidden="true"><div id="piano-keys" class="piano-keys"></div></div>
+            <div id="grid-scroll" class="grid-scroll"><div id="note-grid" class="note-grid"><div id="grid-playhead" class="grid-playhead"></div></div></div>
+          </div>
+        </section>
+      </section>
+
+      <div id="modal-backdrop" class="modal-backdrop" hidden>
+        <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+          <div id="mml-modal" class="modal-view" hidden>
+            <div class="modal-icon">▣</div><p class="eyebrow">Bring in a score</p><h2 id="modal-title">Import Mabinogi MML</h2>
+            <p class="modal-intro">Paste one part or a comma-separated multi-part MML score. Existing tracks will be replaced.</p>
+            <button id="paste-mml" class="clipboard-button"><span aria-hidden="true">▣</span> Paste from clipboard</button>
+            <textarea id="mml-input" spellcheck="false" aria-label="MML code">MML@t120o4l4cdefgab&gt;c;</textarea>
+            <div class="modal-actions"><button class="secondary-button modal-cancel">Cancel</button><button id="confirm-mml" class="primary-button">Import score</button></div>
+          </div>
+          <div id="export-modal" class="modal-view" hidden>
+            <div class="modal-icon">≡</div><p class="eyebrow">Ready for Mabinogi</p><h2>Export MML</h2>
+            <p class="modal-intro">Choose one or more tracks to combine into a game-ready MML score.</p>
+            <div id="export-track-list" class="export-track-list"></div>
+            <div id="export-summary" class="export-summary"></div>
+            <textarea id="export-code" class="export-code" readonly spellcheck="false" aria-label="Exported MML"></textarea>
+            <div class="modal-actions export-actions"><button id="copy-export" class="secondary-button"><span aria-hidden="true">▣</span> Copy MML</button><button id="download-export" class="primary-button"><span aria-hidden="true">↓</span> Download .mml</button></div>
+          </div>
+          <div id="help-modal" class="modal-view help-modal" hidden>
+            <div class="modal-icon">♫</div><p class="eyebrow">Quick guide</p><h2>Make your first score</h2>
+            <div class="help-steps">
+              <div><span>1</span><p><strong>Add & arrange</strong>Tap an empty cell to add a note, then drag notes to move them in time or pitch.</p></div>
+              <div><span>2</span><p><strong>Listen & refine</strong>Use Space to play or pause. Change tempo, note length, and grid snapping above.</p></div>
+              <div><span>3</span><p><strong>Import or export</strong>Bring in MML or MIDI, then export one track or a selected multi-track score.</p></div>
+            </div>
+            <button class="primary-button full-button modal-cancel">Start composing</button>
+          </div>
+        </section>
+      </div>
+      <div id="toast" class="toast" role="status" hidden></div>
+    </main>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
