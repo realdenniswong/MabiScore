@@ -13,11 +13,360 @@
     <meta name="twitter:title" content="MabiScore — Mabinogi MML Composer" />
     <meta name="twitter:description" content="Compose on a piano roll, import MIDI or MML, and export game-ready tracks." />
     <meta name="twitter:image" content="https://realdenniswong.github.io/MabiScore/og.png" />
-    <link rel="icon" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="icon" href="favicon.svg" />
+
     <title>MabiScore — Mabinogi MML Composer</title>
+      <style>
+:root {
+  --ink: #182037;
+  --muted: #6e7487;
+  --line: #e2e4eb;
+  --soft-line: #eceef3;
+  --paper: #ffffff;
+  --canvas: #f4f5f8;
+  --accent: #ef6759;
+  --accent-dark: #d85246;
+  --navy: #202a48;
+  --navy-hover: #2a365a;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Manrope", Arial, sans-serif;
+  overflow: hidden;
+}
+
+button, input, textarea, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(79, 120, 200, .26);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 68px 62px minmax(0, 1fr);
+  background: var(--canvas);
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 1.25fr) 1fr;
+  align-items: center;
+  gap: 22px;
+  padding: 0 22px;
+  background: var(--navy);
+  color: white;
+  position: relative;
+  z-index: 5;
+}
+
+.brand, .top-actions, .project-title-wrap, .control-group, .field-control,
+.active-track-label, .track-panel-heading > div, .save-state, .export-summary,
+.modal-actions, .clipboard-button, .track-tip { display: flex; align-items: center; }
+
+.brand { gap: 10px; min-width: 0; }
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16);
+  color: white;
+  font-size: 21px;
+  font-weight: 800;
+}
+.brand-name { font-weight: 740; letter-spacing: -.025em; font-size: 18px; }
+.brand-pill {
+  color: #c5cbdc;
+  font-size: 11px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 99px;
+  padding: 5px 8px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.project-title-wrap { justify-content: center; gap: 10px; min-width: 0; }
+.project-title {
+  width: min(350px, 100%);
+  color: white;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-weight: 570;
+  text-align: center;
+  padding: 7px 9px;
+}
+.project-title:hover, .project-title:focus { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); }
+.save-state { gap: 4px; color: #aeb6ca; font-size: 11px; white-space: nowrap; }
+.save-state.is-saved { color: #8fd1b4; }
+.top-actions { gap: 8px; justify-content: flex-end; }
+
+.primary-button, .secondary-button, .import-button, .clipboard-button {
+  border: 0;
+  border-radius: 8px;
+  height: 38px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.primary-button { color: #fff; background: var(--accent); box-shadow: 0 1px 1px rgba(0,0,0,.12); }
+.primary-button:hover { background: #f07769; }
+.secondary-button { color: var(--ink); background: #fff; border: 1px solid var(--line); }
+.topbar .secondary-button { color: #edf0f8; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.13); }
+.secondary-button:hover { background: #f8f8fa; }
+.topbar .secondary-button:hover { background: rgba(255,255,255,.13); }
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+.icon-button:hover { background: #f5f6f9; }
+.icon-button:disabled { opacity: .38; cursor: default; }
+.topbar .icon-button { border-color: rgba(255,255,255,.13); background: rgba(255,255,255,.07); color: #d9deea; }
+.topbar .icon-button:hover { background: rgba(255,255,255,.13); }
+
+.controlbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 4;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.controlbar::-webkit-scrollbar { display: none; }
+.transport { gap: 7px; }
+.play-button {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  color: white; background: var(--navy); border: 0; border-radius: 9px; cursor: pointer;
+}
+.play-button:hover { background: var(--navy-hover); }
+.loop-button {
+  height: 32px; padding: 0 10px; border: 1px solid var(--line); background: white; border-radius: 7px;
+  color: var(--muted); font-size: 12px; font-weight: 620; cursor: pointer;
+}
+.loop-button.is-active { background: #fff1ee; color: var(--accent-dark); border-color: #f3bbb4; }
+.control-divider { width: 1px; height: 28px; background: var(--line); flex: 0 0 auto; }
+.field-control { gap: 8px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.field-control > span:first-child { display: flex; align-items: center; gap: 5px; }
+.select-shell { position: relative; display: flex; align-items: center; }
+.select-shell select {
+  appearance: none; height: 34px; padding: 0 29px 0 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: #f8f8fa; color: var(--ink); font-size: 12px; font-weight: 620; cursor: pointer;
+}
+.select-shell svg { position: absolute; right: 9px; pointer-events: none; color: #8c91a0; }
+.compact-select select { min-width: 72px; }
+.control-spacer { flex: 1; min-width: 8px; }
+.history-actions { display: flex; gap: 5px; }
+.import-button { height: 34px; background: #f8f8fa; border: 1px solid var(--line); color: #42485a; }
+.import-button:hover { background: #f1f2f6; }
+
+.workspace { min-height: 0; display: grid; grid-template-columns: 262px minmax(0, 1fr); }
+.track-panel { min-width: 0; background: #f8f8fa; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.track-panel-heading { height: 52px; padding: 0 14px 0 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: white; }
+.track-panel-heading > div { gap: 7px; font-size: 13px; font-weight: 720; }
+.count-badge { color: var(--muted); background: #eceef3; border-radius: 99px; padding: 2px 7px; font-size: 10px; }
+.add-track-button { border: 0; background: transparent; display: flex; align-items: center; gap: 4px; color: var(--accent-dark); font-weight: 670; font-size: 12px; cursor: pointer; }
+.track-list { padding: 10px; display: flex; flex-direction: column; gap: 7px; overflow: auto; }
+.track-card {
+  --track-color: var(--accent);
+  min-height: 66px; display: grid; grid-template-columns: 4px 28px minmax(0, 1fr) auto; align-items: center; gap: 8px;
+  border: 1px solid transparent; border-radius: 10px; background: transparent; padding: 7px 7px 7px 0; cursor: pointer; position: relative; overflow: hidden;
+}
+.track-card:hover { background: white; }
+.track-card.is-active { background: white; border-color: #dcdfe8; box-shadow: 0 2px 9px rgba(35,42,64,.06); }
+.track-stripe { width: 4px; height: 100%; background: var(--track-color); border-radius: 0 4px 4px 0; opacity: .5; }
+.track-card.is-active .track-stripe { opacity: 1; }
+.track-index { color: #a2a7b5; font-size: 10px; font-family: "DM Mono", monospace; }
+.track-copy { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.track-copy input { width: 100%; border: 0; padding: 0; background: transparent; color: var(--ink); font-size: 12px; font-weight: 680; white-space: nowrap; text-overflow: ellipsis; }
+.track-copy span { color: #8b90a0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-tools { display: flex; opacity: 0; }
+.track-card:hover .track-tools, .track-card.is-active .track-tools { opacity: 1; }
+.track-tools button { width: 26px; height: 28px; display: grid; place-items: center; color: #858b9b; border: 0; background: transparent; border-radius: 6px; cursor: pointer; }
+.track-tools button:hover { background: #f0f1f4; color: var(--ink); }
+.track-tip { margin: auto 14px 14px; gap: 9px; padding: 11px; color: #777d8f; background: #eff0f4; border-radius: 9px; font-size: 10px; line-height: 1.4; }
+.track-tip svg { flex: 0 0 auto; color: var(--accent); }
+
+.roll-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: 52px minmax(0, 1fr); background: white; }
+.roll-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 18px; border-bottom: 1px solid var(--line); }
+.active-track-label { gap: 9px; min-width: 0; }
+.active-dot { width: 8px; height: 8px; border-radius: 50%; }
+.active-track-label strong { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.active-track-label span:last-child { font-size: 11px; color: var(--muted); }
+.selection-tools { color: #9a9eaa; font-size: 10px; }
+.selection-tools button { height: 30px; display: flex; align-items: center; gap: 5px; border: 0; background: #fff1ef; color: var(--accent-dark); border-radius: 7px; padding: 0 10px; font-size: 11px; font-weight: 620; cursor: pointer; }
+
+.timeline-wrap {
+  min-height: 0; min-width: 0; display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  grid-template-rows: 31px minmax(0, 1fr);
+  overflow: hidden;
+}
+.timeline-corner { grid-column: 1; grid-row: 1; display: flex; align-items: center; padding-left: 12px; color: #999eab; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f8f8fa; }
+.timeline-scroll { grid-column: 2; grid-row: 1; overflow: hidden; border-bottom: 1px solid var(--line); background: #f8f8fa; cursor: pointer; }
+.timeline { height: 100%; position: relative; background-image: repeating-linear-gradient(to right, transparent 0, transparent 383px, #d8dbe3 383px, #d8dbe3 384px); }
+.timeline > span { position: absolute; top: 9px; padding-left: 6px; color: #777d8c; font-size: 9px; }
+.timeline-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); z-index: 2; }
+.timeline-playhead::after { content: ""; position: absolute; left: -3px; top: 0; width: 8px; height: 6px; background: var(--accent); border-radius: 0 0 4px 4px; }
+.key-scroll { grid-column: 1; grid-row: 2; overflow: hidden; border-right: 1px solid #d7dae2; background: white; }
+.piano-keys { height: 1344px; }
+.piano-key { height: 28px; border-bottom: 1px solid #e6e8ed; display: flex; align-items: center; justify-content: flex-end; padding-right: 9px; color: #8a8f9d; font-size: 9px; position: relative; }
+.piano-key.is-black { width: 70%; color: #e7eaf1; background: var(--navy); border-color: #111729; border-radius: 0 0 4px 0; box-shadow: inset -4px -2px 0 rgba(0,0,0,.16); }
+.piano-key.is-c { border-bottom-color: #bfc4d0; }
+.grid-scroll { grid-column: 2; grid-row: 2; overflow: auto; background: #fbfbfc; overscroll-behavior: contain; }
+.note-grid { position: relative; touch-action: none; user-select: none; cursor: crosshair; background: #fbfbfc; }
+.pitch-row { position: absolute; left: 0; right: 0; height: 28px; border-bottom: 1px solid #eceef2; background: rgba(255,255,255,.5); pointer-events: none; }
+.pitch-row.is-black { background: rgba(32,42,72,.035); }
+.pitch-row.is-c { border-bottom-color: #d9dce4; }
+.tick-line { position: absolute; top: 0; bottom: 0; width: 1px; background: #edeef2; pointer-events: none; }
+.tick-line.is-beat { background: #dfe2e8; }
+.tick-line.is-measure { width: 1px; background: #aeb3c1; }
+.note-block { position: absolute; border: 0; border-radius: 5px; color: white; padding: 0 7px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.13), 0 1px 2px rgba(30,36,55,.14); cursor: grab; text-align: left; touch-action: none; z-index: 2; overflow: hidden; }
+.note-block:active { cursor: grabbing; }
+.note-block span { font-size: 9px; font-weight: 720; line-height: 1; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,.18); }
+.note-block.is-selected { outline: 2px solid #202a48; outline-offset: 1px; filter: saturate(1.08) brightness(1.04); z-index: 3; }
+.grid-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; z-index: 4; box-shadow: 0 0 0 1px rgba(255,255,255,.32); }
+
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(19,25,44,.64); backdrop-filter: blur(5px); }
+.modal-card { width: min(550px, 100%); max-height: calc(100dvh - 40px); overflow: auto; position: relative; background: white; border-radius: 16px; padding: 31px; box-shadow: 0 26px 70px rgba(8,14,29,.28); }
+.modal-close { position: absolute; right: 16px; top: 16px; width: 32px; height: 32px; display: grid; place-items: center; color: #7f8493; background: #f4f5f7; border: 0; border-radius: 8px; cursor: pointer; }
+.modal-icon { width: 42px; height: 42px; display: grid; place-items: center; color: var(--accent-dark); background: #fff0ed; border-radius: 11px; margin-bottom: 18px; }
+.eyebrow { margin: 0 0 5px; color: var(--accent-dark); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; font-weight: 760; }
+.modal-card h2 { margin: 0; font-size: 25px; letter-spacing: -.035em; }
+.modal-intro { margin: 9px 0 20px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.clipboard-button { height: 34px; margin-bottom: 9px; border: 1px solid var(--line); background: #f8f8fa; color: #4b5162; }
+.modal-card textarea { width: 100%; min-height: 156px; resize: vertical; border: 1px solid #d8dbe3; border-radius: 9px; background: #f8f8fa; color: #313746; padding: 13px; font-family: "DM Mono", monospace; font-size: 12px; line-height: 1.55; }
+.modal-actions { justify-content: flex-end; gap: 9px; margin-top: 18px; }
+.segmented-control { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #f0f1f4; border-radius: 9px; }
+.segmented-control button { height: 36px; border: 0; border-radius: 7px; color: #777c8c; background: transparent; font-size: 12px; font-weight: 650; cursor: pointer; }
+.segmented-control button.is-active { color: var(--ink); background: white; box-shadow: 0 1px 4px rgba(32,42,72,.1); }
+.export-summary { gap: 16px; margin: 14px 2px 8px; color: #8b90a0; font-size: 10px; }
+.export-summary span { position: relative; }
+.export-summary span + span::before { content: "·"; position: absolute; left: -10px; }
+.export-code { min-height: 180px !important; }
+.export-track-list { display: grid; gap: 7px; max-height: 210px; overflow: auto; padding-right: 3px; }
+.export-track {
+  display: grid;
+  grid-template-columns: 18px 8px minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 10px;
+  min-height: 51px;
+  padding: 8px 10px;
+  border: 1px solid var(--soft-line);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.export-track:hover { background: #fafafd; }
+.export-track.has-warning { color: #9a725b; background: #fffaf6; cursor: not-allowed; }
+.export-track input { accent-color: var(--accent); }
+.export-track-dot { width: 8px; height: 8px; border-radius: 50%; }
+.export-track-name { min-width: 0; display: flex; flex-direction: column; }
+.export-track-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.export-track-name small { color: #9196a5; font-size: 9px; margin-top: 2px; }
+.export-track-length { color: #858a99; font-size: 10px; white-space: nowrap; }
+.export-track-number { color: #b0b4c0; font-family: "DM Mono", monospace; font-size: 9px; text-align: right; }
+.export-actions { justify-content: stretch; }
+.export-actions button { flex: 1; }
+.help-modal { width: min(480px, 100%); }
+.help-steps { display: grid; gap: 10px; margin: 22px 0; }
+.help-steps > div { display: grid; grid-template-columns: 32px 1fr; gap: 11px; padding: 12px; border: 1px solid var(--soft-line); border-radius: 10px; }
+.help-steps > div > span { width: 28px; height: 28px; display: grid; place-items: center; color: white; background: var(--navy); border-radius: 8px; font-size: 11px; font-weight: 720; }
+.help-steps p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.help-steps strong { display: block; color: var(--ink); margin-bottom: 2px; }
+.full-button { width: 100%; }
+.toast { position: fixed; z-index: 70; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; max-width: calc(100% - 30px); color: white; background: var(--navy); border: 1px solid rgba(255,255,255,.1); border-radius: 9px; padding: 11px 15px; box-shadow: 0 12px 34px rgba(20,27,48,.25); font-size: 12px; font-weight: 620; }
+.toast svg { color: #83d0ad; flex: 0 0 auto; }
+
+[hidden] { display: none !important; }
+
+@media (max-width: 1050px) {
+  .topbar { grid-template-columns: auto minmax(220px, 1fr) auto; }
+  .brand-pill, .save-button, .field-control > span:first-child, .selection-tools > span { display: none; }
+  .workspace { grid-template-columns: 230px minmax(0, 1fr); }
+  .track-panel { min-width: 0; }
+}
+
+@media (max-width: 760px) {
+  body { overflow: hidden; }
+  .app-shell { grid-template-rows: 58px 56px minmax(0, 1fr); }
+  .topbar { grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; padding: 0 11px; }
+  .brand { gap: 7px; }
+  .brand-mark { width: 32px; height: 32px; border-radius: 9px; }
+  .brand-name { display: none; }
+  .project-title-wrap { justify-content: stretch; }
+  .project-title { font-size: 12px; text-align: left; padding-left: 6px; }
+  .save-state, .help-button, .topbar .secondary-button { display: none; }
+  .topbar .primary-button { width: 38px; padding: 0; }
+  .topbar .primary-button span { display: none; }
+  .controlbar { gap: 9px; padding: 0 10px; }
+  .control-divider, .history-actions, .loop-button { display: none; }
+  .import-button { width: 34px; padding: 0; }
+  .import-button { font-size: 0; gap: 0; }
+  .tempo-control > span:first-child { display: none; }
+  .workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 78px minmax(0, 1fr); }
+  .track-panel { border-right: 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 45px; grid-template-rows: 1fr; overflow: hidden; }
+  .track-panel-heading { grid-column: 2; grid-row: 1; height: auto; padding: 0; border: 0; border-left: 1px solid var(--line); }
+  .track-panel-heading > div { display: none; }
+  .add-track-button { width: 100%; height: 100%; justify-content: center; font-size: 0; }
+  .add-track-button svg { width: 20px; height: 20px; }
+  .track-list { grid-column: 1; grid-row: 1; flex-direction: row; padding: 7px; gap: 6px; overflow-x: auto; overflow-y: hidden; }
+  .track-card { min-width: 182px; min-height: 62px; grid-template-columns: 4px 22px minmax(0, 1fr) auto; }
+  .track-tools button:last-child { display: none; }
+  .track-tools { opacity: 1; }
+  .track-tip { display: none; }
+  .roll-panel { grid-template-rows: 42px minmax(0, 1fr); }
+  .roll-heading { padding: 0 10px; }
+  .active-track-label span:last-child { display: none; }
+  .timeline-wrap { grid-template-columns: 62px minmax(0, 1fr); }
+  .piano-key { padding-right: 6px; }
+  .piano-key.is-black { width: 76%; }
+  .modal-backdrop { padding: 10px; align-items: end; }
+  .modal-card { max-height: calc(100dvh - 20px); padding: 25px 19px 20px; border-radius: 16px 16px 12px 12px; }
+  .modal-card h2 { font-size: 22px; }
+  .modal-intro { font-size: 12px; }
+  .export-actions { flex-direction: column-reverse; }
+  .export-actions button { width: 100%; }
+  .toast { bottom: 13px; }
+}
+
+@media (max-width: 390px) {
+  .field-control:not(.tempo-control) { display: none; }
+  .brand-mark { width: 30px; height: 30px; }
+  .topbar { padding: 0 8px; }
+  .project-title { max-width: 185px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+
+    </style>
   </head>
   <body>
     <main class="app-shell">
@@ -129,6 +478,1010 @@
       </div>
       <div id="toast" class="toast" role="status" hidden></div>
     </main>
-    <script type="module" src="/main.js"></script>
+    <script>
+const COLORS = ["#ee6a5b", "#4f78c8", "#7b61c9", "#2f9d78", "#d58a32", "#d04f88"];
+const PITCH_MIN = 48;
+const PITCH_MAX = 95;
+const ROW_HEIGHT = 28;
+const SIXTEENTH_WIDTH = 24;
+const TOTAL_TICKS = 128;
+const GRID_WIDTH = TOTAL_TICKS * SIXTEENTH_WIDTH;
+const PITCHES = Array.from({ length: PITCH_MAX - PITCH_MIN + 1 }, (_, index) => PITCH_MAX - index);
+const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const BLACK_KEYS = new Set([1, 3, 6, 8, 10]);
+
+function uid(prefix = "id") {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function makeNotes(rawNotes, prefix, velocity) {
+  return rawNotes.map(([pitch, start, duration], index) => ({
+    id: `${prefix}-${index}`,
+    pitch,
+    start,
+    duration,
+    velocity,
+  }));
+}
+
+const demoTracks = [
+  {
+    id: "track-1",
+    name: "Main melody",
+    instrument: "Lute",
+    color: COLORS[0],
+    muted: false,
+    notes: makeNotes([
+      [60, 0, 4], [64, 4, 4], [67, 8, 4], [72, 12, 8], [71, 20, 4],
+      [67, 24, 4], [69, 28, 8], [67, 36, 4], [64, 40, 4], [60, 44, 8],
+    ], "demo", 104),
+  },
+  {
+    id: "track-2",
+    name: "Harmony",
+    instrument: "Mandolin",
+    color: COLORS[1],
+    muted: false,
+    notes: makeNotes([
+      [48, 0, 8], [52, 8, 8], [55, 16, 8], [53, 24, 8], [48, 32, 8], [55, 40, 8],
+    ], "harmony", 82),
+  },
+];
+
+const state = {
+  tracks: demoTracks,
+  activeTrackId: demoTracks[0].id,
+  tempo: 120,
+  snap: 1,
+  noteDuration: 4,
+  selectedNoteId: null,
+  isPlaying: false,
+  playhead: 0,
+  loop: false,
+  saved: true,
+  projectName: "New day in Tir Chonaill",
+  history: [],
+  future: [],
+  exportSelection: new Set(),
+};
+
+const audio = {
+  context: null,
+  nodes: [],
+  animationFrame: null,
+  startedAt: 0,
+  origin: 0,
+};
+
+const drag = {
+  active: false,
+  noteId: null,
+  originX: 0,
+  originY: 0,
+  start: 0,
+  pitch: 0,
+  snapshot: null,
+};
+
+const elements = {
+  projectTitle: document.querySelector("#project-title"),
+  saveState: document.querySelector("#save-state"),
+  tempo: document.querySelector("#tempo"),
+  snap: document.querySelector("#snap"),
+  noteDuration: document.querySelector("#note-duration"),
+  playToggle: document.querySelector("#play-toggle"),
+  loopToggle: document.querySelector("#loop-toggle"),
+  trackList: document.querySelector("#track-list"),
+  trackCount: document.querySelector("#track-count"),
+  activeTrackName: document.querySelector("#active-track-name"),
+  activeInstrument: document.querySelector("#active-instrument"),
+  activeDot: document.querySelector("#active-dot"),
+  selectionTools: document.querySelector("#selection-tools"),
+  timelineScroll: document.querySelector("#timeline-scroll"),
+  timeline: document.querySelector("#timeline"),
+  timelinePlayhead: document.querySelector("#timeline-playhead"),
+  keyScroll: document.querySelector("#key-scroll"),
+  pianoKeys: document.querySelector("#piano-keys"),
+  gridScroll: document.querySelector("#grid-scroll"),
+  noteGrid: document.querySelector("#note-grid"),
+  gridPlayhead: document.querySelector("#grid-playhead"),
+  undo: document.querySelector("#undo-action"),
+  redo: document.querySelector("#redo-action"),
+  midiFile: document.querySelector("#midi-file"),
+  modalBackdrop: document.querySelector("#modal-backdrop"),
+  modalClose: document.querySelector("#modal-close"),
+  mmlInput: document.querySelector("#mml-input"),
+  exportTrackList: document.querySelector("#export-track-list"),
+  exportSummary: document.querySelector("#export-summary"),
+  exportCode: document.querySelector("#export-code"),
+  toast: document.querySelector("#toast"),
+};
+
+function cloneTracks(tracks = state.tracks) {
+  return tracks.map((track) => ({ ...track, notes: track.notes.map((note) => ({ ...note })) }));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function activeTrack() {
+  return state.tracks.find((track) => track.id === state.activeTrackId) || state.tracks[0];
+}
+
+function noteLabel(pitch) {
+  return `${NOTE_NAMES[pitch % 12]}${Math.floor(pitch / 12) - 1}`;
+}
+
+function markUnsaved() {
+  state.saved = false;
+  renderSaveState();
+}
+
+function notify(message) {
+  elements.toast.textContent = `✓  ${message}`;
+  elements.toast.hidden = false;
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(() => {
+    elements.toast.hidden = true;
+  }, 2600);
+}
+
+function commitTracks(nextTracks) {
+  state.history.push(cloneTracks());
+  state.history = state.history.slice(-25);
+  state.future = [];
+  state.tracks = typeof nextTracks === "function" ? nextTracks(cloneTracks()) : nextTracks;
+  markUnsaved();
+  renderAll();
+}
+
+function renderSaveState() {
+  elements.saveState.textContent = state.saved ? "✓ Saved" : "Unsaved";
+  elements.saveState.classList.toggle("is-saved", state.saved);
+}
+
+function renderHistory() {
+  elements.undo.disabled = state.history.length === 0;
+  elements.redo.disabled = state.future.length === 0;
+}
+
+function renderTracks() {
+  elements.trackCount.textContent = state.tracks.length;
+  elements.trackList.innerHTML = state.tracks.map((track, index) => `
+    <article class="track-card ${track.id === state.activeTrackId ? "is-active" : ""}" data-track-id="${track.id}" style="--track-color:${track.color}">
+      <span class="track-stripe"></span>
+      <span class="track-index">${String(index + 1).padStart(2, "0")}</span>
+      <div class="track-copy">
+        <input value="${escapeHtml(track.name)}" aria-label="Name for track ${index + 1}" data-track-name="${track.id}" />
+        <span>${escapeHtml(track.instrument)} · ${track.notes.length} notes</span>
+      </div>
+      <div class="track-tools">
+        <button data-mute-track="${track.id}" aria-label="${track.muted ? "Unmute" : "Mute"} ${escapeHtml(track.name)}">${track.muted ? "⊘" : "◖"}</button>
+        <button data-delete-track="${track.id}" aria-label="Delete ${escapeHtml(track.name)}">×</button>
+      </div>
+    </article>
+  `).join("");
+
+  elements.trackList.querySelectorAll(".track-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      state.activeTrackId = card.dataset.trackId;
+      state.selectedNoteId = null;
+      renderAll();
+    });
+  });
+  elements.trackList.querySelectorAll("[data-track-name]").forEach((input) => {
+    input.addEventListener("click", (event) => event.stopPropagation());
+    input.addEventListener("change", (event) => {
+      const track = state.tracks.find((item) => item.id === input.dataset.trackName);
+      if (!track) return;
+      track.name = event.target.value.trim() || "Untitled track";
+      markUnsaved();
+      renderTracks();
+      renderRollHeading();
+    });
+  });
+  elements.trackList.querySelectorAll("[data-mute-track]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const id = button.dataset.muteTrack;
+      commitTracks((tracks) => tracks.map((track) => track.id === id ? { ...track, muted: !track.muted } : track));
+    });
+  });
+  elements.trackList.querySelectorAll("[data-delete-track]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      removeTrack(button.dataset.deleteTrack);
+    });
+  });
+}
+
+function renderRollHeading() {
+  const track = activeTrack();
+  if (!track) return;
+  elements.activeTrackName.textContent = track.name;
+  elements.activeInstrument.textContent = track.instrument;
+  elements.activeDot.style.background = track.color;
+  if (state.selectedNoteId) {
+    elements.selectionTools.innerHTML = '<button id="delete-note">⌫ Delete note</button>';
+    document.querySelector("#delete-note").addEventListener("click", deleteSelectedNote);
+  } else {
+    elements.selectionTools.innerHTML = "<span>Select a note to move or delete it</span>";
+  }
+}
+
+function renderNotes() {
+  elements.noteGrid.querySelectorAll(".note-block").forEach((note) => note.remove());
+  const track = activeTrack();
+  if (!track) return;
+  const fragment = document.createDocumentFragment();
+  track.notes.forEach((note) => {
+    const button = document.createElement("button");
+    button.className = `note-block ${note.id === state.selectedNoteId ? "is-selected" : ""}`;
+    button.dataset.noteId = note.id;
+    button.style.left = `${note.start * SIXTEENTH_WIDTH + 2}px`;
+    button.style.top = `${(PITCH_MAX - note.pitch) * ROW_HEIGHT + 3}px`;
+    button.style.width = `${Math.max(18, note.duration * SIXTEENTH_WIDTH - 4)}px`;
+    button.style.height = `${ROW_HEIGHT - 6}px`;
+    button.style.background = track.color;
+    button.title = `${noteLabel(note.pitch)} · ${note.duration}/16`;
+    button.innerHTML = `<span>${noteLabel(note.pitch)}</span>`;
+    button.addEventListener("pointerdown", beginNoteDrag);
+    fragment.append(button);
+  });
+  elements.noteGrid.append(fragment);
+}
+
+function renderPlayhead() {
+  const left = `${state.playhead * SIXTEENTH_WIDTH}px`;
+  elements.timelinePlayhead.style.left = left;
+  elements.gridPlayhead.style.left = left;
+}
+
+function renderAll() {
+  renderTracks();
+  renderRollHeading();
+  renderNotes();
+  renderPlayhead();
+  renderHistory();
+  renderSaveState();
+}
+
+function buildStaticGrid() {
+  elements.timeline.style.width = `${GRID_WIDTH}px`;
+  for (let index = 0; index < TOTAL_TICKS / 16; index += 1) {
+    const label = document.createElement("span");
+    label.style.left = `${index * 16 * SIXTEENTH_WIDTH}px`;
+    label.textContent = index + 1;
+    elements.timeline.insertBefore(label, elements.timelinePlayhead);
+  }
+
+  elements.pianoKeys.style.height = `${PITCHES.length * ROW_HEIGHT}px`;
+  elements.pianoKeys.innerHTML = PITCHES.map((pitch) => `
+    <div class="piano-key ${BLACK_KEYS.has(pitch % 12) ? "is-black" : ""} ${pitch % 12 === 0 ? "is-c" : ""}">
+      <span>${pitch % 12 === 0 || BLACK_KEYS.has(pitch % 12) ? noteLabel(pitch) : ""}</span>
+    </div>
+  `).join("");
+
+  elements.noteGrid.style.width = `${GRID_WIDTH}px`;
+  elements.noteGrid.style.height = `${PITCHES.length * ROW_HEIGHT}px`;
+  const fragment = document.createDocumentFragment();
+  PITCHES.forEach((pitch, index) => {
+    const row = document.createElement("span");
+    row.className = `pitch-row ${BLACK_KEYS.has(pitch % 12) ? "is-black" : ""} ${pitch % 12 === 0 ? "is-c" : ""}`;
+    row.style.top = `${index * ROW_HEIGHT}px`;
+    fragment.append(row);
+  });
+  for (let tick = 0; tick <= TOTAL_TICKS; tick += 1) {
+    const line = document.createElement("span");
+    line.className = `tick-line ${tick % 16 === 0 ? "is-measure" : tick % 4 === 0 ? "is-beat" : ""}`;
+    line.style.left = `${tick * SIXTEENTH_WIDTH}px`;
+    fragment.append(line);
+  }
+  elements.noteGrid.insertBefore(fragment, elements.gridPlayhead);
+}
+
+function addTrack() {
+  const next = {
+    id: uid("track"),
+    name: `Track ${state.tracks.length + 1}`,
+    instrument: "Lute",
+    color: COLORS[state.tracks.length % COLORS.length],
+    muted: false,
+    notes: [],
+  };
+  commitTracks((tracks) => [...tracks, next]);
+  state.activeTrackId = next.id;
+  renderAll();
+}
+
+function removeTrack(id) {
+  if (state.tracks.length === 1) {
+    notify("A score needs at least one track.");
+    return;
+  }
+  const remaining = state.tracks.filter((track) => track.id !== id);
+  commitTracks(remaining);
+  if (state.activeTrackId === id) state.activeTrackId = remaining[0].id;
+  renderAll();
+}
+
+function deleteSelectedNote() {
+  if (!state.selectedNoteId) return;
+  const selectedId = state.selectedNoteId;
+  state.selectedNoteId = null;
+  commitTracks((tracks) => tracks.map((track) => ({
+    ...track,
+    notes: track.notes.filter((note) => note.id !== selectedId),
+  })));
+}
+
+function addNoteFromPointer(event) {
+  if (event.target.closest(".note-block")) return;
+  const track = activeTrack();
+  if (!track) return;
+  const rectangle = elements.noteGrid.getBoundingClientRect();
+  const x = event.clientX - rectangle.left;
+  const y = event.clientY - rectangle.top;
+  const start = Math.max(0, Math.min(
+    TOTAL_TICKS - state.noteDuration,
+    Math.floor(x / (SIXTEENTH_WIDTH * state.snap)) * state.snap,
+  ));
+  const row = Math.max(0, Math.min(PITCHES.length - 1, Math.floor(y / ROW_HEIGHT)));
+  const note = {
+    id: uid("note"),
+    pitch: PITCHES[row],
+    start,
+    duration: state.noteDuration,
+    velocity: 104,
+  };
+  state.selectedNoteId = note.id;
+  commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
+}
+
+function beginNoteDrag(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const noteId = event.currentTarget.dataset.noteId;
+  const note = activeTrack().notes.find((item) => item.id === noteId);
+  if (!note) return;
+  state.selectedNoteId = noteId;
+  drag.active = true;
+  drag.noteId = noteId;
+  drag.originX = event.clientX;
+  drag.originY = event.clientY;
+  drag.start = note.start;
+  drag.pitch = note.pitch;
+  drag.snapshot = cloneTracks();
+  renderRollHeading();
+  renderNotes();
+}
+
+function moveNoteDrag(event) {
+  if (!drag.active) return;
+  const tickDelta = Math.round((event.clientX - drag.originX) / (SIXTEENTH_WIDTH * state.snap)) * state.snap;
+  const pitchDelta = -Math.round((event.clientY - drag.originY) / ROW_HEIGHT);
+  const track = activeTrack();
+  const note = track.notes.find((item) => item.id === drag.noteId);
+  if (!note) return;
+  note.start = Math.max(0, Math.min(TOTAL_TICKS - note.duration, drag.start + tickDelta));
+  note.pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, drag.pitch + pitchDelta));
+  markUnsaved();
+  renderNotes();
+}
+
+function endNoteDrag() {
+  if (!drag.active) return;
+  state.history.push(drag.snapshot);
+  state.history = state.history.slice(-25);
+  state.future = [];
+  drag.active = false;
+  drag.snapshot = null;
+  renderHistory();
+}
+
+function undo() {
+  const previous = state.history.pop();
+  if (!previous) return;
+  state.future.unshift(cloneTracks());
+  state.tracks = previous;
+  if (!state.tracks.some((track) => track.id === state.activeTrackId)) state.activeTrackId = state.tracks[0].id;
+  state.selectedNoteId = null;
+  markUnsaved();
+  renderAll();
+}
+
+function redo() {
+  const next = state.future.shift();
+  if (!next) return;
+  state.history.push(cloneTracks());
+  state.tracks = next;
+  if (!state.tracks.some((track) => track.id === state.activeTrackId)) state.activeTrackId = state.tracks[0].id;
+  state.selectedNoteId = null;
+  markUnsaved();
+  renderAll();
+}
+
+function songEnd() {
+  const ends = state.tracks.flatMap((track) => track.notes.map((note) => note.start + note.duration));
+  return Math.max(64, ...ends);
+}
+
+function stopPlayback(reset = false) {
+  audio.nodes.forEach((node) => {
+    try { node.stop(); } catch { /* The note already ended. */ }
+  });
+  audio.nodes = [];
+  if (audio.animationFrame) cancelAnimationFrame(audio.animationFrame);
+  audio.animationFrame = null;
+  state.isPlaying = false;
+  elements.playToggle.textContent = "▶";
+  elements.playToggle.setAttribute("aria-label", "Play score");
+  if (reset) {
+    state.playhead = 0;
+    renderPlayhead();
+  }
+}
+
+async function startPlayback() {
+  if (state.isPlaying) {
+    stopPlayback();
+    return;
+  }
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    notify("Audio playback is not supported in this browser.");
+    return;
+  }
+  if (!audio.context) audio.context = new AudioContextClass();
+  const context = audio.context;
+  await context.resume();
+  const secondsPerTick = 60 / state.tempo / 4;
+  const origin = state.playhead >= songEnd() ? 0 : state.playhead;
+  audio.origin = origin;
+  audio.startedAt = context.currentTime;
+  state.isPlaying = true;
+  elements.playToggle.textContent = "❚❚";
+  elements.playToggle.setAttribute("aria-label", "Pause playback");
+
+  state.tracks.filter((track) => !track.muted).forEach((track, trackIndex) => {
+    track.notes.forEach((note) => {
+      if (note.start + note.duration <= origin) return;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = trackIndex % 2 ? "sine" : "triangle";
+      oscillator.frequency.value = 440 * Math.pow(2, (note.pitch - 69) / 12);
+      const start = context.currentTime + Math.max(0, note.start - origin) * secondsPerTick;
+      const end = context.currentTime + Math.max(0.04, note.start + note.duration - origin) * secondsPerTick;
+      const volume = Math.min(0.12, (note.velocity / 127) * 0.09);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+      gain.gain.setValueAtTime(volume, Math.max(start + 0.013, end - 0.035));
+      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(end + 0.02);
+      audio.nodes.push(oscillator);
+    });
+  });
+
+  function update() {
+    const position = audio.origin + (context.currentTime - audio.startedAt) / secondsPerTick;
+    if (position >= songEnd()) {
+      if (state.loop) {
+        stopPlayback(true);
+        setTimeout(startPlayback, 30);
+      } else {
+        stopPlayback(true);
+      }
+      return;
+    }
+    state.playhead = position;
+    renderPlayhead();
+    audio.animationFrame = requestAnimationFrame(update);
+  }
+  audio.animationFrame = requestAnimationFrame(update);
+}
+
+function tickLength(denominator, dots = 0) {
+  let value = 16 / denominator;
+  let addition = value / 2;
+  for (let index = 0; index < dots; index += 1) {
+    value += addition;
+    addition /= 2;
+  }
+  return Math.max(1, Math.round(value));
+}
+
+function parseMml(source) {
+  const body = source.trim().replace(/^MML@/i, "").replace(/;\s*$/, "");
+  if (!body) throw new Error("No MML notes were found.");
+  const parts = body.split(",").map((part) => part.replace(/\s+/g, ""));
+  let importedTempo = null;
+
+  const tracks = parts.map((part, partIndex) => {
+    let cursor = 0;
+    let octave = 4;
+    let defaultLength = 4;
+    let volume = 10;
+    let index = 0;
+    let pendingTie = false;
+    const notes = [];
+
+    function readNumber() {
+      let raw = "";
+      while (/\d/.test(part[index] || "")) raw += part[index++];
+      return raw ? Number(raw) : null;
+    }
+
+    while (index < part.length) {
+      const command = part[index++].toLowerCase();
+      if (command === "<") { octave -= 1; continue; }
+      if (command === ">") { octave += 1; continue; }
+      if (command === "o") { octave = readNumber() ?? octave; continue; }
+      if (command === "l") { defaultLength = readNumber() ?? defaultLength; continue; }
+      if (command === "v") { volume = readNumber() ?? volume; continue; }
+      if (command === "t") {
+        const value = readNumber();
+        if (value) importedTempo = Math.min(240, Math.max(32, value));
+        continue;
+      }
+      if (command === "&") { pendingTie = true; continue; }
+      if (command === "n") {
+        const pitch = readNumber();
+        if (pitch !== null) {
+          const duration = tickLength(defaultLength);
+          notes.push({ id: uid("note"), pitch, start: cursor, duration, velocity: Math.min(127, volume * 8) });
+          cursor += duration;
+        }
+        pendingTie = part[index] === "&";
+        if (pendingTie) index += 1;
+        continue;
+      }
+      if (command !== "r" && !"cdefgab".includes(command)) continue;
+
+      let accidental = 0;
+      if (part[index] === "+" || part[index] === "#") { accidental = 1; index += 1; }
+      else if (part[index] === "-") { accidental = -1; index += 1; }
+      const denominator = readNumber() ?? defaultLength;
+      let dots = 0;
+      while (part[index] === ".") { dots += 1; index += 1; }
+      const duration = tickLength(denominator, dots);
+      if (command !== "r") {
+        const semitone = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[command];
+        const pitch = (octave + 1) * 12 + semitone + accidental;
+        const previous = notes.at(-1);
+        if (pendingTie && previous && previous.pitch === pitch && previous.start + previous.duration === cursor) {
+          previous.duration += duration;
+        } else {
+          notes.push({
+            id: uid("note"),
+            pitch,
+            start: cursor,
+            duration,
+            velocity: Math.min(127, Math.max(1, Math.round(volume * 8))),
+          });
+        }
+      }
+      cursor += duration;
+      pendingTie = part[index] === "&";
+      if (pendingTie) index += 1;
+    }
+
+    return {
+      id: uid("track"),
+      name: parts.length === 1 ? "Imported melody" : `MML part ${partIndex + 1}`,
+      instrument: partIndex === 0 ? "Lute" : "Mandolin",
+      color: COLORS[partIndex % COLORS.length],
+      muted: false,
+      notes: notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
+    };
+  });
+  return { tracks, tempo: importedTempo };
+}
+
+function splitDuration(duration) {
+  const values = [16, 12, 8, 6, 4, 3, 2, 1];
+  const labels = { 16: "1", 12: "2.", 8: "2", 6: "4.", 4: "4", 3: "8.", 2: "8", 1: "16" };
+  const result = [];
+  let left = Math.max(1, Math.round(duration));
+  for (const value of values) {
+    while (left >= value) {
+      result.push(labels[value]);
+      left -= value;
+    }
+  }
+  return result;
+}
+
+function trackToMml(track, tempo) {
+  const pitchNames = ["c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b"];
+  const notes = [...track.notes].sort((a, b) => a.start - b.start || b.pitch - a.pitch);
+  let cursor = 0;
+  let octave = 4;
+  let output = `t${tempo}v12o4`;
+  for (const note of notes) {
+    if (note.start < cursor) continue;
+    const rest = Math.round(note.start - cursor);
+    if (rest > 0) output += splitDuration(rest).map((length) => `r${length}`).join("");
+    const targetOctave = Math.floor(note.pitch / 12) - 1;
+    if (targetOctave !== octave) {
+      output += `o${targetOctave}`;
+      octave = targetOctave;
+    }
+    const pitchName = pitchNames[note.pitch % 12];
+    output += splitDuration(note.duration)
+      .map((length, index) => `${index ? "&" : ""}${pitchName}${length}`)
+      .join("");
+    cursor = Math.round(note.start + note.duration);
+  }
+  return output;
+}
+
+function toMml(tracks, tempo) {
+  return `MML@${tracks.map((track) => trackToMml(track, tempo)).join(",")};`;
+}
+
+function trackHasPolyphony(track) {
+  const notes = [...track.notes].sort((a, b) => a.start - b.start || a.pitch - b.pitch);
+  let latestEnd = -1;
+  for (const note of notes) {
+    if (note.start < latestEnd) return true;
+    latestEnd = Math.max(latestEnd, note.start + note.duration);
+  }
+  return false;
+}
+
+function readVariableLength(data, offset) {
+  let value = 0;
+  let byte = 0;
+  let next = offset;
+  do {
+    byte = data.getUint8(next++);
+    value = (value << 7) | (byte & 0x7f);
+  } while (byte & 0x80);
+  return { value, offset: next };
+}
+
+function parseMidi(buffer) {
+  const data = new DataView(buffer);
+  const text = (offset, length) => String.fromCharCode(...Array.from({ length }, (_, index) => data.getUint8(offset + index)));
+  if (text(0, 4) !== "MThd") throw new Error("This does not look like a standard MIDI file.");
+  const headerLength = data.getUint32(4);
+  const trackCount = data.getUint16(10);
+  const division = data.getUint16(12);
+  if (division & 0x8000) throw new Error("SMPTE-timed MIDI files are not supported yet.");
+  const ppq = division;
+  let offset = 8 + headerLength;
+  let tempo = null;
+  const collected = [];
+  const trackNames = {};
+
+  for (let trackIndex = 0; trackIndex < trackCount; trackIndex += 1) {
+    if (text(offset, 4) !== "MTrk") throw new Error("A MIDI track could not be read.");
+    const length = data.getUint32(offset + 4);
+    let cursor = offset + 8;
+    const end = cursor + length;
+    let absolute = 0;
+    let runningStatus = 0;
+    const active = new Map();
+    while (cursor < end) {
+      const delta = readVariableLength(data, cursor);
+      absolute += delta.value;
+      cursor = delta.offset;
+      let status = data.getUint8(cursor);
+      if (status < 0x80) status = runningStatus;
+      else {
+        cursor += 1;
+        if (status < 0xf0) runningStatus = status;
+      }
+      if (status === 0xff) {
+        const type = data.getUint8(cursor++);
+        const metaLength = readVariableLength(data, cursor);
+        cursor = metaLength.offset;
+        if (type === 0x51 && metaLength.value === 3 && tempo === null) {
+          const microseconds = (data.getUint8(cursor) << 16) | (data.getUint8(cursor + 1) << 8) | data.getUint8(cursor + 2);
+          tempo = Math.round(60000000 / microseconds);
+        }
+        if (type === 0x03) trackNames[trackIndex] = text(cursor, metaLength.value);
+        cursor += metaLength.value;
+        continue;
+      }
+      if (status === 0xf0 || status === 0xf7) {
+        const sysexLength = readVariableLength(data, cursor);
+        cursor = sysexLength.offset + sysexLength.value;
+        continue;
+      }
+      const event = status & 0xf0;
+      const channel = status & 0x0f;
+      const data1 = data.getUint8(cursor++);
+      const oneByte = event === 0xc0 || event === 0xd0;
+      const data2 = oneByte ? 0 : data.getUint8(cursor++);
+      if (event === 0x90 && data2 > 0) {
+        const key = `${channel}:${data1}`;
+        const stack = active.get(key) || [];
+        stack.push({ start: absolute, velocity: data2 });
+        active.set(key, stack);
+      } else if (event === 0x80 || (event === 0x90 && data2 === 0)) {
+        const key = `${channel}:${data1}`;
+        const stack = active.get(key);
+        const started = stack?.shift();
+        if (started) collected.push({ pitch: data1, start: started.start, end: absolute, velocity: started.velocity, source: trackIndex, channel });
+      }
+    }
+    offset = end;
+  }
+
+  const groups = new Map();
+  collected.forEach((note) => {
+    const key = `${note.source}:${note.channel}`;
+    const group = groups.get(key) || [];
+    group.push(note);
+    groups.set(key, group);
+  });
+  const tracks = [];
+  let colorIndex = 0;
+  for (const [key, group] of groups) {
+    const sourceIndex = Number(key.split(":")[0]);
+    const lanes = [];
+    group.sort((a, b) => a.start - b.start || a.pitch - b.pitch);
+    group.forEach((item) => {
+      const start = Math.round((item.start / ppq) * 4);
+      const duration = Math.max(1, Math.round(((item.end - item.start) / ppq) * 4));
+      let lane = lanes.find((candidate) => candidate.end <= start);
+      if (!lane) {
+        lane = { end: 0, notes: [] };
+        lanes.push(lane);
+      }
+      lane.notes.push({ id: uid("note"), pitch: item.pitch, start, duration, velocity: item.velocity });
+      lane.end = start + duration;
+    });
+    lanes.forEach((lane, laneIndex) => {
+      const baseName = trackNames[sourceIndex] || `MIDI track ${sourceIndex + 1}`;
+      tracks.push({
+        id: uid("track"),
+        name: lanes.length > 1 ? `${baseName} · voice ${laneIndex + 1}` : baseName,
+        instrument: "Lute",
+        color: COLORS[colorIndex++ % COLORS.length],
+        muted: false,
+        notes: lane.notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
+      });
+    });
+  }
+  if (!tracks.length) throw new Error("The MIDI file did not contain any playable notes.");
+  return { tracks, tempo };
+}
+
+function syncTempoControl() {
+  if (![...elements.tempo.options].some((option) => Number(option.value) === state.tempo)) {
+    const option = document.createElement("option");
+    option.value = state.tempo;
+    option.textContent = `${state.tempo} BPM`;
+    elements.tempo.append(option);
+  }
+  elements.tempo.value = state.tempo;
+}
+
+function openModal(name) {
+  elements.modalBackdrop.hidden = false;
+  document.querySelectorAll(".modal-view").forEach((view) => { view.hidden = true; });
+  document.querySelector(`#${name}-modal`).hidden = false;
+  if (name === "export") {
+    state.exportSelection = new Set(state.tracks.filter((track) => !trackHasPolyphony(track)).map((track) => track.id));
+    renderExport();
+  }
+  setTimeout(() => elements.modalClose.focus(), 0);
+}
+
+function closeModal() {
+  elements.modalBackdrop.hidden = true;
+}
+
+function renderExport() {
+  elements.exportTrackList.innerHTML = state.tracks.map((track, index) => {
+    const hasPolyphony = trackHasPolyphony(track);
+    const characters = trackToMml(track, state.tempo).length;
+    return `
+      <label class="export-track ${hasPolyphony ? "has-warning" : ""}">
+        <input type="checkbox" value="${track.id}" ${state.exportSelection.has(track.id) ? "checked" : ""} ${hasPolyphony ? "disabled" : ""} />
+        <span class="export-track-dot" style="background:${track.color}"></span>
+        <span class="export-track-name"><strong>${escapeHtml(track.name)}</strong><small>${track.notes.length} notes</small></span>
+        <span class="export-track-length">${hasPolyphony ? "Overlapping notes" : `${characters} chars`}</span>
+        <span class="export-track-number">${index + 1}</span>
+      </label>
+    `;
+  }).join("");
+  elements.exportTrackList.querySelectorAll("input").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) state.exportSelection.add(checkbox.value);
+      else state.exportSelection.delete(checkbox.value);
+      renderExportPreview();
+    });
+  });
+  renderExportPreview();
+}
+
+function renderExportPreview() {
+  const selected = state.tracks.filter((track) => state.exportSelection.has(track.id));
+  const value = toMml(selected, state.tempo);
+  elements.exportCode.value = value;
+  elements.exportSummary.innerHTML = `
+    <span>${selected.length} ${selected.length === 1 ? "track" : "tracks"}</span>
+    <span>${selected.reduce((sum, track) => sum + track.notes.length, 0)} notes</span>
+    <span>${state.tempo} BPM</span>
+    <span>${value.length} characters</span>
+  `;
+}
+
+function importMml() {
+  try {
+    const result = parseMml(elements.mmlInput.value);
+    commitTracks(result.tracks);
+    state.activeTrackId = result.tracks[0].id;
+    if (result.tempo) {
+      state.tempo = result.tempo;
+      syncTempoControl();
+    }
+    closeModal();
+    renderAll();
+    notify(`${result.tracks.length} MML ${result.tracks.length === 1 ? "track" : "tracks"} imported.`);
+  } catch (error) {
+    notify(error.message || "The MML could not be imported.");
+  }
+}
+
+async function importMidiFile(file) {
+  if (!file) return;
+  try {
+    const result = parseMidi(await file.arrayBuffer());
+    commitTracks(result.tracks);
+    state.activeTrackId = result.tracks[0].id;
+    if (result.tempo) {
+      state.tempo = Math.min(240, Math.max(32, result.tempo));
+      syncTempoControl();
+    }
+    renderAll();
+    notify(`${result.tracks.length} playable ${result.tracks.length === 1 ? "track" : "voices"} imported from MIDI.`);
+  } catch (error) {
+    notify(error.message || "The MIDI file could not be imported.");
+  } finally {
+    elements.midiFile.value = "";
+  }
+}
+
+function saveProject() {
+  localStorage.setItem("mabiscore-project", JSON.stringify({
+    tracks: state.tracks,
+    tempo: state.tempo,
+    name: state.projectName,
+  }));
+  state.saved = true;
+  renderSaveState();
+  notify("Draft saved on this device.");
+}
+
+function loadProject() {
+  const raw = localStorage.getItem("mabiscore-project");
+  if (!raw) return;
+  try {
+    const project = JSON.parse(raw);
+    if (!Array.isArray(project.tracks) || !project.tracks.length) return;
+    state.tracks = project.tracks;
+    state.activeTrackId = project.tracks[0].id;
+    state.tempo = project.tempo || 120;
+    state.projectName = project.name || "Untitled score";
+    elements.projectTitle.value = state.projectName;
+    syncTempoControl();
+  } catch {
+    // A damaged local draft should never prevent the editor from opening.
+  }
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(elements.exportCode.value)
+    .then(() => notify("MML copied to clipboard."))
+    .catch(() => {
+      elements.exportCode.select();
+      notify("MML selected—copy it from the text box.");
+    });
+}
+
+function downloadExport() {
+  const blob = new Blob([elements.exportCode.value], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${state.projectName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mabiscore"}.mml`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function bindEvents() {
+  document.querySelectorAll("[data-modal]").forEach((button) => {
+    button.addEventListener("click", () => openModal(button.dataset.modal));
+  });
+  document.querySelectorAll(".modal-cancel").forEach((button) => button.addEventListener("click", closeModal));
+  elements.modalClose.addEventListener("click", closeModal);
+  elements.modalBackdrop.addEventListener("pointerdown", (event) => {
+    if (event.target === elements.modalBackdrop) closeModal();
+  });
+  document.querySelector("#add-track").addEventListener("click", addTrack);
+  document.querySelector("#save-project").addEventListener("click", saveProject);
+  document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
+  elements.playToggle.addEventListener("click", startPlayback);
+  elements.loopToggle.addEventListener("click", () => {
+    state.loop = !state.loop;
+    elements.loopToggle.classList.toggle("is-active", state.loop);
+  });
+  elements.undo.addEventListener("click", undo);
+  elements.redo.addEventListener("click", redo);
+  elements.tempo.addEventListener("change", () => {
+    state.tempo = Number(elements.tempo.value);
+    markUnsaved();
+  });
+  elements.snap.addEventListener("change", () => { state.snap = Number(elements.snap.value); });
+  elements.noteDuration.addEventListener("change", () => { state.noteDuration = Number(elements.noteDuration.value); });
+  elements.projectTitle.addEventListener("input", () => {
+    state.projectName = elements.projectTitle.value;
+    markUnsaved();
+  });
+  document.querySelector("#import-midi").addEventListener("click", () => elements.midiFile.click());
+  elements.midiFile.addEventListener("change", () => importMidiFile(elements.midiFile.files[0]));
+  document.querySelector("#confirm-mml").addEventListener("click", importMml);
+  document.querySelector("#paste-mml").addEventListener("click", async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) elements.mmlInput.value = text;
+    } catch {
+      notify("Paste your MML into the text box below.");
+    }
+  });
+  document.querySelector("#copy-export").addEventListener("click", copyExport);
+  document.querySelector("#download-export").addEventListener("click", downloadExport);
+  elements.noteGrid.addEventListener("pointerdown", addNoteFromPointer);
+  window.addEventListener("pointermove", moveNoteDrag);
+  window.addEventListener("pointerup", endNoteDrag);
+  window.addEventListener("pointercancel", endNoteDrag);
+  elements.gridScroll.addEventListener("scroll", () => {
+    elements.timelineScroll.scrollLeft = elements.gridScroll.scrollLeft;
+    elements.keyScroll.scrollTop = elements.gridScroll.scrollTop;
+  });
+  elements.timelineScroll.addEventListener("pointerdown", (event) => {
+    const rectangle = elements.timeline.getBoundingClientRect();
+    state.playhead = Math.max(0, Math.min(TOTAL_TICKS, (event.clientX - rectangle.left) / SIXTEENTH_WIDTH));
+    renderPlayhead();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !elements.modalBackdrop.hidden) closeModal();
+    if (event.target.matches("input, textarea, select")) return;
+    if ((event.key === "Delete" || event.key === "Backspace") && state.selectedNoteId) {
+      event.preventDefault();
+      deleteSelectedNote();
+    }
+    if (event.code === "Space") {
+      event.preventDefault();
+      startPlayback();
+    }
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
+      event.preventDefault();
+      event.shiftKey ? redo() : undo();
+    }
+  });
+}
+
+buildStaticGrid();
+loadProject();
+bindEvents();
+renderAll();
+requestAnimationFrame(() => {
+  elements.gridScroll.scrollTop = Math.max(0, (PITCH_MAX - 78) * ROW_HEIGHT);
+});
+
+    </script>
   </body>
 </html>

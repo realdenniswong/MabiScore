@@ -1,6 +1,26 @@
 # MabiScore
 
-A responsive Mabinogi MML piano-roll composer built with plain HTML, CSS, and JavaScript.
+A responsive Mabinogi MML piano-roll composer built as one self-contained HTML file.
+
+## Use it locally
+
+Open `index.html` in a modern browser. No installation, Node.js, package manager, build command, or local server is required.
+
+## Edit it
+
+Everything is inside `index.html`:
+
+- Page structure is ordinary HTML.
+- Visual styles are inside the `<style>` element.
+- Application behavior is inside the `<script>` element.
+
+The favicon and social sharing image remain separate static assets.
+
+## Publish it
+
+GitHub Pages publishes the root of the `main` branch directly. Push an updated `index.html` to `main` and GitHub will refresh the site automatically.
+
+Live site: <https://realdenniswong.github.io/MabiScore/>
 
 ## Features
 
@@ -11,23 +31,3 @@ A responsive Mabinogi MML piano-roll composer built with plain HTML, CSS, and Ja
 - Preview playback in the browser
 - Export any selection of monophonic tracks as `MML@...;`
 - Save a local draft in browser storage
-
-## Run locally
-
-```bash
-npm install
-npm run dev
-```
-
-Create a production build with `npm run build`.
-
-## Live sites
-
-- GitHub Pages: <https://realdenniswong.github.io/MabiScore/>
-- Codex Sites: <https://mabiscore-mml-composer.realdenniswong.chatgpt.site>
-
-Every push to `main` automatically refreshes the GitHub Pages deployment.
-
-## Implementation
-
-The application has no React, Vue, TypeScript, or runtime UI dependency. The app lives in `index.html`, `main.js`, and `app/globals.css`; Vite is used only as the development server and production bundler.
