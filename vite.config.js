@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { sites } from "./build/sites-vite-plugin.js";
 
 export default defineConfig({
+  base: process.env.GITHUB_ACTIONS ? "/MabiScore/" : "/",
   plugins: [sites()],
   build: {
     outDir: "dist/client",
