@@ -208,6 +208,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .track-copy span { color: #8b90a0; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .track-tools { display: flex; opacity: 0; }
 .track-card:hover .track-tools, .track-card.is-active .track-tools { opacity: 1; }
+.track-color-input { width: 26px; height: 28px; padding: 5px; border: 0; border-radius: 6px; background: transparent; cursor: pointer; }
+.track-color-input:hover { background: #f0f1f4; }
+.track-color-input::-webkit-color-swatch-wrapper { padding: 0; }
+.track-color-input::-webkit-color-swatch { border: 1px solid rgba(24,32,55,.16); border-radius: 50%; }
+.track-color-input::-moz-color-swatch { border: 1px solid rgba(24,32,55,.16); border-radius: 50%; }
 .track-tools button { width: 26px; height: 28px; display: grid; place-items: center; color: #858b9b; border: 0; background: transparent; border-radius: 6px; cursor: pointer; }
 .track-tools button:hover { background: #f0f1f4; color: var(--ink); }
 .track-tip { margin: auto 14px 14px; gap: 9px; padding: 11px; color: #777d8f; background: #eff0f4; border-radius: 9px; font-size: 10px; line-height: 1.4; }
@@ -218,17 +223,29 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .active-track-label { gap: 9px; min-width: 0; }
 .active-dot { width: 8px; height: 8px; border-radius: 50%; }
 .active-track-label strong { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.active-track-label span:last-child { font-size: 11px; color: var(--muted); }
-.selection-tools { color: #9a9eaa; font-size: 10px; }
+.instrument-picker { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+.instrument-picker select {
+  width: 142px; height: 30px; padding: 0 24px 0 8px; border: 1px solid var(--line); border-radius: 7px;
+  color: var(--ink); background: #f8f8fa; font-size: 11px; font-weight: 650; cursor: pointer;
+}
+.audio-status { font-size: 9px; color: #9398a7; white-space: nowrap; }
+.audio-status.is-ready { color: #2f8c6b; }
+.audio-status.is-loading { color: #b7791f; }
+.selection-tools { display: flex; align-items: center; gap: 7px; color: #9a9eaa; font-size: 10px; }
 .selection-tools button { height: 30px; display: flex; align-items: center; gap: 5px; border: 0; background: #fff1ef; color: var(--accent-dark); border-radius: 7px; padding: 0 10px; font-size: 11px; font-weight: 620; cursor: pointer; }
+.selection-length { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.selection-length input { width: 54px; height: 30px; border: 1px solid var(--line); border-radius: 7px; padding: 0 6px; color: var(--ink); background: #f8f8fa; font-size: 11px; }
 
 .timeline-wrap {
   min-height: 0; min-width: 0; display: grid;
   grid-template-columns: 80px minmax(0, 1fr);
   grid-template-rows: 31px minmax(0, 1fr);
-  overflow: hidden;
+  overflow: hidden; touch-action: none;
 }
-.timeline-corner { grid-column: 1; grid-row: 1; display: flex; align-items: center; padding-left: 12px; color: #999eab; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f8f8fa; }
+.timeline-corner { grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 4px; color: #999eab; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #f8f8fa; }
+.timeline-corner strong { color: #6e7487; font-size: 8px; letter-spacing: 0; }
+.timeline-corner button { width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 5px; color: #656b7c; background: white; font-size: 13px; line-height: 1; cursor: pointer; }
+.timeline-corner button:hover { color: var(--ink); border-color: #c8ccd6; }
 .timeline-scroll { grid-column: 2; grid-row: 1; overflow: hidden; border-bottom: 1px solid var(--line); background: #f8f8fa; cursor: pointer; }
 .timeline { height: 100%; position: relative; background-image: repeating-linear-gradient(to right, transparent 0, transparent 383px, #d8dbe3 383px, #d8dbe3 384px); }
 .timeline > span { position: absolute; top: 9px; padding-left: 6px; color: #777d8c; font-size: 9px; }
@@ -236,9 +253,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .timeline-playhead::after { content: ""; position: absolute; left: -3px; top: 0; width: 8px; height: 6px; background: var(--accent); border-radius: 0 0 4px 4px; }
 .key-scroll { grid-column: 1; grid-row: 2; overflow: hidden; border-right: 1px solid #d7dae2; background: white; }
 .piano-keys { height: 1344px; }
-.piano-key { height: 28px; border-bottom: 1px solid #e6e8ed; display: flex; align-items: center; justify-content: flex-end; padding-right: 9px; color: #8a8f9d; font-size: 9px; position: relative; }
+.piano-key { width: 100%; height: 28px; border: 0; border-bottom: 1px solid #e6e8ed; display: flex; align-items: center; justify-content: flex-end; padding: 0 9px 0 4px; color: #8a8f9d; background: white; font-size: 9px; position: relative; cursor: pointer; }
 .piano-key.is-black { width: 70%; color: #e7eaf1; background: var(--navy); border-color: #111729; border-radius: 0 0 4px 0; box-shadow: inset -4px -2px 0 rgba(0,0,0,.16); }
 .piano-key.is-c { border-bottom-color: #bfc4d0; }
+.piano-key:active, .piano-key.is-previewing { background: #ffe3de; color: var(--accent-dark); }
+.piano-key.is-black:active, .piano-key.is-black.is-previewing { background: #3a496f; color: white; }
 .grid-scroll { grid-column: 2; grid-row: 2; overflow: auto; background: #fbfbfc; overscroll-behavior: contain; }
 .note-grid { position: relative; touch-action: none; user-select: none; cursor: crosshair; background: #fbfbfc; }
 .pitch-row { position: absolute; left: 0; right: 0; height: 28px; border-bottom: 1px solid #eceef2; background: rgba(255,255,255,.5); pointer-events: none; }
@@ -247,10 +266,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .tick-line { position: absolute; top: 0; bottom: 0; width: 1px; background: #edeef2; pointer-events: none; }
 .tick-line.is-beat { background: #dfe2e8; }
 .tick-line.is-measure { width: 1px; background: #aeb3c1; }
-.note-block { position: absolute; border: 0; border-radius: 5px; color: white; padding: 0 7px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.13), 0 1px 2px rgba(30,36,55,.14); cursor: grab; text-align: left; touch-action: none; z-index: 2; overflow: hidden; }
+.note-block { position: absolute; min-width: 0; border: 0; border-radius: 5px; color: white; padding: 0; box-shadow: inset 0 -2px 0 rgba(0,0,0,.13), 0 1px 2px rgba(30,36,55,.14); cursor: grab; text-align: left; touch-action: none; z-index: 2; overflow: hidden; }
 .note-block:active { cursor: grabbing; }
-.note-block span { font-size: 9px; font-weight: 720; line-height: 1; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,.18); }
+.note-block span { position: absolute; top: 50%; left: 7px; right: 12px; transform: translateY(-50%); overflow: hidden; font-size: 9px; font-weight: 720; line-height: 1; white-space: nowrap; text-shadow: 0 1px 1px rgba(0,0,0,.18); }
 .note-block.is-selected { outline: 2px solid #202a48; outline-offset: 1px; filter: saturate(1.08) brightness(1.04); z-index: 3; }
+.note-block.is-inactive { opacity: .38; filter: saturate(.62); box-shadow: none; cursor: pointer; z-index: 1; }
+.note-block.is-inactive:hover, .note-block.is-inactive:focus-visible { opacity: .68; filter: saturate(.86); }
+.note-block.is-inactive.is-muted { opacity: .12; }
+.note-block.is-inactive .note-resize-handle { display: none; }
+.note-resize-handle { position: absolute; top: 0; right: 0; width: var(--resize-width, 10px); height: 100%; border: 0; border-left: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.12); cursor: ew-resize; touch-action: none; }
+.note-resize-handle::after { content: ""; position: absolute; top: 5px; bottom: 5px; left: 50%; width: 2px; transform: translateX(-50%); border-radius: 2px; background: rgba(255,255,255,.72); }
 .grid-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; z-index: 4; box-shadow: 0 0 0 1px rgba(255,255,255,.32); }
 
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(19,25,44,.64); backdrop-filter: blur(5px); }
@@ -323,7 +348,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .project-title { font-size: 12px; text-align: left; padding-left: 6px; }
   .save-state, .help-button, .topbar .secondary-button { display: none; }
   .topbar .primary-button { width: 38px; padding: 0; }
-  .topbar .primary-button span { display: none; }
+  .topbar .primary-button span:last-child { display: none; }
   .controlbar { gap: 9px; padding: 0 10px; }
   .control-divider, .history-actions, .loop-button { display: none; }
   .import-button { width: 34px; padding: 0; }
@@ -342,7 +367,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .track-tip { display: none; }
   .roll-panel { grid-template-rows: 42px minmax(0, 1fr); }
   .roll-heading { padding: 0 10px; }
-  .active-track-label span:last-child { display: none; }
+  .active-track-label > strong, .audio-status, .instrument-label { display: none; }
+  .instrument-picker select { width: 124px; }
+  .selection-tools { gap: 4px; }
+  .selection-length > span:first-child { display: none; }
+  .selection-length input { width: 48px; }
   .timeline-wrap { grid-template-columns: 62px minmax(0, 1fr); }
   .piano-key { padding-right: 6px; }
   .piano-key.is-black { width: 76%; }
@@ -356,7 +385,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 }
 
 @media (max-width: 390px) {
-  .field-control:not(.tempo-control) { display: none; }
   .brand-mark { width: 30px; height: 30px; }
   .topbar { padding: 0 8px; }
   .project-title { max-width: 185px; }
@@ -377,13 +405,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <span class="brand-pill">MML composer</span>
         </div>
         <div class="project-title-wrap">
-          <input id="project-title" class="project-title" aria-label="Score title" value="New day in Tir Chonaill" />
+          <input id="project-title" class="project-title" aria-label="Score title" value="Highland Sanctuary — 3 channel test" />
           <span id="save-state" class="save-state is-saved">✓ Saved</span>
         </div>
         <div class="top-actions">
           <button class="icon-button help-button" data-modal="help" aria-label="Help">?</button>
           <button id="save-project" class="secondary-button save-button"><span aria-hidden="true">↓</span><span>Save draft</span></button>
-          <button class="primary-button" data-modal="export"><span aria-hidden="true">↗</span><span>Export MML</span></button>
+          <button class="primary-button" data-modal="export" aria-label="Export MML"><span aria-hidden="true">↗</span><span>Export MML</span></button>
         </div>
       </header>
 
@@ -398,20 +426,24 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <span><span aria-hidden="true">◷</span> Tempo</span>
           <span class="select-shell">
             <select id="tempo" aria-label="Tempo in beats per minute">
-              <option value="60">60 BPM</option><option value="72">72 BPM</option><option value="80">80 BPM</option>
+              <option value="60">60 BPM</option><option value="72">72 BPM</option><option value="80">80 BPM</option><option value="84" selected>84 BPM</option>
               <option value="90">90 BPM</option><option value="100">100 BPM</option><option value="110">110 BPM</option>
-              <option value="120" selected>120 BPM</option><option value="128">128 BPM</option><option value="140">140 BPM</option>
+              <option value="120">120 BPM</option><option value="128">128 BPM</option><option value="140">140 BPM</option>
               <option value="160">160 BPM</option><option value="180">180 BPM</option><option value="200">200 BPM</option>
             </select><span class="select-arrow">⌄</span>
           </span>
         </label>
         <label class="field-control">
           <span>Grid</span>
-          <span class="select-shell compact-select"><select id="snap" aria-label="Grid snapping"><option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option></select><span class="select-arrow">⌄</span></span>
+          <span class="select-shell compact-select"><select id="snap" aria-label="Grid snapping"><option value="1">1/64 · fine</option><option value="2">1/32</option><option value="4" selected>1/16 · default</option><option value="8">1/8 · ½ beat</option><option value="16">1/4 · 1 beat</option></select><span class="select-arrow">⌄</span></span>
         </label>
         <label class="field-control">
-          <span>Length</span>
-          <span class="select-shell compact-select"><select id="note-duration" aria-label="New note length"><option value="1">1/16</option><option value="2">1/8</option><option value="4" selected>1/4</option><option value="8">1/2</option></select><span class="select-arrow">⌄</span></span>
+          <span>New note</span>
+          <span class="select-shell compact-select"><select id="note-duration" aria-label="Default length for new notes"><option value="1">1/64</option><option value="2">1/32</option><option value="4">1/16</option><option value="8">1/8 · ½ beat</option><option value="12">Dotted 1/8</option><option value="16" selected>1/4 · 1 beat</option><option value="24">Dotted 1/4</option><option value="32">1/2 · 2 beats</option><option value="48">Dotted 1/2</option><option value="64">Whole · 1 bar</option></select><span class="select-arrow">⌄</span></span>
+        </label>
+        <label class="field-control">
+          <span>Volume</span>
+          <span class="select-shell compact-select"><select id="track-volume" aria-label="Volume for active track"></select><span class="select-arrow">⌄</span></span>
         </label>
         <div class="control-spacer"></div>
         <div class="history-actions">
@@ -426,22 +458,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
       <section class="workspace">
         <aside class="track-panel" aria-label="Score tracks">
           <div class="track-panel-heading">
-            <div><span>Tracks</span><span id="track-count" class="count-badge">2</span></div>
+            <div><span>Tracks</span><span id="track-count" class="count-badge">3</span></div>
             <button id="add-track" class="add-track-button"><span aria-hidden="true">＋</span><span>Add</span></button>
           </div>
           <div id="track-list" class="track-list"></div>
-          <div class="track-tip"><span aria-hidden="true">✦</span><span>Tap the grid to add a note. Drag a note to move it.</span></div>
+          <div class="track-tip"><span aria-hidden="true">✦</span><span>All tracks stay visible. Tap a faded note to switch tracks; drag the active note or its right edge to edit it.</span></div>
         </aside>
 
         <section class="roll-panel" aria-label="Piano roll editor">
           <div class="roll-heading">
-            <div class="active-track-label"><span id="active-dot" class="active-dot"></span><strong id="active-track-name"></strong><span id="active-instrument"></span></div>
+            <div class="active-track-label">
+              <span id="active-dot" class="active-dot"></span><strong id="active-track-name"></strong>
+              <label class="instrument-picker"><span class="instrument-label">Instrument</span><select id="instrument-select" aria-label="Instrument for active track"></select></label>
+              <span id="audio-status" class="audio-status">Hi-fi sounds load on first play</span>
+            </div>
             <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
           </div>
-          <div class="timeline-wrap">
-            <div class="timeline-corner">Bars</div>
-            <div id="timeline-scroll" class="timeline-scroll"><div id="timeline" class="timeline"><div id="timeline-playhead" class="timeline-playhead"></div></div></div>
-            <div id="key-scroll" class="key-scroll" aria-hidden="true"><div id="piano-keys" class="piano-keys"></div></div>
+          <div id="timeline-wrap" class="timeline-wrap">
+            <div class="timeline-corner" title="Scroll here or pinch over the score to zoom"><button id="zoom-out" type="button" aria-label="Zoom out score">−</button><strong id="zoom-label">100%</strong><button id="zoom-in" type="button" aria-label="Zoom in score">+</button></div>
+            <div id="timeline-scroll" class="timeline-scroll" title="Scroll here or pinch over the score to zoom"><div id="timeline" class="timeline"><div id="timeline-playhead" class="timeline-playhead"></div></div></div>
+            <div id="key-scroll" class="key-scroll"><div id="piano-keys" class="piano-keys" aria-label="Playable piano keyboard"></div></div>
             <div id="grid-scroll" class="grid-scroll"><div id="note-grid" class="note-grid"><div id="grid-playhead" class="grid-playhead"></div></div></div>
           </div>
         </section>
@@ -468,8 +504,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <div id="help-modal" class="modal-view help-modal" hidden>
             <div class="modal-icon">♫</div><p class="eyebrow">Quick guide</p><h2>Make your first score</h2>
             <div class="help-steps">
-              <div><span>1</span><p><strong>Add & arrange</strong>Tap an empty cell to add a note, then drag notes to move them in time or pitch.</p></div>
-              <div><span>2</span><p><strong>Listen & refine</strong>Use Space to play or pause. Change tempo, note length, and grid snapping above.</p></div>
+              <div><span>1</span><p><strong>Add & arrange</strong>Tap to add and hear a note. Drag the note body to move it, or its right edge to set any length.</p></div>
+              <div><span>2</span><p><strong>Listen & refine</strong>Choose a Mabinogi instrument, click the piano keys to preview it, and use Space to play or pause.</p></div>
               <div><span>3</span><p><strong>Import or export</strong>Bring in MML or MIDI, then export one track or a selected multi-track score.</p></div>
             </div>
             <button class="primary-button full-button modal-cancel">Start composing</button>
@@ -478,17 +514,38 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
       </div>
       <div id="toast" class="toast" role="status" hidden></div>
     </main>
+    <script src="./vendor/spessasynth.min.js"></script>
     <script>
 const COLORS = ["#ee6a5b", "#4f78c8", "#7b61c9", "#2f9d78", "#d58a32", "#d04f88"];
-const PITCH_MIN = 48;
+const PITCH_MIN = 24;
 const PITCH_MAX = 95;
 const ROW_HEIGHT = 28;
-const SIXTEENTH_WIDTH = 24;
-const TOTAL_TICKS = 128;
-const GRID_WIDTH = TOTAL_TICKS * SIXTEENTH_WIDTH;
+const TICKS_PER_WHOLE = 64;
+const TICKS_PER_BEAT = 16;
+const DEFAULT_TICK_WIDTH = 6;
+const MIN_TICK_WIDTH = 3;
+const MAX_TICK_WIDTH = 24;
+let tickWidth = DEFAULT_TICK_WIDTH;
+const MIN_GRID_TICKS = TICKS_PER_WHOLE * 8;
+let totalTicks = MIN_GRID_TICKS;
+let gridWidth = totalTicks * tickWidth;
 const PITCHES = Array.from({ length: PITCH_MAX - PITCH_MIN + 1 }, (_, index) => PITCH_MAX - index);
 const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 const BLACK_KEYS = new Set([1, 3, 6, 8, 10]);
+const INSTRUMENTS = [
+  { name: "Lute", program: 0 }, { name: "Ukulele", program: 1 }, { name: "Mandolin", program: 2 },
+  { name: "Whistle", program: 3 }, { name: "Roncadora", program: 4 }, { name: "Flute", program: 5 },
+  { name: "Chalumeau", program: 6 }, { name: "Tuba", program: 18 }, { name: "Lyre", program: 19 },
+  { name: "Electric Guitar", program: 20 }, { name: "Piano", program: 21 }, { name: "Violin", program: 22 },
+  { name: "Cello", program: 23 }, { name: "Harp", program: 24 }, { name: "Tuned Violin", program: 25 },
+  { name: "Tuned Cello", program: 26 }, { name: "Drum Kit", program: 27 }, { name: "Festival Lute", program: 50 },
+  { name: "Festival Ukulele", program: 51 }, { name: "Festival Mandolin", program: 52 },
+  { name: "Fest/Tuned Whistle", program: 53 }, { name: "Fest/Tuned Flute", program: 54 },
+  { name: "Bass Drum", program: 66 }, { name: "Snare Drum", program: 67 }, { name: "Cymbals", program: 68 },
+  { name: "Hand Chimes", program: 77 }, { name: "Male Chorus", program: 100 },
+  { name: "Female Chorus", program: 110 }, { name: "Male Voice", program: 120 }, { name: "Female Voice", program: 121 },
+];
+const SYNTH_CHANNELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15];
 
 function uid(prefix = "id") {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -507,39 +564,60 @@ function makeNotes(rawNotes, prefix, velocity) {
 const demoTracks = [
   {
     id: "track-1",
-    name: "Main melody",
-    instrument: "Lute",
+    name: "Pipe melody",
+    instrument: "Roncadora",
+    volume: 12,
     color: COLORS[0],
     muted: false,
     notes: makeNotes([
-      [60, 0, 4], [64, 4, 4], [67, 8, 4], [72, 12, 8], [71, 20, 4],
-      [67, 24, 4], [69, 28, 8], [67, 36, 4], [64, 40, 4], [60, 44, 8],
-    ], "demo", 104),
+      [61, 0, 1], [62, 1, 1], [62, 2, 6], [62, 8, 8], [66, 16, 16], [69, 32, 32],
+      [71, 64, 16], [69, 80, 16], [66, 96, 32], [64, 128, 16], [66, 144, 16],
+      [67, 160, 16], [69, 176, 16], [66, 192, 32], [62, 224, 32], [69, 256, 16],
+      [71, 272, 16], [74, 288, 32], [73, 320, 16], [71, 336, 16], [69, 352, 32],
+      [67, 384, 16], [66, 400, 16], [64, 416, 16], [61, 432, 16], [62, 448, 64],
+    ], "pipe", 103),
   },
   {
     id: "track-2",
-    name: "Harmony",
-    instrument: "Mandolin",
+    name: "Cathedral harmony",
+    instrument: "Male Chorus",
+    volume: 10,
     color: COLORS[1],
     muted: false,
     notes: makeNotes([
-      [48, 0, 8], [52, 8, 8], [55, 16, 8], [53, 24, 8], [48, 32, 8], [55, 40, 8],
-    ], "harmony", 82),
+      [57, 0, 16], [62, 16, 16], [66, 32, 32], [67, 64, 16], [66, 80, 16],
+      [62, 96, 32], [61, 128, 16], [62, 144, 16], [64, 160, 16], [66, 176, 16],
+      [62, 192, 32], [57, 224, 32], [66, 256, 16], [67, 272, 16], [71, 288, 32],
+      [69, 320, 16], [67, 336, 16], [66, 352, 32], [64, 384, 16], [62, 400, 16],
+      [61, 416, 16], [57, 432, 16], [59, 448, 64],
+    ], "choir", 88),
+  },
+  {
+    id: "track-3",
+    name: "Highland drone",
+    instrument: "Tuba",
+    volume: 9,
+    color: COLORS[2],
+    muted: false,
+    notes: makeNotes([
+      [50, 0, 64], [57, 64, 64], [50, 128, 64], [57, 192, 64],
+      [50, 256, 64], [57, 320, 64], [55, 384, 64], [50, 448, 64],
+    ], "drone", 79),
   },
 ];
 
 const state = {
   tracks: demoTracks,
   activeTrackId: demoTracks[0].id,
-  tempo: 120,
-  snap: 1,
-  noteDuration: 4,
+  tempo: 84,
+  snap: 4,
+  noteDuration: 16,
   selectedNoteId: null,
   isPlaying: false,
   playhead: 0,
   loop: false,
   saved: true,
-  projectName: "New day in Tir Chonaill",
+  projectName: "Highland Sanctuary — 3 channel test",
   history: [],
   future: [],
   exportSelection: new Set(),
@@ -547,7 +625,15 @@ const state = {
 
 const audio = {
   context: null,
+  synth: null,
+  mode: "idle",
+  loadingPromise: null,
   nodes: [],
+  timers: [],
+  previewTimers: [],
+  previewRequest: 0,
+  playRequest: 0,
+  starting: false,
   animationFrame: null,
   startedAt: 0,
   origin: 0,
@@ -555,12 +641,23 @@ const audio = {
 
 const drag = {
   active: false,
+  mode: "move",
+  changed: false,
   noteId: null,
   originX: 0,
   originY: 0,
   start: 0,
   pitch: 0,
+  duration: 0,
   snapshot: null,
+};
+
+const rollGesture = {
+  points: new Map(),
+  pinching: false,
+  startDistance: 0,
+  startTickWidth: DEFAULT_TICK_WIDTH,
+  pendingTap: null,
 };
 
 const elements = {
@@ -569,17 +666,21 @@ const elements = {
   tempo: document.querySelector("#tempo"),
   snap: document.querySelector("#snap"),
   noteDuration: document.querySelector("#note-duration"),
+  trackVolume: document.querySelector("#track-volume"),
+  instrumentSelect: document.querySelector("#instrument-select"),
+  audioStatus: document.querySelector("#audio-status"),
   playToggle: document.querySelector("#play-toggle"),
   loopToggle: document.querySelector("#loop-toggle"),
   trackList: document.querySelector("#track-list"),
   trackCount: document.querySelector("#track-count"),
   activeTrackName: document.querySelector("#active-track-name"),
-  activeInstrument: document.querySelector("#active-instrument"),
   activeDot: document.querySelector("#active-dot"),
   selectionTools: document.querySelector("#selection-tools"),
+  timelineWrap: document.querySelector("#timeline-wrap"),
   timelineScroll: document.querySelector("#timeline-scroll"),
   timeline: document.querySelector("#timeline"),
   timelinePlayhead: document.querySelector("#timeline-playhead"),
+  zoomLabel: document.querySelector("#zoom-label"),
   keyScroll: document.querySelector("#key-scroll"),
   pianoKeys: document.querySelector("#piano-keys"),
   gridScroll: document.querySelector("#grid-scroll"),
@@ -618,6 +719,58 @@ function noteLabel(pitch) {
   return `${NOTE_NAMES[pitch % 12]}${Math.floor(pitch / 12) - 1}`;
 }
 
+function instrumentByName(name) {
+  return INSTRUMENTS.find((instrument) => instrument.name === name) || INSTRUMENTS[0];
+}
+
+function normalizeVolume(value, fallback = 12) {
+  const volume = Number(value);
+  return Number.isFinite(volume) ? Math.max(0, Math.min(15, Math.round(volume))) : fallback;
+}
+
+function normalizeTrackColor(value, fallback = COLORS[0]) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : fallback;
+}
+
+function volumeToVelocity(volume) {
+  return Math.max(1, Math.min(127, (normalizeVolume(volume) + 1) * 8 - 1));
+}
+
+function velocityToVolume(velocity) {
+  return normalizeVolume(Math.round((Number(velocity) + 1) / 8) - 1);
+}
+
+function synthChannelForTrack(track) {
+  const index = Math.max(0, state.tracks.findIndex((item) => item.id === track.id));
+  return SYNTH_CHANNELS[index % SYNTH_CHANNELS.length];
+}
+
+function formatDuration(duration) {
+  const labels = {
+    1: "1/64", 2: "1/32", 3: "dotted 1/32", 4: "1/16", 6: "dotted 1/16",
+    8: "1/8 (½ beat)", 12: "dotted 1/8", 16: "1/4 (1 beat)", 24: "dotted 1/4",
+    32: "1/2 (2 beats)", 48: "dotted 1/2", 64: "whole note (1 bar)",
+  };
+  return labels[duration] || `${duration} × 1/64`;
+}
+
+function updateAudioStatus(label, className = "") {
+  elements.audioStatus.textContent = label;
+  elements.audioStatus.className = `audio-status ${className}`.trim();
+}
+
+function buildInstrumentOptions() {
+  elements.instrumentSelect.innerHTML = INSTRUMENTS
+    .map((instrument) => `<option value="${escapeHtml(instrument.name)}">${escapeHtml(instrument.name)}</option>`)
+    .join("");
+}
+
+function buildVolumeOptions() {
+  elements.trackVolume.innerHTML = Array.from({ length: 16 }, (_, volume) =>
+    `<option value="${volume}">V${volume}</option>`).join("");
+}
+
 function markUnsaved() {
   state.saved = false;
   renderSaveState();
@@ -653,20 +806,24 @@ function renderHistory() {
 
 function renderTracks() {
   elements.trackCount.textContent = state.tracks.length;
-  elements.trackList.innerHTML = state.tracks.map((track, index) => `
-    <article class="track-card ${track.id === state.activeTrackId ? "is-active" : ""}" data-track-id="${track.id}" style="--track-color:${track.color}">
+  elements.trackList.innerHTML = state.tracks.map((track, index) => {
+    const color = normalizeTrackColor(track.color, COLORS[index % COLORS.length]);
+    return `
+    <article class="track-card ${track.id === state.activeTrackId ? "is-active" : ""}" data-track-id="${track.id}" style="--track-color:${color}">
       <span class="track-stripe"></span>
       <span class="track-index">${String(index + 1).padStart(2, "0")}</span>
       <div class="track-copy">
         <input value="${escapeHtml(track.name)}" aria-label="Name for track ${index + 1}" data-track-name="${track.id}" />
-        <span>${escapeHtml(track.instrument)} · ${track.notes.length} notes</span>
+        <span>${escapeHtml(track.instrument)} · V${normalizeVolume(track.volume)} · ${track.notes.length} notes</span>
       </div>
       <div class="track-tools">
+        <input class="track-color-input" type="color" value="${color}" data-track-color="${track.id}" aria-label="Color for ${escapeHtml(track.name)}" title="Choose track color" />
         <button data-mute-track="${track.id}" aria-label="${track.muted ? "Unmute" : "Mute"} ${escapeHtml(track.name)}">${track.muted ? "⊘" : "◖"}</button>
         <button data-delete-track="${track.id}" aria-label="Delete ${escapeHtml(track.name)}">×</button>
       </div>
     </article>
-  `).join("");
+  `;
+  }).join("");
 
   elements.trackList.querySelectorAll(".track-card").forEach((card) => {
     card.addEventListener("click", () => {
@@ -677,11 +834,18 @@ function renderTracks() {
   });
   elements.trackList.querySelectorAll("[data-track-name]").forEach((input) => {
     input.addEventListener("click", (event) => event.stopPropagation());
+    input.addEventListener("input", (event) => {
+      const track = state.tracks.find((item) => item.id === input.dataset.trackName);
+      if (!track) return;
+      track.name = event.target.value;
+      markUnsaved();
+      if (track.id === state.activeTrackId) elements.activeTrackName.textContent = track.name || "Untitled track";
+    });
     input.addEventListener("change", (event) => {
       const track = state.tracks.find((item) => item.id === input.dataset.trackName);
       if (!track) return;
       track.name = event.target.value.trim() || "Untitled track";
-      markUnsaved();
+      event.target.value = track.name;
       renderTracks();
       renderRollHeading();
     });
@@ -690,7 +854,36 @@ function renderTracks() {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
       const id = button.dataset.muteTrack;
-      commitTracks((tracks) => tracks.map((track) => track.id === id ? { ...track, muted: !track.muted } : track));
+      const track = state.tracks.find((item) => item.id === id);
+      if (track) setTrackMuted(id, !track.muted);
+    });
+  });
+  elements.trackList.querySelectorAll("[data-track-color]").forEach((input) => {
+    let colorSnapshot = null;
+    const captureSnapshot = () => { colorSnapshot ||= cloneTracks(); };
+    const previewColor = () => {
+      captureSnapshot();
+      const track = state.tracks.find((item) => item.id === input.dataset.trackColor);
+      if (!track) return;
+      track.color = normalizeTrackColor(input.value, track.color);
+      input.closest(".track-card").style.setProperty("--track-color", track.color);
+      if (track.id === state.activeTrackId) elements.activeDot.style.background = track.color;
+      markUnsaved();
+      renderNotes();
+    };
+    input.addEventListener("click", (event) => event.stopPropagation());
+    input.addEventListener("focus", captureSnapshot);
+    input.addEventListener("input", previewColor);
+    input.addEventListener("change", () => {
+      previewColor();
+      const before = colorSnapshot;
+      colorSnapshot = null;
+      if (before && before.some((track) => track.color !== state.tracks.find((item) => item.id === track.id)?.color)) {
+        state.history.push(before);
+        state.history = state.history.slice(-25);
+        state.future = [];
+      }
+      renderAll();
     });
   });
   elements.trackList.querySelectorAll("[data-delete-track]").forEach((button) => {
@@ -705,45 +898,78 @@ function renderRollHeading() {
   const track = activeTrack();
   if (!track) return;
   elements.activeTrackName.textContent = track.name;
-  elements.activeInstrument.textContent = track.instrument;
+  elements.instrumentSelect.value = instrumentByName(track.instrument).name;
+  elements.trackVolume.value = String(normalizeVolume(track.volume));
   elements.activeDot.style.background = track.color;
-  if (state.selectedNoteId) {
-    elements.selectionTools.innerHTML = '<button id="delete-note">⌫ Delete note</button>';
+  const selectedNote = track.notes.find((note) => note.id === state.selectedNoteId);
+  if (selectedNote) {
+    elements.selectionTools.innerHTML = `
+      <label class="selection-length" title="${escapeHtml(formatDuration(selectedNote.duration))}">
+        <span>Length</span><input id="selected-note-length" type="number" min="1" max="${totalTicks - selectedNote.start}" step="1" value="${selectedNote.duration}" aria-label="Selected note length in sixty-fourth notes" /><span>× 1/64</span>
+      </label>
+      <button id="delete-note">⌫ Delete</button>
+    `;
+    const lengthInput = document.querySelector("#selected-note-length");
+    lengthInput.addEventListener("change", changeSelectedNoteLength);
+    lengthInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        changeSelectedNoteLength(event);
+      }
+    });
     document.querySelector("#delete-note").addEventListener("click", deleteSelectedNote);
   } else {
-    elements.selectionTools.innerHTML = "<span>Select a note to move or delete it</span>";
+    elements.selectionTools.innerHTML = "<span>Select a note to move, resize, or delete it</span>";
   }
 }
 
 function renderNotes() {
   elements.noteGrid.querySelectorAll(".note-block").forEach((note) => note.remove());
-  const track = activeTrack();
-  if (!track) return;
+  if (!activeTrack()) return;
   const fragment = document.createDocumentFragment();
-  track.notes.forEach((note) => {
-    const button = document.createElement("button");
-    button.className = `note-block ${note.id === state.selectedNoteId ? "is-selected" : ""}`;
-    button.dataset.noteId = note.id;
-    button.style.left = `${note.start * SIXTEENTH_WIDTH + 2}px`;
-    button.style.top = `${(PITCH_MAX - note.pitch) * ROW_HEIGHT + 3}px`;
-    button.style.width = `${Math.max(18, note.duration * SIXTEENTH_WIDTH - 4)}px`;
-    button.style.height = `${ROW_HEIGHT - 6}px`;
-    button.style.background = track.color;
-    button.title = `${noteLabel(note.pitch)} · ${note.duration}/16`;
-    button.innerHTML = `<span>${noteLabel(note.pitch)}</span>`;
-    button.addEventListener("pointerdown", beginNoteDrag);
-    fragment.append(button);
+  const orderedTracks = [
+    ...state.tracks.filter((track) => track.id !== state.activeTrackId),
+    ...state.tracks.filter((track) => track.id === state.activeTrackId),
+  ];
+  orderedTracks.forEach((track) => {
+    const isActive = track.id === state.activeTrackId;
+    track.notes.forEach((note) => {
+      const button = document.createElement("button");
+      button.className = [
+        "note-block",
+        isActive ? "" : "is-inactive",
+        track.muted ? "is-muted" : "",
+        isActive && note.id === state.selectedNoteId ? "is-selected" : "",
+      ].filter(Boolean).join(" ");
+      button.dataset.noteId = note.id;
+      button.dataset.trackId = track.id;
+      button.style.left = `${note.start * tickWidth}px`;
+      button.style.top = `${(PITCH_MAX - note.pitch) * ROW_HEIGHT + 3}px`;
+      const noteWidth = Math.max(1, note.duration * tickWidth);
+      button.style.width = `${noteWidth}px`;
+      button.style.setProperty("--resize-width", `${Math.max(2, Math.min(11, noteWidth * 0.34))}px`);
+      button.style.height = `${ROW_HEIGHT - 6}px`;
+      button.style.background = track.color;
+      button.title = isActive
+        ? `${track.name} · ${noteLabel(note.pitch)} · ${formatDuration(note.duration)} · drag right edge to resize`
+        : `${track.name} · ${noteLabel(note.pitch)} · ${formatDuration(note.duration)} · click to edit this track`;
+      button.setAttribute("aria-label", `${track.name}, ${noteLabel(note.pitch)}, ${formatDuration(note.duration)}${isActive ? "" : ", switch to track"}`);
+      button.innerHTML = `<span>${noteLabel(note.pitch)}</span>${isActive ? '<i class="note-resize-handle" aria-hidden="true"></i>' : ""}`;
+      button.addEventListener("pointerdown", beginNoteDrag);
+      fragment.append(button);
+    });
   });
   elements.noteGrid.append(fragment);
 }
 
 function renderPlayhead() {
-  const left = `${state.playhead * SIXTEENTH_WIDTH}px`;
+  const left = `${state.playhead * tickWidth}px`;
   elements.timelinePlayhead.style.left = left;
   elements.gridPlayhead.style.left = left;
 }
 
 function renderAll() {
+  syncGridLength();
   renderTracks();
   renderRollHeading();
   renderNotes();
@@ -752,23 +978,102 @@ function renderAll() {
   renderSaveState();
 }
 
-function buildStaticGrid() {
-  elements.timeline.style.width = `${GRID_WIDTH}px`;
-  for (let index = 0; index < TOTAL_TICKS / 16; index += 1) {
-    const label = document.createElement("span");
-    label.style.left = `${index * 16 * SIXTEENTH_WIDTH}px`;
-    label.textContent = index + 1;
-    elements.timeline.insertBefore(label, elements.timelinePlayhead);
-  }
+function renderTimeScale() {
+  gridWidth = totalTicks * tickWidth;
+  elements.timeline.style.width = `${gridWidth}px`;
+  elements.noteGrid.style.width = `${gridWidth}px`;
+  const measureWidth = TICKS_PER_WHOLE * tickWidth;
+  elements.timeline.style.backgroundImage = `repeating-linear-gradient(to right, transparent 0, transparent ${Math.max(0, measureWidth - 1)}px, #d8dbe3 ${Math.max(0, measureWidth - 1)}px, #d8dbe3 ${measureWidth}px)`;
+  elements.timeline.querySelectorAll("[data-tick]").forEach((label) => {
+    label.style.left = `${Number(label.dataset.tick) * tickWidth}px`;
+  });
+  elements.noteGrid.querySelectorAll(".tick-line[data-tick]").forEach((line) => {
+    line.style.left = `${Number(line.dataset.tick) * tickWidth}px`;
+  });
+  elements.zoomLabel.textContent = `${Math.round(tickWidth / DEFAULT_TICK_WIDTH * 100)}%`;
+  renderNotes();
+  renderPlayhead();
+}
 
+function setTimeZoom(nextTickWidth, anchorClientX) {
+  const next = Math.max(MIN_TICK_WIDTH, Math.min(MAX_TICK_WIDTH, Math.round(nextTickWidth * 4) / 4));
+  if (next === tickWidth) return;
+  const rectangle = elements.gridScroll.getBoundingClientRect();
+  const anchor = Number.isFinite(anchorClientX)
+    ? Math.max(0, Math.min(rectangle.width, anchorClientX - rectangle.left))
+    : rectangle.width / 2;
+  const anchorTick = (elements.gridScroll.scrollLeft + anchor) / tickWidth;
+  tickWidth = next;
+  renderTimeScale();
+  const nextScrollLeft = Math.max(0, anchorTick * tickWidth - anchor);
+  elements.gridScroll.scrollLeft = nextScrollLeft;
+  elements.timelineScroll.scrollLeft = nextScrollLeft;
+}
+
+function zoomRollFromWheel(event) {
+  if (!event.deltaY) return;
+  event.preventDefault();
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+  const factor = Math.exp(-event.deltaY * unit * 0.0025);
+  setTimeZoom(tickWidth * factor, event.clientX);
+}
+
+function requiredGridTicks(tracks = state.tracks) {
+  const end = Math.max(0, ...tracks.flatMap((track) => track.notes.map((note) => note.start + note.duration)));
+  if (!end) return MIN_GRID_TICKS;
+  const occupiedTicks = Math.ceil(end / TICKS_PER_WHOLE) * TICKS_PER_WHOLE;
+  return Math.max(MIN_GRID_TICKS, occupiedTicks + TICKS_PER_WHOLE);
+}
+
+function rebuildTimeGrid() {
+  elements.timeline.querySelectorAll("[data-tick]").forEach((label) => label.remove());
+  const timelineFragment = document.createDocumentFragment();
+  for (let index = 0; index < totalTicks / TICKS_PER_WHOLE; index += 1) {
+    const label = document.createElement("span");
+    label.dataset.tick = String(index * TICKS_PER_WHOLE);
+    label.textContent = index + 1;
+    timelineFragment.append(label);
+  }
+  elements.timeline.insertBefore(timelineFragment, elements.timelinePlayhead);
+
+  elements.noteGrid.querySelectorAll(".tick-line").forEach((line) => line.remove());
+  const gridFragment = document.createDocumentFragment();
+  for (let tick = 0; tick <= totalTicks; tick += 1) {
+    const line = document.createElement("span");
+    line.className = `tick-line ${tick % TICKS_PER_WHOLE === 0 ? "is-measure" : tick % TICKS_PER_BEAT === 0 ? "is-beat" : ""}`;
+    line.dataset.tick = String(tick);
+    gridFragment.append(line);
+  }
+  elements.noteGrid.insertBefore(gridFragment, elements.gridPlayhead);
+  renderTimeScale();
+}
+
+function syncGridLength() {
+  const next = requiredGridTicks();
+  if (next === totalTicks) return;
+  totalTicks = next;
+  rebuildTimeGrid();
+}
+
+function buildStaticGrid() {
   elements.pianoKeys.style.height = `${PITCHES.length * ROW_HEIGHT}px`;
   elements.pianoKeys.innerHTML = PITCHES.map((pitch) => `
-    <div class="piano-key ${BLACK_KEYS.has(pitch % 12) ? "is-black" : ""} ${pitch % 12 === 0 ? "is-c" : ""}">
+    <button type="button" class="piano-key ${BLACK_KEYS.has(pitch % 12) ? "is-black" : ""} ${pitch % 12 === 0 ? "is-c" : ""}" data-preview-pitch="${pitch}" aria-label="Play ${noteLabel(pitch)}">
       <span>${pitch % 12 === 0 || BLACK_KEYS.has(pitch % 12) ? noteLabel(pitch) : ""}</span>
-    </div>
+    </button>
   `).join("");
+  elements.pianoKeys.querySelectorAll("[data-preview-pitch]").forEach((key) => {
+    key.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      key.classList.add("is-previewing");
+      const release = () => key.classList.remove("is-previewing");
+      window.addEventListener("pointerup", release, { once: true });
+      window.addEventListener("pointercancel", release, { once: true });
+      auditionPitch(Number(key.dataset.previewPitch), activeTrack());
+    });
+  });
 
-  elements.noteGrid.style.width = `${GRID_WIDTH}px`;
+  elements.noteGrid.style.width = `${gridWidth}px`;
   elements.noteGrid.style.height = `${PITCHES.length * ROW_HEIGHT}px`;
   const fragment = document.createDocumentFragment();
   PITCHES.forEach((pitch, index) => {
@@ -777,13 +1082,8 @@ function buildStaticGrid() {
     row.style.top = `${index * ROW_HEIGHT}px`;
     fragment.append(row);
   });
-  for (let tick = 0; tick <= TOTAL_TICKS; tick += 1) {
-    const line = document.createElement("span");
-    line.className = `tick-line ${tick % 16 === 0 ? "is-measure" : tick % 4 === 0 ? "is-beat" : ""}`;
-    line.style.left = `${tick * SIXTEENTH_WIDTH}px`;
-    fragment.append(line);
-  }
   elements.noteGrid.insertBefore(fragment, elements.gridPlayhead);
+  rebuildTimeGrid();
 }
 
 function addTrack() {
@@ -791,6 +1091,7 @@ function addTrack() {
     id: uid("track"),
     name: `Track ${state.tracks.length + 1}`,
     instrument: "Lute",
+    volume: 12,
     color: COLORS[state.tracks.length % COLORS.length],
     muted: false,
     notes: [],
@@ -821,16 +1122,27 @@ function deleteSelectedNote() {
   })));
 }
 
-function addNoteFromPointer(event) {
-  if (event.target.closest(".note-block")) return;
+function changeSelectedNoteLength(event) {
+  const track = activeTrack();
+  const note = track?.notes.find((item) => item.id === state.selectedNoteId);
+  if (!track || !note) return;
+  const duration = Math.max(1, Math.min(totalTicks - note.start, Math.round(Number(event.target.value) || 1)));
+  if (duration === note.duration) return;
+  commitTracks((tracks) => tracks.map((item) => item.id === track.id ? {
+    ...item,
+    notes: item.notes.map((candidate) => candidate.id === note.id ? { ...candidate, duration } : candidate),
+  } : item));
+}
+
+function addNoteAtPoint(clientX, clientY) {
   const track = activeTrack();
   if (!track) return;
   const rectangle = elements.noteGrid.getBoundingClientRect();
-  const x = event.clientX - rectangle.left;
-  const y = event.clientY - rectangle.top;
+  const x = clientX - rectangle.left;
+  const y = clientY - rectangle.top;
   const start = Math.max(0, Math.min(
-    TOTAL_TICKS - state.noteDuration,
-    Math.floor(x / (SIXTEENTH_WIDTH * state.snap)) * state.snap,
+    totalTicks - state.noteDuration,
+    Math.floor(x / (tickWidth * state.snap)) * state.snap,
   ));
   const row = Math.max(0, Math.min(PITCHES.length - 1, Math.floor(y / ROW_HEIGHT)));
   const note = {
@@ -838,50 +1150,176 @@ function addNoteFromPointer(event) {
     pitch: PITCHES[row],
     start,
     duration: state.noteDuration,
-    velocity: 104,
+    velocity: volumeToVelocity(track.volume),
   };
   state.selectedNoteId = note.id;
   commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
+  auditionPitch(note.pitch, track, note.duration);
+}
+
+function addNoteFromPointer(event) {
+  if (event.button !== 0 || event.pointerType === "touch") return;
+  if (event.target.closest(".note-block")) return;
+  addNoteAtPoint(event.clientX, event.clientY);
+}
+
+function setPlayheadAtPoint(clientX) {
+  const rectangle = elements.timeline.getBoundingClientRect();
+  state.playhead = Math.max(0, Math.min(totalTicks, (clientX - rectangle.left) / tickWidth));
+  renderPlayhead();
+}
+
+function rollTouchPair() {
+  return [...rollGesture.points.values()].slice(0, 2);
+}
+
+function rollTouchDistance(points = rollTouchPair()) {
+  if (points.length < 2) return 0;
+  return Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+}
+
+function cancelNoteDragForPinch() {
+  if (!drag.active) return;
+  if (drag.changed && drag.snapshot) state.tracks = drag.snapshot;
+  drag.active = false;
+  drag.changed = false;
+  drag.snapshot = null;
+  renderAll();
+}
+
+function beginRollTouch(event) {
+  if (event.pointerType !== "touch") return;
+  rollGesture.points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  const blankGrid = event.target.closest("#note-grid") && !event.target.closest(".note-block");
+  const timelineRuler = event.target.closest("#timeline-scroll");
+  if (rollGesture.points.size === 1 && (blankGrid || timelineRuler)) {
+    rollGesture.pendingTap = {
+      kind: blankGrid ? "note" : "playhead",
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      originX: event.clientX,
+      originY: event.clientY,
+    };
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  if (rollGesture.points.size < 2) return;
+  event.preventDefault();
+  event.stopPropagation();
+  rollGesture.pinching = true;
+  rollGesture.pendingTap = null;
+  rollGesture.startDistance = Math.max(1, rollTouchDistance());
+  rollGesture.startTickWidth = tickWidth;
+  cancelNoteDragForPinch();
+}
+
+function moveRollTouch(event) {
+  if (event.pointerType !== "touch" || !rollGesture.points.has(event.pointerId)) return;
+  rollGesture.points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (rollGesture.pinching) {
+    event.preventDefault();
+    event.stopPropagation();
+    const points = rollTouchPair();
+    if (points.length < 2) return;
+    const midpointX = (points[0].x + points[1].x) / 2;
+    setTimeZoom(rollGesture.startTickWidth * rollTouchDistance(points) / rollGesture.startDistance, midpointX);
+    return;
+  }
+  const pending = rollGesture.pendingTap;
+  if (pending?.pointerId !== event.pointerId) return;
+  pending.x = event.clientX;
+  pending.y = event.clientY;
+  if (Math.hypot(pending.x - pending.originX, pending.y - pending.originY) > 8) rollGesture.pendingTap = null;
+  event.preventDefault();
+  event.stopPropagation();
+}
+
+function endRollTouch(event, cancelled = false) {
+  if (event.pointerType !== "touch" || !rollGesture.points.has(event.pointerId)) return;
+  const pending = rollGesture.pendingTap;
+  const shouldCommitTap = !cancelled && !rollGesture.pinching && pending?.pointerId === event.pointerId;
+  if (rollGesture.pinching || shouldCommitTap) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  rollGesture.points.delete(event.pointerId);
+  if (shouldCommitTap) {
+    if (pending.kind === "note") addNoteAtPoint(pending.x, pending.y);
+    if (pending.kind === "playhead") setPlayheadAtPoint(pending.x);
+  }
+  if (rollGesture.points.size === 0) {
+    rollGesture.pinching = false;
+    rollGesture.pendingTap = null;
+    rollGesture.startDistance = 0;
+  }
 }
 
 function beginNoteDrag(event) {
+  if (event.button !== 0) return;
   event.preventDefault();
   event.stopPropagation();
   const noteId = event.currentTarget.dataset.noteId;
-  const note = activeTrack().notes.find((item) => item.id === noteId);
+  const trackId = event.currentTarget.dataset.trackId;
+  const track = state.tracks.find((item) => item.id === trackId);
+  const note = track?.notes.find((item) => item.id === noteId);
   if (!note) return;
+  if (trackId !== state.activeTrackId) {
+    state.activeTrackId = trackId;
+    state.selectedNoteId = noteId;
+    renderAll();
+    auditionPitch(note.pitch, track, note.duration);
+    return;
+  }
   state.selectedNoteId = noteId;
   drag.active = true;
+  drag.mode = event.target.closest(".note-resize-handle") ? "resize" : "move";
+  drag.changed = false;
   drag.noteId = noteId;
   drag.originX = event.clientX;
   drag.originY = event.clientY;
   drag.start = note.start;
   drag.pitch = note.pitch;
+  drag.duration = note.duration;
   drag.snapshot = cloneTracks();
   renderRollHeading();
   renderNotes();
+  if (drag.mode === "move") auditionPitch(note.pitch, activeTrack());
 }
 
 function moveNoteDrag(event) {
   if (!drag.active) return;
-  const tickDelta = Math.round((event.clientX - drag.originX) / (SIXTEENTH_WIDTH * state.snap)) * state.snap;
-  const pitchDelta = -Math.round((event.clientY - drag.originY) / ROW_HEIGHT);
   const track = activeTrack();
   const note = track.notes.find((item) => item.id === drag.noteId);
   if (!note) return;
-  note.start = Math.max(0, Math.min(TOTAL_TICKS - note.duration, drag.start + tickDelta));
-  note.pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, drag.pitch + pitchDelta));
+  if (drag.mode === "resize") {
+    const durationDelta = Math.round((event.clientX - drag.originX) / tickWidth);
+    note.duration = Math.max(1, Math.min(totalTicks - note.start, drag.duration + durationDelta));
+    drag.changed = note.duration !== drag.duration;
+  } else {
+    const tickDelta = Math.round((event.clientX - drag.originX) / (tickWidth * state.snap)) * state.snap;
+    const pitchDelta = -Math.round((event.clientY - drag.originY) / ROW_HEIGHT);
+    note.start = Math.max(0, Math.min(totalTicks - note.duration, drag.start + tickDelta));
+    note.pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, drag.pitch + pitchDelta));
+    drag.changed = note.start !== drag.start || note.pitch !== drag.pitch;
+  }
+  if (!drag.changed) return;
   markUnsaved();
   renderNotes();
 }
 
 function endNoteDrag() {
   if (!drag.active) return;
-  state.history.push(drag.snapshot);
-  state.history = state.history.slice(-25);
-  state.future = [];
+  if (drag.changed) {
+    state.history.push(drag.snapshot);
+    state.history = state.history.slice(-25);
+    state.future = [];
+  }
   drag.active = false;
+  drag.changed = false;
   drag.snapshot = null;
+  renderRollHeading();
   renderHistory();
 }
 
@@ -909,10 +1347,43 @@ function redo() {
 
 function songEnd() {
   const ends = state.tracks.flatMap((track) => track.notes.map((note) => note.start + note.duration));
-  return Math.max(64, ...ends);
+  return Math.max(TICKS_PER_WHOLE * 4, ...ends);
+}
+
+function currentPlaybackTick() {
+  if (!state.isPlaying || !audio.context) return state.playhead;
+  const secondsPerTick = 60 / state.tempo / TICKS_PER_BEAT;
+  const elapsed = audio.context.currentTime - audio.startedAt;
+  return Math.max(0, Math.min(songEnd(), audio.origin + elapsed / secondsPerTick));
+}
+
+function setTrackMuted(trackId, muted) {
+  const track = state.tracks.find((item) => item.id === trackId);
+  if (!track || track.muted === muted) return;
+
+  const wasPlaying = state.isPlaying;
+  const resumeAt = wasPlaying ? currentPlaybackTick() : state.playhead;
+  if (audio.synth?.muteChannel) {
+    audio.synth.muteChannel(synthChannelForTrack(track), muted);
+  }
+  commitTracks((tracks) => tracks.map((item) => item.id === trackId ? { ...item, muted } : item));
+
+  if (wasPlaying) {
+    stopPlayback();
+    state.playhead = Math.min(resumeAt, songEnd());
+    renderPlayhead();
+    startPlayback();
+  }
 }
 
 function stopPlayback(reset = false) {
+  audio.playRequest += 1;
+  audio.starting = false;
+  audio.timers.forEach((timer) => clearTimeout(timer));
+  audio.timers = [];
+  audio.previewTimers.forEach((timer) => clearTimeout(timer));
+  audio.previewTimers = [];
+  if (audio.synth) audio.synth.stopAll(true);
   audio.nodes.forEach((node) => {
     try { node.stop(); } catch { /* The note already ended. */ }
   });
@@ -928,20 +1399,121 @@ function stopPlayback(reset = false) {
   }
 }
 
+async function ensureAudio() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    notify("Audio playback is not supported in this browser.");
+    return "unavailable";
+  }
+  if (!audio.context) audio.context = new AudioContextClass();
+  await audio.context.resume();
+  if (audio.mode === "soundfont" || audio.mode === "fallback") return audio.mode;
+  if (audio.loadingPromise) return audio.loadingPromise;
+
+  audio.mode = "loading";
+  updateAudioStatus("Loading 37 MB instrument sounds…", "is-loading");
+  audio.loadingPromise = (async () => {
+    try {
+      if (!window.SpessaSynth?.Synthetizer) throw new Error("SpessaSynth did not load.");
+      const directFileMode = location.protocol === "file:";
+      const workletUrl = directFileMode
+        ? "https://cdn.jsdelivr.net/npm/spessasynth_lib@3.24.0/synthetizer/worklet_processor.min.js"
+        : "./vendor/worklet_processor.min.js";
+      const soundFontUrl = directFileMode
+        ? "https://raw.githubusercontent.com/Daderic/MabiMML/main/public/soundfonts/mabi_instruments_high_quality.sf3"
+        : "./soundfonts/mabi_instruments_high_quality.sf3";
+      await audio.context.audioWorklet.addModule(workletUrl);
+      const response = await fetch(soundFontUrl);
+      if (!response.ok) throw new Error(`SoundFont download failed (${response.status}).`);
+      const soundFontBuffer = await response.arrayBuffer();
+      audio.synth = new window.SpessaSynth.Synthetizer(
+        audio.context.destination,
+        soundFontBuffer,
+        true,
+        undefined,
+        { chorusEnabled: false, reverbEnabled: false },
+      );
+      audio.synth.setMainVolume(2);
+      audio.synth.setLogLevel(false, false, false, false);
+      await audio.synth.isReady;
+      audio.mode = "soundfont";
+      updateAudioStatus("Mabinogi sounds ready", "is-ready");
+      notify("Mabinogi instrument sounds are ready.");
+    } catch (error) {
+      console.warn("Mabinogi SoundFont unavailable; using the lightweight preview synth.", error);
+      audio.synth = null;
+      audio.mode = "fallback";
+      updateAudioStatus("Preview synth active");
+    } finally {
+      audio.loadingPromise = null;
+    }
+    return audio.mode;
+  })();
+  return audio.loadingPromise;
+}
+
+function fallbackWaveForInstrument(name) {
+  if (/Flute|Whistle|Voice|Chorus|Chalumeau/.test(name)) return "sine";
+  if (/Violin|Cello|Tuba|Roncadora/.test(name)) return "sawtooth";
+  if (/Piano|Chimes|Harp|Lyre/.test(name)) return "triangle";
+  return "triangle";
+}
+
+function scheduleFallbackNote(pitch, track, start, end, velocity = 104) {
+  const oscillator = audio.context.createOscillator();
+  const gain = audio.context.createGain();
+  oscillator.type = fallbackWaveForInstrument(track.instrument);
+  oscillator.frequency.value = 440 * Math.pow(2, (pitch - 69) / 12);
+  const volume = Math.min(0.13, (velocity / 127) * 0.09);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+  gain.gain.setValueAtTime(volume, Math.max(start + 0.013, end - 0.04));
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  oscillator.connect(gain).connect(audio.context.destination);
+  oscillator.start(start);
+  oscillator.stop(end + 0.03);
+  audio.nodes.push(oscillator);
+}
+
+async function auditionPitch(pitch, track = activeTrack(), durationTicks = null) {
+  if (!track) return;
+  const request = ++audio.previewRequest;
+  const mode = await ensureAudio();
+  if (request !== audio.previewRequest || mode === "unavailable") return;
+  const previewSeconds = durationTicks === null
+    ? 0.48
+    : Math.max(0.04, durationTicks * 60 / state.tempo / TICKS_PER_BEAT);
+  if (mode === "soundfont") {
+    const channel = synthChannelForTrack(track);
+    audio.synth.programChange(channel, instrumentByName(track.instrument).program);
+    audio.synth.noteOn(channel, pitch, volumeToVelocity(track.volume), false);
+    const timer = setTimeout(() => audio.synth?.noteOff(channel, pitch, true), previewSeconds * 1000);
+    audio.previewTimers.push(timer);
+  } else {
+    const start = audio.context.currentTime + 0.005;
+    scheduleFallbackNote(pitch, track, start, start + previewSeconds, volumeToVelocity(track.volume));
+  }
+}
+
 async function startPlayback() {
   if (state.isPlaying) {
     stopPlayback();
     return;
   }
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) {
-    notify("Audio playback is not supported in this browser.");
+  if (audio.starting) {
+    audio.playRequest += 1;
+    audio.starting = false;
+    elements.playToggle.textContent = "▶";
     return;
   }
-  if (!audio.context) audio.context = new AudioContextClass();
+  audio.starting = true;
+  const request = ++audio.playRequest;
+  elements.playToggle.textContent = "…";
+  const mode = await ensureAudio();
+  if (request !== audio.playRequest || mode === "unavailable") return;
+  audio.starting = false;
   const context = audio.context;
-  await context.resume();
-  const secondsPerTick = 60 / state.tempo / 4;
+  const secondsPerTick = 60 / state.tempo / TICKS_PER_BEAT;
   const origin = state.playhead >= songEnd() ? 0 : state.playhead;
   audio.origin = origin;
   audio.startedAt = context.currentTime;
@@ -949,24 +1521,32 @@ async function startPlayback() {
   elements.playToggle.textContent = "❚❚";
   elements.playToggle.setAttribute("aria-label", "Pause playback");
 
-  state.tracks.filter((track) => !track.muted).forEach((track, trackIndex) => {
+  if (mode === "soundfont" && audio.synth?.muteChannel) {
+    state.tracks.forEach((track) => {
+      audio.synth.muteChannel(synthChannelForTrack(track), track.muted);
+    });
+  }
+
+  state.tracks.filter((track) => !track.muted).forEach((track) => {
+    const channel = synthChannelForTrack(track);
+    if (mode === "soundfont") audio.synth.programChange(channel, instrumentByName(track.instrument).program);
     track.notes.forEach((note) => {
       if (note.start + note.duration <= origin) return;
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = trackIndex % 2 ? "sine" : "triangle";
-      oscillator.frequency.value = 440 * Math.pow(2, (note.pitch - 69) / 12);
       const start = context.currentTime + Math.max(0, note.start - origin) * secondsPerTick;
       const end = context.currentTime + Math.max(0.04, note.start + note.duration - origin) * secondsPerTick;
-      const volume = Math.min(0.12, (note.velocity / 127) * 0.09);
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
-      gain.gain.setValueAtTime(volume, Math.max(start + 0.013, end - 0.035));
-      gain.gain.exponentialRampToValueAtTime(0.0001, end);
-      oscillator.connect(gain).connect(context.destination);
-      oscillator.start(start);
-      oscillator.stop(end + 0.02);
-      audio.nodes.push(oscillator);
+      if (mode === "soundfont") {
+        const startDelay = Math.max(0, (start - context.currentTime) * 1000);
+        const endDelay = Math.max(35, (end - context.currentTime) * 1000);
+        audio.timers.push(setTimeout(() => {
+          const liveTrack = state.tracks.find((item) => item.id === track.id);
+          if (request === audio.playRequest && liveTrack && !liveTrack.muted) {
+            audio.synth?.noteOn(channel, note.pitch, note.velocity, false);
+          }
+        }, startDelay));
+        audio.timers.push(setTimeout(() => audio.synth?.noteOff(channel, note.pitch, true), endDelay));
+      } else {
+        scheduleFallbackNote(note.pitch, track, start, end, note.velocity);
+      }
     });
   });
 
@@ -989,7 +1569,7 @@ async function startPlayback() {
 }
 
 function tickLength(denominator, dots = 0) {
-  let value = 16 / denominator;
+  let value = TICKS_PER_WHOLE / denominator;
   let addition = value / 2;
   for (let index = 0; index < dots; index += 1) {
     value += addition;
@@ -1036,7 +1616,7 @@ function parseMml(source) {
         const pitch = readNumber();
         if (pitch !== null) {
           const duration = tickLength(defaultLength);
-          notes.push({ id: uid("note"), pitch, start: cursor, duration, velocity: Math.min(127, volume * 8) });
+          notes.push({ id: uid("note"), pitch, start: cursor, duration, velocity: volumeToVelocity(volume) });
           cursor += duration;
         }
         pendingTie = part[index] === "&";
@@ -1064,7 +1644,7 @@ function parseMml(source) {
             pitch,
             start: cursor,
             duration,
-            velocity: Math.min(127, Math.max(1, Math.round(volume * 8))),
+            velocity: volumeToVelocity(volume),
           });
         }
       }
@@ -1077,6 +1657,7 @@ function parseMml(source) {
       id: uid("track"),
       name: parts.length === 1 ? "Imported melody" : `MML part ${partIndex + 1}`,
       instrument: partIndex === 0 ? "Lute" : "Mandolin",
+      volume: notes.length ? velocityToVolume(notes[0].velocity) : normalizeVolume(volume, 10),
       color: COLORS[partIndex % COLORS.length],
       muted: false,
       notes: notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
@@ -1086,8 +1667,8 @@ function parseMml(source) {
 }
 
 function splitDuration(duration) {
-  const values = [16, 12, 8, 6, 4, 3, 2, 1];
-  const labels = { 16: "1", 12: "2.", 8: "2", 6: "4.", 4: "4", 3: "8.", 2: "8", 1: "16" };
+  const values = [64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1];
+  const labels = { 64: "1", 48: "2.", 32: "2", 24: "4.", 16: "4", 12: "8.", 8: "8", 6: "16.", 4: "16", 3: "32.", 2: "32", 1: "64" };
   const result = [];
   let left = Math.max(1, Math.round(duration));
   for (const value of values) {
@@ -1104,7 +1685,7 @@ function trackToMml(track, tempo) {
   const notes = [...track.notes].sort((a, b) => a.start - b.start || b.pitch - a.pitch);
   let cursor = 0;
   let octave = 4;
-  let output = `t${tempo}v12o4`;
+  let output = `t${tempo}v${normalizeVolume(track.volume)}o4`;
   for (const note of notes) {
     if (note.start < cursor) continue;
     const rest = Math.round(note.start - cursor);
@@ -1227,12 +1808,14 @@ function parseMidi(buffer) {
   const tracks = [];
   let colorIndex = 0;
   for (const [key, group] of groups) {
-    const sourceIndex = Number(key.split(":")[0]);
+    const [sourcePart, channelPart] = key.split(":");
+    const sourceIndex = Number(sourcePart);
+    const midiChannel = Number(channelPart);
     const lanes = [];
     group.sort((a, b) => a.start - b.start || a.pitch - b.pitch);
     group.forEach((item) => {
-      const start = Math.round((item.start / ppq) * 4);
-      const duration = Math.max(1, Math.round(((item.end - item.start) / ppq) * 4));
+      const start = Math.round((item.start / ppq) * TICKS_PER_BEAT);
+      const duration = Math.max(1, Math.round(((item.end - item.start) / ppq) * TICKS_PER_BEAT));
       let lane = lanes.find((candidate) => candidate.end <= start);
       if (!lane) {
         lane = { end: 0, notes: [] };
@@ -1243,18 +1826,25 @@ function parseMidi(buffer) {
     });
     lanes.forEach((lane, laneIndex) => {
       const baseName = trackNames[sourceIndex] || `MIDI track ${sourceIndex + 1}`;
+      const playableNotes = lane.notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX);
+      const averageVelocity = playableNotes.length
+        ? playableNotes.reduce((sum, note) => sum + note.velocity, 0) / playableNotes.length
+        : volumeToVelocity(12);
+      if (!playableNotes.length) return;
       tracks.push({
         id: uid("track"),
         name: lanes.length > 1 ? `${baseName} · voice ${laneIndex + 1}` : baseName,
-        instrument: "Lute",
+        instrument: midiChannel === 9 ? "Drum Kit" : "Piano",
+        volume: velocityToVolume(averageVelocity),
         color: COLORS[colorIndex++ % COLORS.length],
         muted: false,
-        notes: lane.notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
+        notes: playableNotes,
       });
     });
   }
   if (!tracks.length) throw new Error("The MIDI file did not contain any playable notes.");
-  return { tracks, tempo };
+  const importedNotes = tracks.reduce((sum, track) => sum + track.notes.length, 0);
+  return { tracks, tempo, skippedNotes: collected.length - importedNotes };
 }
 
 function syncTempoControl() {
@@ -1346,7 +1936,8 @@ async function importMidiFile(file) {
       syncTempoControl();
     }
     renderAll();
-    notify(`${result.tracks.length} playable ${result.tracks.length === 1 ? "track" : "voices"} imported from MIDI.`);
+    const skipped = result.skippedNotes ? ` ${result.skippedNotes} out-of-range notes were skipped.` : "";
+    notify(`${result.tracks.length} playable ${result.tracks.length === 1 ? "track" : "voices"} imported from MIDI.${skipped}`);
   } catch (error) {
     notify(error.message || "The MIDI file could not be imported.");
   } finally {
@@ -1359,6 +1950,8 @@ function saveProject() {
     tracks: state.tracks,
     tempo: state.tempo,
     name: state.projectName,
+    noteDuration: state.noteDuration,
+    timingResolution: TICKS_PER_WHOLE,
   }));
   state.saved = true;
   renderSaveState();
@@ -1371,11 +1964,29 @@ function loadProject() {
   try {
     const project = JSON.parse(raw);
     if (!Array.isArray(project.tracks) || !project.tracks.length) return;
-    state.tracks = project.tracks;
+    const previousResolution = Number(project.timingResolution) || 16;
+    const timingScale = TICKS_PER_WHOLE / previousResolution;
+    state.tracks = project.tracks.map((track, index) => ({
+      ...track,
+      instrument: instrumentByName(track.instrument).name,
+      volume: normalizeVolume(track.volume, track.notes?.length ? velocityToVolume(track.notes[0].velocity) : 12),
+      color: normalizeTrackColor(track.color, COLORS[index % COLORS.length]),
+      notes: track.notes.map((note) => ({
+        ...note,
+        start: Math.round(note.start * timingScale),
+        duration: Math.max(1, Math.round(note.duration * timingScale)),
+      })),
+    }));
     state.activeTrackId = project.tracks[0].id;
     state.tempo = project.tempo || 120;
+    state.snap = 4;
+    state.noteDuration = Number(project.noteDuration) ? Math.max(1, Math.round(project.noteDuration * timingScale)) : 16;
     state.projectName = project.name || "Untitled score";
     elements.projectTitle.value = state.projectName;
+    elements.snap.value = String(state.snap);
+    if ([...elements.noteDuration.options].some((option) => Number(option.value) === state.noteDuration)) {
+      elements.noteDuration.value = String(state.noteDuration);
+    }
     syncTempoControl();
   } catch {
     // A damaged local draft should never prevent the editor from opening.
@@ -1426,6 +2037,27 @@ function bindEvents() {
   });
   elements.snap.addEventListener("change", () => { state.snap = Number(elements.snap.value); });
   elements.noteDuration.addEventListener("change", () => { state.noteDuration = Number(elements.noteDuration.value); });
+  elements.instrumentSelect.addEventListener("change", () => {
+    const track = activeTrack();
+    if (!track) return;
+    const instrument = instrumentByName(elements.instrumentSelect.value).name;
+    const previewPitch = track.notes.find((note) => note.id === state.selectedNoteId)?.pitch || 60;
+    commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, instrument } : item));
+    auditionPitch(previewPitch, activeTrack());
+  });
+  elements.trackVolume.addEventListener("change", () => {
+    const track = activeTrack();
+    if (!track) return;
+    const volume = normalizeVolume(elements.trackVolume.value);
+    const velocity = volumeToVelocity(volume);
+    const previewPitch = track.notes.find((note) => note.id === state.selectedNoteId)?.pitch || 60;
+    commitTracks((tracks) => tracks.map((item) => item.id === track.id ? {
+      ...item,
+      volume,
+      notes: item.notes.map((note) => ({ ...note, velocity })),
+    } : item));
+    auditionPitch(previewPitch, activeTrack());
+  });
   elements.projectTitle.addEventListener("input", () => {
     state.projectName = elements.projectTitle.value;
     markUnsaved();
@@ -1443,6 +2075,10 @@ function bindEvents() {
   });
   document.querySelector("#copy-export").addEventListener("click", copyExport);
   document.querySelector("#download-export").addEventListener("click", downloadExport);
+  elements.timelineWrap.addEventListener("pointerdown", beginRollTouch, { capture: true });
+  elements.timelineWrap.addEventListener("pointermove", moveRollTouch, { capture: true });
+  elements.timelineWrap.addEventListener("pointerup", endRollTouch, { capture: true });
+  elements.timelineWrap.addEventListener("pointercancel", (event) => endRollTouch(event, true), { capture: true });
   elements.noteGrid.addEventListener("pointerdown", addNoteFromPointer);
   window.addEventListener("pointermove", moveNoteDrag);
   window.addEventListener("pointerup", endNoteDrag);
@@ -1451,10 +2087,24 @@ function bindEvents() {
     elements.timelineScroll.scrollLeft = elements.gridScroll.scrollLeft;
     elements.keyScroll.scrollTop = elements.gridScroll.scrollTop;
   });
+  document.querySelector("#zoom-out").addEventListener("click", () => setTimeZoom(tickWidth / 1.25));
+  document.querySelector("#zoom-in").addEventListener("click", () => setTimeZoom(tickWidth * 1.25));
+  elements.timelineWrap.addEventListener("wheel", (event) => {
+    const overRuler = event.target.closest(".timeline-scroll, .timeline-corner");
+    if (overRuler || event.ctrlKey || event.metaKey || event.altKey) zoomRollFromWheel(event);
+  }, { passive: false });
+  let gestureOriginWidth = tickWidth;
+  elements.timelineWrap.addEventListener("gesturestart", (event) => {
+    event.preventDefault();
+    gestureOriginWidth = tickWidth;
+  }, { passive: false });
+  elements.timelineWrap.addEventListener("gesturechange", (event) => {
+    event.preventDefault();
+    setTimeZoom(gestureOriginWidth * event.scale, event.clientX);
+  }, { passive: false });
+  elements.timelineWrap.addEventListener("gestureend", (event) => event.preventDefault(), { passive: false });
   elements.timelineScroll.addEventListener("pointerdown", (event) => {
-    const rectangle = elements.timeline.getBoundingClientRect();
-    state.playhead = Math.max(0, Math.min(TOTAL_TICKS, (event.clientX - rectangle.left) / SIXTEENTH_WIDTH));
-    renderPlayhead();
+    setPlayheadAtPoint(event.clientX);
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !elements.modalBackdrop.hidden) closeModal();
@@ -1474,6 +2124,8 @@ function bindEvents() {
   });
 }
 
+buildInstrumentOptions();
+buildVolumeOptions();
 buildStaticGrid();
 loadProject();
 bindEvents();
