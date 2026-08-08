@@ -488,10 +488,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <button id="modal-close" class="modal-close" aria-label="Close">×</button>
           <div id="mml-modal" class="modal-view" hidden>
             <div class="modal-icon">▣</div><p class="eyebrow">Bring in a score</p><h2 id="modal-title">Import Mabinogi MML</h2>
-            <p class="modal-intro">Paste one part or a comma-separated multi-part MML score. Existing tracks will be replaced.</p>
+            <p class="modal-intro">Paste bare one-part MML to replace only the selected track. Use a complete <code>MML@...;</code> score to replace all tracks.</p>
             <button id="paste-mml" class="clipboard-button"><span aria-hidden="true">▣</span> Paste from clipboard</button>
             <textarea id="mml-input" spellcheck="false" aria-label="MML code">MML@t120o4l4cdefgab&gt;c;</textarea>
-            <div class="modal-actions"><button class="secondary-button modal-cancel">Cancel</button><button id="confirm-mml" class="primary-button">Import score</button></div>
+            <div class="modal-actions"><button class="secondary-button modal-cancel">Cancel</button><button id="confirm-mml" class="primary-button">Import MML</button></div>
           </div>
           <div id="export-modal" class="modal-view" hidden>
             <div class="modal-icon">≡</div><p class="eyebrow">Ready for Mabinogi</p><h2>Export MML</h2>
@@ -1910,16 +1910,40 @@ function renderExportPreview() {
 
 function importMml() {
   try {
-    const result = parseMml(elements.mmlInput.value);
-    commitTracks(result.tracks);
-    state.activeTrackId = result.tracks[0].id;
+    const source = elements.mmlInput.value.trim();
+    const isFullScore = /^MML@/i.test(source);
+    const result = parseMml(source);
+    stopPlayback(true);
+
+    if (isFullScore) {
+      commitTracks(result.tracks);
+      state.activeTrackId = result.tracks[0].id;
+    } else {
+      if (result.tracks.length !== 1) {
+        throw new Error("Single-track MML cannot contain commas. Add MML@ to import a multi-track score.");
+      }
+      const target = activeTrack();
+      const imported = result.tracks[0];
+      if (!target) throw new Error("Select a track before importing one-part MML.");
+      commitTracks((tracks) => tracks.map((track) => track.id === target.id ? {
+        ...track,
+        volume: imported.volume,
+        notes: imported.notes,
+      } : track));
+      state.activeTrackId = target.id;
+    }
+    state.selectedNoteId = null;
     if (result.tempo) {
       state.tempo = result.tempo;
       syncTempoControl();
     }
     closeModal();
     renderAll();
-    notify(`${result.tracks.length} MML ${result.tracks.length === 1 ? "track" : "tracks"} imported.`);
+    if (isFullScore) {
+      notify(`${result.tracks.length} MML ${result.tracks.length === 1 ? "track" : "tracks"} imported.`);
+    } else {
+      notify(`MML imported into ${activeTrack().name}.`);
+    }
   } catch (error) {
     notify(error.message || "The MML could not be imported.");
   }
