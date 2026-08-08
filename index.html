@@ -488,7 +488,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <button id="modal-close" class="modal-close" aria-label="Close">×</button>
           <div id="mml-modal" class="modal-view" hidden>
             <div class="modal-icon">▣</div><p class="eyebrow">Bring in a score</p><h2 id="modal-title">Import Mabinogi MML</h2>
-            <p class="modal-intro">Paste bare one-part MML to replace only the selected track. Use a complete <code>MML@...;</code> score to replace all tracks.</p>
+            <p class="modal-intro">One-part MML replaces only the selected track, with or without <code>MML@...;</code>. A multi-part <code>MML@...;</code> score replaces all tracks.</p>
             <button id="paste-mml" class="clipboard-button"><span aria-hidden="true">▣</span> Paste from clipboard</button>
             <textarea id="mml-input" spellcheck="false" aria-label="MML code">MML@t120o4l4cdefgab&gt;c;</textarea>
             <div class="modal-actions"><button class="secondary-button modal-cancel">Cancel</button><button id="confirm-mml" class="primary-button">Import MML</button></div>
@@ -1911,11 +1911,12 @@ function renderExportPreview() {
 function importMml() {
   try {
     const source = elements.mmlInput.value.trim();
-    const isFullScore = /^MML@/i.test(source);
+    const hasScoreWrapper = /^MML@/i.test(source);
     const result = parseMml(source);
+    const isMultiTrackScore = hasScoreWrapper && result.tracks.length > 1;
     stopPlayback(true);
 
-    if (isFullScore) {
+    if (isMultiTrackScore) {
       commitTracks(result.tracks);
       state.activeTrackId = result.tracks[0].id;
     } else {
@@ -1939,7 +1940,7 @@ function importMml() {
     }
     closeModal();
     renderAll();
-    if (isFullScore) {
+    if (isMultiTrackScore) {
       notify(`${result.tracks.length} MML ${result.tracks.length === 1 ? "track" : "tracks"} imported.`);
     } else {
       notify(`MML imported into ${activeTrack().name}.`);
