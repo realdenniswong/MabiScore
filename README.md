@@ -24,16 +24,18 @@ Live site: <https://realdenniswong.github.io/MabiScore/>
 
 ## Features
 
-- Draw, audition, select, drag, freely resize, and delete notes on a touch-friendly piano roll
+- Draw, audition, select, drag, freely resize, and delete notes on a touch-friendly piano roll, including Shift/Command/Control multi-select, Command/Control+A for the active track, and group movement in both time and pitch
 - See every track layered in the piano roll, with the active track emphasized and faded notes clickable for quick track switching
+- Merge two or more non-overlapping tracks into the active destination track without losing MML compatibility
 - Choose a custom color for each track; its stripe, active indicator, and every layered note update together
 - Zoom the score timeline with the ruler wheel, trackpad or touchscreen pinch, or the accessible zoom buttons while keeping the musical position under the gesture and preventing whole-page zoom
 - Choose a Mabinogi instrument per track with the high-quality MabiMML SoundFont
 - Set an independent MML `V0`–`V15` volume for every track
-- Choose tempo and grid snapping from a practical 1/16 default down to 1/64 fine timing, with half-beat movement and freely resizable note lengths
+- Choose tempo and new-note grid snapping from a practical 1/16 default down to 1/64, move every existing note freely in 1/64 steps, and resize notes to any 1/64 length
 - Import one-part MML into the selected track—with or without an `MML@...;` wrapper—or replace the full score with multi-track `MML@...;`
 - Import standard MIDI files, preserve low notes down to C1, split polyphony into non-empty exportable voices, use Piano as the broad-range default, and expand the grid to the full song length with a trailing blank bar
 - Preview piano keys, placed notes, and full-score playback in the browser, with per-track mute/unmute that takes effect immediately during playback
+- Undo and redo all score-editing actions, including notes, tracks, imports, merge, names, colors, instruments, volume, tempo, and note settings
 - Export any selection of monophonic tracks as `MML@...;`
 - Save a local draft in browser storage
 
