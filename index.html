@@ -236,6 +236,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .audio-status.is-loading { color: #b7791f; }
 .selection-tools { display: flex; align-items: center; gap: 7px; color: #9a9eaa; font-size: 10px; }
 .selection-tools button { height: 30px; display: flex; align-items: center; gap: 5px; border: 0; background: #fff1ef; color: var(--accent-dark); border-radius: 7px; padding: 0 10px; font-size: 11px; font-weight: 620; cursor: pointer; }
+.selection-tools .box-select-button { width: 30px; flex: 0 0 30px; justify-content: center; padding: 0; font-size: 16px; }
+.selection-tools .box-select-button.is-active { color: white; background: var(--accent); }
+.roll-heading-actions { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.track-visibility-button { height: 30px; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; color: #656b7c; background: #f8f8fa; font-size: 10px; font-weight: 650; cursor: pointer; }
+.track-visibility-button:hover { color: var(--ink); border-color: #c8ccd6; }
+.track-visibility-button.is-active { color: var(--accent-dark); border-color: #f0b4ac; background: #fff1ef; }
+.track-visibility-icon { font-size: 14px; line-height: 1; }
 .selection-length { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 .selection-length input { width: 54px; height: 30px; border: 1px solid var(--line); border-radius: 7px; padding: 0 6px; color: var(--ink); background: #f8f8fa; font-size: 11px; }
 
@@ -263,6 +270,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .piano-key.is-black:active, .piano-key.is-black.is-previewing { background: #3a496f; color: white; }
 .grid-scroll { grid-column: 2; grid-row: 2; overflow: auto; background: #fbfbfc; overscroll-behavior: contain; }
 .note-grid { position: relative; touch-action: none; user-select: none; cursor: crosshair; background: #fbfbfc; }
+.note-grid.is-box-selecting { cursor: crosshair; }
+.selection-marquee { position: absolute; display: none; z-index: 6; pointer-events: none; border: 1px solid #315ea8; border-radius: 3px; background: rgba(79,120,200,.16); box-shadow: 0 0 0 1px rgba(255,255,255,.55) inset; }
+.selection-marquee.is-visible { display: block; }
 .pitch-row { position: absolute; left: 0; right: 0; height: 28px; border-bottom: 1px solid #eceef2; background: rgba(255,255,255,.5); pointer-events: none; }
 .pitch-row.is-black { background: rgba(32,42,72,.035); }
 .pitch-row.is-c { border-bottom-color: #d9dce4; }
@@ -377,6 +387,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .active-track-label > strong, .audio-status, .instrument-label { display: none; }
   .instrument-picker select { width: 124px; }
   .selection-tools { gap: 4px; }
+  .track-visibility-button { width: 30px; padding: 0; justify-content: center; }
+  .track-visibility-label { display: none; }
   .selection-length > span:first-child { display: none; }
   .selection-length input { width: 48px; }
   .timeline-wrap { grid-template-columns: 62px minmax(0, 1fr); }
@@ -482,13 +494,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
               <label class="instrument-picker"><span class="instrument-label">Instrument</span><select id="instrument-select" aria-label="Instrument for active track"></select></label>
               <span id="audio-status" class="audio-status">Hi-fi sounds load on first play</span>
             </div>
-            <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
+            <div class="roll-heading-actions">
+              <button id="toggle-other-tracks" class="track-visibility-button" type="button" aria-pressed="false" title="Hide notes from other tracks"><span class="track-visibility-icon" aria-hidden="true">◉</span><span class="track-visibility-label">Hide others</span></button>
+              <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
+            </div>
           </div>
           <div id="timeline-wrap" class="timeline-wrap">
             <div class="timeline-corner" title="Scroll here or pinch over the score to zoom"><button id="zoom-out" type="button" aria-label="Zoom out score">−</button><strong id="zoom-label">100%</strong><button id="zoom-in" type="button" aria-label="Zoom in score">+</button></div>
             <div id="timeline-scroll" class="timeline-scroll" title="Scroll here or pinch over the score to zoom"><div id="timeline" class="timeline"><div id="timeline-playhead" class="timeline-playhead"></div></div></div>
             <div id="key-scroll" class="key-scroll"><div id="piano-keys" class="piano-keys" aria-label="Playable piano keyboard"></div></div>
-            <div id="grid-scroll" class="grid-scroll"><div id="note-grid" class="note-grid"><div id="grid-playhead" class="grid-playhead"></div></div></div>
+            <div id="grid-scroll" class="grid-scroll"><div id="note-grid" class="note-grid"><div id="grid-playhead" class="grid-playhead"></div><div id="selection-marquee" class="selection-marquee" aria-hidden="true"></div></div></div>
           </div>
         </section>
       </section>
@@ -513,7 +528,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           </div>
           <div id="merge-modal" class="modal-view" hidden>
             <div class="modal-icon">⇉</div><p class="eyebrow">Combine parts</p><h2>Merge tracks</h2>
-            <p class="modal-intro">The active track is the destination and keeps its name, instrument, color, and volume. Select at least one additional non-overlapping track.</p>
+            <p class="modal-intro">The active track is the destination and keeps its name, instrument, color, and volume. Overlapping notes are kept so you can resolve them after merging.</p>
             <div id="merge-track-list" class="export-track-list"></div>
             <div id="merge-summary" class="export-summary"></div>
             <div id="merge-warning" class="merge-warning"></div>
@@ -522,9 +537,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <div id="help-modal" class="modal-view help-modal" hidden>
             <div class="modal-icon">♫</div><p class="eyebrow">Quick guide</p><h2>Make your first score</h2>
             <div class="help-steps">
-              <div><span>1</span><p><strong>Add & arrange</strong>Tap to add and hear a note. Multi-select notes with Shift/⌘/Ctrl-click or Add notes, then drag the group in time and pitch.</p></div>
+              <div><span>1</span><p><strong>Add & arrange</strong>Tap to add and hear all notes in that time column. Use the ▧ button to drag-select an area, then move the group in time and pitch.</p></div>
               <div><span>2</span><p><strong>Listen & refine</strong>Choose a Mabinogi instrument, click the piano keys to preview it, and use Space to play or pause.</p></div>
-              <div><span>3</span><p><strong>Tracks & export</strong>Import MML or MIDI, merge compatible tracks into the active track, then export one or multiple parts. Every edit supports Undo and Redo.</p></div>
+              <div><span>3</span><p><strong>Tracks & export</strong>Import MML or MIDI, merge tracks into the active track, then resolve any overlapping notes before export. Every edit supports Undo and Redo.</p></div>
             </div>
             <button class="primary-button full-button modal-cancel">Start composing</button>
           </div>
@@ -633,6 +648,8 @@ const state = {
   selectedNoteId: null,
   selectedNoteIds: new Set(),
   multiSelectMode: false,
+  boxSelectMode: false,
+  showOtherTracks: true,
   isPlaying: false,
   playhead: 0,
   loop: false,
@@ -675,6 +692,16 @@ const drag = {
   snapshot: null,
 };
 
+const boxSelection = {
+  active: false,
+  pointerId: null,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0,
+  additive: false,
+};
+
 const rollGesture = {
   points: new Map(),
   pinching: false,
@@ -699,6 +726,7 @@ const elements = {
   activeTrackName: document.querySelector("#active-track-name"),
   activeDot: document.querySelector("#active-dot"),
   selectionTools: document.querySelector("#selection-tools"),
+  toggleOtherTracks: document.querySelector("#toggle-other-tracks"),
   timelineWrap: document.querySelector("#timeline-wrap"),
   timelineScroll: document.querySelector("#timeline-scroll"),
   timeline: document.querySelector("#timeline"),
@@ -709,6 +737,7 @@ const elements = {
   gridScroll: document.querySelector("#grid-scroll"),
   noteGrid: document.querySelector("#note-grid"),
   gridPlayhead: document.querySelector("#grid-playhead"),
+  selectionMarquee: document.querySelector("#selection-marquee"),
   undo: document.querySelector("#undo-action"),
   redo: document.querySelector("#redo-action"),
   midiFile: document.querySelector("#midi-file"),
@@ -778,12 +807,16 @@ function clearNoteSelection() {
   state.selectedNoteId = null;
   state.selectedNoteIds.clear();
   state.multiSelectMode = false;
+  state.boxSelectMode = false;
+  elements.noteGrid.classList.remove("is-box-selecting");
+  elements.selectionMarquee.classList.remove("is-visible");
 }
 
 function selectOnlyNote(noteId) {
   state.selectedNoteId = noteId;
   state.selectedNoteIds = new Set(noteId ? [noteId] : []);
   state.multiSelectMode = false;
+  state.boxSelectMode = false;
 }
 
 function toggleNoteSelection(noteId) {
@@ -800,8 +833,17 @@ function selectAllNotesInActiveTrack() {
   state.selectedNoteIds = new Set(noteIds);
   state.selectedNoteId = noteIds.at(-1) || null;
   state.multiSelectMode = false;
+  state.boxSelectMode = false;
   renderRollHeading();
   renderNotes();
+}
+
+function setBoxSelectMode(enabled) {
+  state.boxSelectMode = enabled;
+  if (enabled) state.multiSelectMode = false;
+  elements.noteGrid.classList.toggle("is-box-selecting", enabled);
+  if (!enabled) elements.selectionMarquee.classList.remove("is-visible");
+  renderRollHeading();
 }
 
 function syncNoteSelection() {
@@ -1010,6 +1052,7 @@ function renderRollHeading() {
       <label class="selection-length" title="${escapeHtml(formatDuration(selectedNote.duration))}">
         <span>Length</span><input id="selected-note-length" type="number" min="1" max="${totalTicks - selectedNote.start}" step="1" value="${selectedNote.duration}" aria-label="Selected note length in sixty-fourth notes" /><span>× 1/64</span>
       </label>
+      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
       <button id="delete-note">⌫ Delete</button>
     `;
@@ -1023,23 +1066,39 @@ function renderRollHeading() {
     });
     document.querySelector("#toggle-multi-select").addEventListener("click", () => {
       state.multiSelectMode = !state.multiSelectMode;
+      state.boxSelectMode = false;
+      elements.noteGrid.classList.remove("is-box-selecting");
       renderRollHeading();
     });
     document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
   } else if (selectedNotes.length > 1) {
     elements.selectionTools.innerHTML = `
+      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
       <span>${selectedNotes.length} notes selected · drag any selected note to move together</span>
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
       <button id="delete-note">⌫ Delete ${selectedNotes.length}</button>
     `;
     document.querySelector("#toggle-multi-select").addEventListener("click", () => {
       state.multiSelectMode = !state.multiSelectMode;
+      state.boxSelectMode = false;
+      elements.noteGrid.classList.remove("is-box-selecting");
       renderRollHeading();
     });
     document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
   } else {
-    elements.selectionTools.innerHTML = "<span>Select a note; Shift/⌘/Ctrl-click for more · ⌘/Ctrl+A selects this track</span>";
+    elements.selectionTools.innerHTML = `
+      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
+      <span>Select notes by rectangle, Shift/⌘/Ctrl-click, or ⌘/Ctrl+A</span>
+    `;
   }
+  document.querySelector("#toggle-box-select").addEventListener("click", () => setBoxSelectMode(!state.boxSelectMode));
+  elements.noteGrid.classList.toggle("is-box-selecting", state.boxSelectMode);
+  elements.toggleOtherTracks.classList.toggle("is-active", !state.showOtherTracks);
+  elements.toggleOtherTracks.setAttribute("aria-pressed", String(!state.showOtherTracks));
+  elements.toggleOtherTracks.setAttribute("aria-label", state.showOtherTracks ? "Hide notes from other tracks" : "Show notes from other tracks");
+  elements.toggleOtherTracks.title = state.showOtherTracks ? "Hide notes from other tracks" : "Show notes from other tracks";
+  elements.toggleOtherTracks.querySelector(".track-visibility-icon").textContent = state.showOtherTracks ? "◉" : "⊘";
+  elements.toggleOtherTracks.querySelector(".track-visibility-label").textContent = state.showOtherTracks ? "Hide others" : "Show others";
 }
 
 function renderNotes() {
@@ -1048,9 +1107,12 @@ function renderNotes() {
   syncNoteSelection();
   const selectedCount = state.selectedNoteIds.size;
   const fragment = document.createDocumentFragment();
+  const visibleTracks = state.showOtherTracks
+    ? state.tracks
+    : state.tracks.filter((track) => track.id === state.activeTrackId);
   const orderedTracks = [
-    ...state.tracks.filter((track) => track.id !== state.activeTrackId),
-    ...state.tracks.filter((track) => track.id === state.activeTrackId),
+    ...visibleTracks.filter((track) => track.id !== state.activeTrackId),
+    ...visibleTracks.filter((track) => track.id === state.activeTrackId),
   ];
   orderedTracks.forEach((track) => {
     const isActive = track.id === state.activeTrackId;
@@ -1280,13 +1342,102 @@ function addNoteAtPoint(clientX, clientY) {
   };
   selectOnlyNote(note.id);
   commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
-  auditionPitch(note.pitch, track, note.duration);
+  auditionColumn(start);
 }
 
 function addNoteFromPointer(event) {
+  if (state.boxSelectMode) {
+    beginBoxSelection(event);
+    return;
+  }
   if (event.button !== 0 || event.pointerType === "touch") return;
   if (event.target.closest(".note-block")) return;
   addNoteAtPoint(event.clientX, event.clientY);
+}
+
+function pointInNoteGrid(clientX, clientY) {
+  const rectangle = elements.noteGrid.getBoundingClientRect();
+  return {
+    x: Math.max(0, Math.min(gridWidth, clientX - rectangle.left)),
+    y: Math.max(0, Math.min(PITCHES.length * ROW_HEIGHT, clientY - rectangle.top)),
+  };
+}
+
+function renderSelectionMarquee() {
+  const left = Math.min(boxSelection.startX, boxSelection.currentX);
+  const top = Math.min(boxSelection.startY, boxSelection.currentY);
+  const width = Math.abs(boxSelection.currentX - boxSelection.startX);
+  const height = Math.abs(boxSelection.currentY - boxSelection.startY);
+  elements.selectionMarquee.style.left = `${left}px`;
+  elements.selectionMarquee.style.top = `${top}px`;
+  elements.selectionMarquee.style.width = `${width}px`;
+  elements.selectionMarquee.style.height = `${height}px`;
+  elements.selectionMarquee.classList.add("is-visible");
+}
+
+function beginBoxSelection(event) {
+  if (!state.boxSelectMode || event.button !== 0) return false;
+  event.preventDefault();
+  event.stopPropagation();
+  const point = pointInNoteGrid(event.clientX, event.clientY);
+  boxSelection.active = true;
+  boxSelection.pointerId = event.pointerId;
+  boxSelection.startX = point.x;
+  boxSelection.startY = point.y;
+  boxSelection.currentX = point.x;
+  boxSelection.currentY = point.y;
+  boxSelection.additive = event.shiftKey || event.metaKey || event.ctrlKey;
+  renderSelectionMarquee();
+  return true;
+}
+
+function moveBoxSelection(event) {
+  if (!boxSelection.active || event.pointerId !== boxSelection.pointerId) return;
+  event.preventDefault();
+  const point = pointInNoteGrid(event.clientX, event.clientY);
+  boxSelection.currentX = point.x;
+  boxSelection.currentY = point.y;
+  renderSelectionMarquee();
+}
+
+function endBoxSelection(event) {
+  if (!boxSelection.active || event.pointerId !== boxSelection.pointerId) return;
+  event.preventDefault();
+  const point = pointInNoteGrid(event.clientX, event.clientY);
+  boxSelection.currentX = point.x;
+  boxSelection.currentY = point.y;
+  const left = Math.min(boxSelection.startX, boxSelection.currentX);
+  const right = Math.max(boxSelection.startX, boxSelection.currentX);
+  const top = Math.min(boxSelection.startY, boxSelection.currentY);
+  const bottom = Math.max(boxSelection.startY, boxSelection.currentY);
+  const matches = (activeTrack()?.notes || []).filter((note) => {
+    const noteLeft = note.start * tickWidth;
+    const noteRight = noteLeft + Math.max(1, note.duration * tickWidth);
+    const noteTop = (PITCH_MAX - note.pitch) * ROW_HEIGHT + 3;
+    const noteBottom = noteTop + ROW_HEIGHT - 6;
+    return noteRight >= left && noteLeft <= right && noteBottom >= top && noteTop <= bottom;
+  }).map((note) => note.id);
+  const selected = boxSelection.additive ? new Set(state.selectedNoteIds) : new Set();
+  matches.forEach((id) => selected.add(id));
+  state.selectedNoteIds = selected;
+  state.selectedNoteId = matches.at(-1) || [...selected].at(-1) || null;
+  state.boxSelectMode = false;
+  boxSelection.active = false;
+  boxSelection.pointerId = null;
+  elements.selectionMarquee.classList.remove("is-visible");
+  elements.noteGrid.classList.remove("is-box-selecting");
+  renderRollHeading();
+  renderNotes();
+}
+
+function cancelBoxSelection(event) {
+  if (!boxSelection.active || (event.pointerId !== undefined && event.pointerId !== boxSelection.pointerId)) return;
+  boxSelection.active = false;
+  boxSelection.pointerId = null;
+  state.boxSelectMode = false;
+  elements.selectionMarquee.classList.remove("is-visible");
+  elements.noteGrid.classList.remove("is-box-selecting");
+  renderRollHeading();
 }
 
 function setPlayheadAtPoint(clientX) {
@@ -1317,6 +1468,7 @@ function cancelNoteDragForPinch() {
 
 function beginRollTouch(event) {
   if (event.pointerType !== "touch") return;
+  if (state.boxSelectMode && event.target.closest("#note-grid")) return;
   rollGesture.points.set(event.pointerId, { x: event.clientX, y: event.clientY });
   const blankGrid = event.target.closest("#note-grid") && !event.target.closest(".note-block");
   const timelineRuler = event.target.closest("#timeline-scroll");
@@ -1386,6 +1538,10 @@ function endRollTouch(event, cancelled = false) {
 
 function beginNoteDrag(event) {
   if (event.button !== 0) return;
+  if (state.boxSelectMode) {
+    beginBoxSelection(event);
+    return;
+  }
   event.preventDefault();
   event.stopPropagation();
   const noteId = event.currentTarget.dataset.noteId;
@@ -1626,24 +1782,44 @@ function scheduleFallbackNote(pitch, track, start, end, velocity = 104) {
   audio.nodes.push(oscillator);
 }
 
-async function auditionPitch(pitch, track = activeTrack(), durationTicks = null) {
-  if (!track) return;
+async function auditionNotes(previews) {
+  if (!previews.length) return;
   const request = ++audio.previewRequest;
   const mode = await ensureAudio();
   if (request !== audio.previewRequest || mode === "unavailable") return;
-  const previewSeconds = durationTicks === null
-    ? 0.48
-    : Math.max(0.04, durationTicks * 60 / state.tempo / TICKS_PER_BEAT);
-  if (mode === "soundfont") {
-    const channel = synthChannelForTrack(track);
-    audio.synth.programChange(channel, instrumentByName(track.instrument).program);
-    audio.synth.noteOn(channel, pitch, volumeToVelocity(track.volume), false);
-    const timer = setTimeout(() => audio.synth?.noteOff(channel, pitch, true), previewSeconds * 1000);
-    audio.previewTimers.push(timer);
-  } else {
-    const start = audio.context.currentTime + 0.005;
-    scheduleFallbackNote(pitch, track, start, start + previewSeconds, volumeToVelocity(track.volume));
-  }
+  previews.forEach(({ pitch, track, durationTicks = null }) => {
+    const previewSeconds = durationTicks === null
+      ? 0.48
+      : Math.max(0.04, durationTicks * 60 / state.tempo / TICKS_PER_BEAT);
+    if (mode === "soundfont") {
+      const channel = synthChannelForTrack(track);
+      audio.synth.programChange(channel, instrumentByName(track.instrument).program);
+      audio.synth.noteOn(channel, pitch, volumeToVelocity(track.volume), false);
+      const timer = setTimeout(() => audio.synth?.noteOff(channel, pitch, true), previewSeconds * 1000);
+      audio.previewTimers.push(timer);
+    } else {
+      const start = audio.context.currentTime + 0.005;
+      scheduleFallbackNote(pitch, track, start, start + previewSeconds, volumeToVelocity(track.volume));
+    }
+  });
+}
+
+function auditionPitch(pitch, track = activeTrack(), durationTicks = null) {
+  if (!track) return;
+  auditionNotes([{ pitch, track, durationTicks }]);
+}
+
+function auditionColumn(tick) {
+  const previews = state.tracks
+    .filter((track) => !track.muted)
+    .flatMap((track) => track.notes
+      .filter((note) => note.start === tick)
+      .map((note) => ({ pitch: note.pitch, track, durationTicks: note.duration })));
+  elements.audioStatus.dataset.previewCount = String(previews.length);
+  elements.audioStatus.title = previews.length === 1
+    ? "Previewing 1 note in this time column"
+    : `Previewing ${previews.length} notes in this time column`;
+  auditionNotes(previews);
 }
 
 async function startPlayback() {
@@ -2065,12 +2241,12 @@ function renderMergePreview() {
     <span>${notes.length} notes</span>
     <span>Undo supported</span>
   `;
-  elements.confirmMerge.disabled = selected.length < 2 || hasOverlap;
+  elements.confirmMerge.disabled = selected.length < 2;
   elements.mergeWarning.classList.toggle("is-ready", selected.length >= 2 && !hasOverlap);
   if (selected.length < 2) {
     elements.mergeWarning.textContent = "Choose at least one other track to merge into the active track.";
   } else if (hasOverlap) {
-    elements.mergeWarning.textContent = "These tracks contain notes that play at the same time. A single MML track cannot contain overlapping notes, so merge is disabled.";
+    elements.mergeWarning.textContent = "Some notes play at the same time. They will all be kept, but you must move, shorten, or delete the overlaps before this track can be exported as MML.";
   } else {
     elements.mergeWarning.textContent = `Ready to merge into ${activeTrack().name}. The destination track's sound and volume will be used.`;
   }
@@ -2086,11 +2262,7 @@ function mergeSelectedTracks() {
       velocity: volumeToVelocity(target.volume),
     })))
     .sort((a, b) => a.start - b.start || a.pitch - b.pitch);
-  if (trackHasPolyphony({ notes: mergedNotes })) {
-    notify("Merge stopped because the selected tracks contain overlapping notes.");
-    renderMergePreview();
-    return;
-  }
+  const hasOverlap = trackHasPolyphony({ notes: mergedNotes });
   const selectedIds = new Set(selected.map((track) => track.id));
   stopPlayback();
   clearNoteSelection();
@@ -2100,7 +2272,9 @@ function mergeSelectedTracks() {
   state.activeTrackId = target.id;
   closeModal();
   renderAll();
-  notify(`${selected.length} tracks merged into ${target.name}. Undo is available.`);
+  notify(hasOverlap
+    ? `${selected.length} tracks merged. Resolve overlapping notes before export.`
+    : `${selected.length} tracks merged into ${target.name}. Undo is available.`);
 }
 
 function renderExport() {
@@ -2281,6 +2455,11 @@ function bindEvents() {
   document.querySelector("#add-track").addEventListener("click", addTrack);
   document.querySelector("#save-project").addEventListener("click", saveProject);
   document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
+  elements.toggleOtherTracks.addEventListener("click", () => {
+    state.showOtherTracks = !state.showOtherTracks;
+    renderRollHeading();
+    renderNotes();
+  });
   elements.playToggle.addEventListener("click", startPlayback);
   elements.loopToggle.addEventListener("click", () => {
     state.loop = !state.loop;
@@ -2370,8 +2549,11 @@ function bindEvents() {
   elements.timelineWrap.addEventListener("pointercancel", (event) => endRollTouch(event, true), { capture: true });
   elements.noteGrid.addEventListener("pointerdown", addNoteFromPointer);
   window.addEventListener("pointermove", moveNoteDrag);
+  window.addEventListener("pointermove", moveBoxSelection);
   window.addEventListener("pointerup", endNoteDrag);
+  window.addEventListener("pointerup", endBoxSelection);
   window.addEventListener("pointercancel", endNoteDrag);
+  window.addEventListener("pointercancel", cancelBoxSelection);
   elements.gridScroll.addEventListener("scroll", () => {
     elements.timelineScroll.scrollLeft = elements.gridScroll.scrollLeft;
     elements.keyScroll.scrollTop = elements.gridScroll.scrollTop;
