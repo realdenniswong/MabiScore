@@ -755,7 +755,13 @@ const elements = {
 };
 
 function cloneTracks(tracks = state.tracks) {
-  return tracks.map((track) => ({ ...track, notes: track.notes.map((note) => ({ ...note })) }));
+  return tracks.map((track) => ({
+    ...track,
+    tempoEvents: Array.isArray(track.tempoEvents)
+      ? track.tempoEvents.map((event) => ({ ...event }))
+      : undefined,
+    notes: track.notes.map((note) => ({ ...note })),
+  }));
 }
 
 function createHistorySnapshot() {
@@ -879,6 +885,20 @@ function volumeToVelocity(volume) {
 
 function velocityToVolume(velocity) {
   return normalizeVolume(Math.round((Number(velocity) + 1) / 8) - 1);
+}
+
+function normalizeMmlTempo(value, fallback = 120) {
+  const tempo = Number(value);
+  return Number.isFinite(tempo) ? Math.max(1, Math.min(255, Math.round(tempo))) : fallback;
+}
+
+function trackEndTick(track) {
+  const noteEnd = Math.max(0, ...(track?.notes || []).map((note) => note.start + note.duration));
+  const importedEnd = Number(track?.endTick);
+  const tempoEnd = Math.max(0, ...(Array.isArray(track?.tempoEvents)
+    ? track.tempoEvents.map((event) => Number(event.tick) || 0)
+    : []));
+  return Math.max(noteEnd, tempoEnd, Number.isFinite(importedEnd) ? importedEnd : 0);
 }
 
 function synthChannelForTrack(track) {
@@ -1205,7 +1225,7 @@ function zoomRollFromWheel(event) {
 }
 
 function requiredGridTicks(tracks = state.tracks) {
-  const end = Math.max(0, ...tracks.flatMap((track) => track.notes.map((note) => note.start + note.duration)));
+  const end = Math.max(0, ...tracks.map(trackEndTick));
   if (!end) return MIN_GRID_TICKS;
   const occupiedTicks = Math.ceil(end / TICKS_PER_WHOLE) * TICKS_PER_WHOLE;
   return Math.max(MIN_GRID_TICKS, occupiedTicks + TICKS_PER_WHOLE);
@@ -1653,8 +1673,7 @@ function redo() {
 }
 
 function songEnd() {
-  const ends = state.tracks.flatMap((track) => track.notes.map((note) => note.start + note.duration));
-  return Math.max(TICKS_PER_WHOLE * 4, ...ends);
+  return Math.max(TICKS_PER_WHOLE * 4, ...state.tracks.map(trackEndTick));
 }
 
 function currentPlaybackTick() {
@@ -1915,10 +1934,12 @@ function parseMml(source) {
     let cursor = 0;
     let octave = 4;
     let defaultLength = 4;
+    let defaultDots = 0;
     let volume = 10;
     let index = 0;
     let pendingTie = false;
     const notes = [];
+    const tempoEvents = [];
 
     function readNumber() {
       let raw = "";
@@ -1931,18 +1952,30 @@ function parseMml(source) {
       if (command === "<") { octave -= 1; continue; }
       if (command === ">") { octave += 1; continue; }
       if (command === "o") { octave = readNumber() ?? octave; continue; }
-      if (command === "l") { defaultLength = readNumber() ?? defaultLength; continue; }
+      if (command === "l") {
+        const length = readNumber();
+        if (length !== null) {
+          defaultLength = length;
+          defaultDots = 0;
+          while (part[index] === ".") { defaultDots += 1; index += 1; }
+        }
+        continue;
+      }
       if (command === "v") { volume = readNumber() ?? volume; continue; }
       if (command === "t") {
         const value = readNumber();
-        if (value) importedTempo = Math.min(240, Math.max(32, value));
+        if (value !== null) {
+          const tempo = normalizeMmlTempo(value);
+          tempoEvents.push({ tick: cursor, tempo, order: tempoEvents.length });
+          if (importedTempo === null) importedTempo = tempo;
+        }
         continue;
       }
       if (command === "&") { pendingTie = true; continue; }
       if (command === "n") {
         const pitch = readNumber();
         if (pitch !== null) {
-          const duration = tickLength(defaultLength);
+          const duration = tickLength(defaultLength, defaultDots);
           notes.push({ id: uid("note"), pitch, start: cursor, duration, velocity: volumeToVelocity(volume) });
           cursor += duration;
         }
@@ -1955,10 +1988,11 @@ function parseMml(source) {
       let accidental = 0;
       if (part[index] === "+" || part[index] === "#") { accidental = 1; index += 1; }
       else if (part[index] === "-") { accidental = -1; index += 1; }
-      const denominator = readNumber() ?? defaultLength;
+      const specifiedLength = readNumber();
+      const denominator = specifiedLength ?? defaultLength;
       let dots = 0;
       while (part[index] === ".") { dots += 1; index += 1; }
-      const duration = tickLength(denominator, dots);
+      const duration = tickLength(denominator, specifiedLength === null ? defaultDots : dots);
       if (command !== "r") {
         const semitone = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[command];
         const pitch = (octave + 1) * 12 + semitone + accidental;
@@ -1987,6 +2021,9 @@ function parseMml(source) {
       volume: notes.length ? velocityToVolume(notes[0].velocity) : normalizeVolume(volume, 10),
       color: COLORS[partIndex % COLORS.length],
       muted: false,
+      preserveTempo: true,
+      tempoEvents,
+      endTick: cursor,
       notes: notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
     };
   });
@@ -2010,17 +2047,45 @@ function splitDuration(duration) {
 function trackToMml(track, tempo) {
   const pitchNames = ["c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b"];
   const notes = [...track.notes].sort((a, b) => a.start - b.start || b.pitch - a.pitch);
+  const tempoEvents = Array.isArray(track.tempoEvents)
+    ? [...track.tempoEvents].sort((a, b) => a.tick - b.tick || (a.order ?? 0) - (b.order ?? 0))
+    : [];
+  const preserveTempo = track.preserveTempo === true || Array.isArray(track.tempoEvents);
   let cursor = 0;
   let octave = 4;
-  let output = `t${tempo}v${normalizeVolume(track.volume)}o4`;
+  let currentVolume = normalizeVolume(track.volume);
+  let tempoIndex = 0;
+  let output = `${preserveTempo ? "" : `t${normalizeMmlTempo(tempo)} `}`.trimEnd();
+  output += `v${currentVolume}o4`;
+
+  function writeRestUntil(target) {
+    const end = Math.max(cursor, Math.round(target));
+    if (end > cursor) output += splitDuration(end - cursor).map((length) => `r${length}`).join("");
+    cursor = end;
+  }
+
+  function writeTempoEventsThrough(target) {
+    const limit = Math.max(cursor, Math.round(target));
+    while (tempoIndex < tempoEvents.length && Number(tempoEvents[tempoIndex].tick) <= limit) {
+      const event = tempoEvents[tempoIndex++];
+      writeRestUntil(Number(event.tick));
+      output += `t${normalizeMmlTempo(event.tempo)}`;
+    }
+  }
+
   for (const note of notes) {
     if (note.start < cursor) continue;
-    const rest = Math.round(note.start - cursor);
-    if (rest > 0) output += splitDuration(rest).map((length) => `r${length}`).join("");
+    writeTempoEventsThrough(note.start);
+    writeRestUntil(note.start);
     const targetOctave = Math.floor(note.pitch / 12) - 1;
     if (targetOctave !== octave) {
       output += `o${targetOctave}`;
       octave = targetOctave;
+    }
+    const noteVolume = velocityToVolume(note.velocity);
+    if (noteVolume !== currentVolume) {
+      output += `v${noteVolume}`;
+      currentVolume = noteVolume;
     }
     const pitchName = pitchNames[note.pitch % 12];
     output += splitDuration(note.duration)
@@ -2028,6 +2093,9 @@ function trackToMml(track, tempo) {
       .join("");
     cursor = Math.round(note.start + note.duration);
   }
+  const endTick = trackEndTick(track);
+  writeTempoEventsThrough(endTick);
+  writeRestUntil(endTick);
   return output;
 }
 
@@ -2263,11 +2331,24 @@ function mergeSelectedTracks() {
     })))
     .sort((a, b) => a.start - b.start || a.pitch - b.pitch);
   const hasOverlap = trackHasPolyphony({ notes: mergedNotes });
+  const mergedTempoEvents = selected
+    .flatMap((track, trackIndex) => (Array.isArray(track.tempoEvents) ? track.tempoEvents : [])
+      .map((event, eventIndex) => ({ ...event, sourceTrack: trackIndex, sourceOrder: eventIndex })))
+    .sort((a, b) => a.tick - b.tick || a.sourceTrack - b.sourceTrack || a.sourceOrder - b.sourceOrder)
+    .map((event, index) => ({ tick: event.tick, tempo: event.tempo, order: index }));
+  const preserveTempo = selected.some((track) => track.preserveTempo === true || Array.isArray(track.tempoEvents));
+  const mergedEndTick = Math.max(...selected.map(trackEndTick));
   const selectedIds = new Set(selected.map((track) => track.id));
   stopPlayback();
   clearNoteSelection();
   commitTracks((tracks) => tracks
-    .map((track) => track.id === target.id ? { ...track, notes: mergedNotes } : track)
+    .map((track) => track.id === target.id ? {
+      ...track,
+      preserveTempo,
+      tempoEvents: preserveTempo ? mergedTempoEvents : undefined,
+      endTick: mergedEndTick,
+      notes: mergedNotes,
+    } : track)
     .filter((track) => track.id === target.id || !selectedIds.has(track.id)));
   state.activeTrackId = target.id;
   closeModal();
@@ -2334,6 +2415,9 @@ function importMml() {
       commitTracks((tracks) => tracks.map((track) => track.id === target.id ? {
         ...track,
         volume: imported.volume,
+        preserveTempo: true,
+        tempoEvents: imported.tempoEvents,
+        endTick: imported.endTick,
         notes: imported.notes,
       } : track));
       state.activeTrackId = target.id;
@@ -2401,6 +2485,14 @@ function loadProject() {
       instrument: instrumentByName(track.instrument).name,
       volume: normalizeVolume(track.volume, track.notes?.length ? velocityToVolume(track.notes[0].velocity) : 12),
       color: normalizeTrackColor(track.color, COLORS[index % COLORS.length]),
+      endTick: Number.isFinite(Number(track.endTick)) ? Math.max(0, Math.round(Number(track.endTick) * timingScale)) : undefined,
+      tempoEvents: Array.isArray(track.tempoEvents)
+        ? track.tempoEvents.map((event, eventIndex) => ({
+          tick: Math.max(0, Math.round((Number(event.tick) || 0) * timingScale)),
+          tempo: normalizeMmlTempo(event.tempo),
+          order: Number.isFinite(Number(event.order)) ? Number(event.order) : eventIndex,
+        }))
+        : undefined,
       notes: track.notes.map((note) => ({
         ...note,
         start: Math.round(note.start * timingScale),
