@@ -239,10 +239,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .selection-tools .box-select-button { width: 30px; flex: 0 0 30px; justify-content: center; padding: 0; font-size: 16px; }
 .selection-tools .box-select-button.is-active { color: white; background: var(--accent); }
 .roll-heading-actions { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.track-visibility-button { height: 30px; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; color: #656b7c; background: #f8f8fa; font-size: 10px; font-weight: 650; cursor: pointer; }
-.track-visibility-button:hover { color: var(--ink); border-color: #c8ccd6; }
-.track-visibility-button.is-active { color: var(--accent-dark); border-color: #f0b4ac; background: #fff1ef; }
+.track-visibility-button, .keyboard-input-button { height: 30px; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; color: #656b7c; background: #f8f8fa; font-size: 10px; font-weight: 650; cursor: pointer; }
+.track-visibility-button:hover, .keyboard-input-button:hover { color: var(--ink); border-color: #c8ccd6; }
+.track-visibility-button.is-active, .keyboard-input-button.is-active { color: var(--accent-dark); border-color: #f0b4ac; background: #fff1ef; }
 .track-visibility-icon { font-size: 14px; line-height: 1; }
+.keyboard-input-octave { min-width: 19px; padding: 2px 4px; border-radius: 4px; color: #fff; background: #7e8494; font-family: "DM Mono", monospace; font-size: 8px; text-align: center; }
+.keyboard-input-button.is-active .keyboard-input-octave { background: var(--accent); }
 .selection-length { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 .selection-length input { width: 54px; height: 30px; border: 1px solid var(--line); border-radius: 7px; padding: 0 6px; color: var(--ink); background: #f8f8fa; font-size: 11px; }
 
@@ -390,8 +392,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .active-track-label > strong, .audio-status, .instrument-label { display: none; }
   .instrument-picker select { width: 124px; }
   .selection-tools { gap: 4px; }
-  .track-visibility-button { width: 30px; padding: 0; justify-content: center; }
-  .track-visibility-label { display: none; }
+  .track-visibility-button, .keyboard-input-button { width: 30px; padding: 0; justify-content: center; }
+  .track-visibility-label, .keyboard-input-label, .keyboard-input-octave { display: none; }
   .selection-length > span:first-child { display: none; }
   .selection-length input { width: 48px; }
   .timeline-wrap { grid-template-columns: 62px minmax(0, 1fr); }
@@ -489,7 +491,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
             </div>
           </div>
           <div id="track-list" class="track-list"></div>
-          <div class="track-tip"><span aria-hidden="true">✦</span><span>Shift/⌘/Ctrl-click notes—or use Add notes—to select several, then drag one to move the group in time and pitch.</span></div>
+          <div class="track-tip"><span aria-hidden="true">✦</span><span>Select several notes, then ⌘/Ctrl+C and ⌘/Ctrl+V at the playhead to repeat a phrase like a loop.</span></div>
         </aside>
 
         <section class="roll-panel" aria-label="Piano roll editor">
@@ -500,6 +502,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
               <span id="audio-status" class="audio-status">Hi-fi sounds load on first play</span>
             </div>
             <div class="roll-heading-actions">
+              <button id="keyboard-input-toggle" class="keyboard-input-button" type="button" aria-pressed="false" title="Musical typing (⌘/Ctrl+K): A–K notes, Z/X octave"><span aria-hidden="true">⌨</span><span class="keyboard-input-label">Keys</span><span id="keyboard-input-octave" class="keyboard-input-octave">C4</span></button>
               <button id="toggle-other-tracks" class="track-visibility-button" type="button" aria-pressed="false" title="Hide notes from other tracks"><span class="track-visibility-icon" aria-hidden="true">◉</span><span class="track-visibility-label">Hide others</span></button>
               <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
             </div>
@@ -543,8 +546,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
             <div class="modal-icon">♫</div><p class="eyebrow">Quick guide</p><h2>Make your first score</h2>
             <div class="help-steps">
               <div><span>1</span><p><strong>Add & arrange</strong>Tap to add and hear all notes in that time column. Use the ▧ button to drag-select an area, then move the group in time and pitch.</p></div>
-              <div><span>2</span><p><strong>Listen & refine</strong>Choose a Mabinogi instrument, click the piano keys to preview it, and use Space to play or pause.</p></div>
-              <div><span>3</span><p><strong>Tracks & export</strong>Import MML or MIDI, merge tracks into the active track, then resolve any overlapping notes before export. Every edit supports Undo and Redo.</p></div>
+              <div><span>2</span><p><strong>Type & refine</strong>Turn on Keys (⌘/Ctrl+K), play A–K like a piano, and use Z/X to change octave. Copy selected notes and paste repeatedly from the playhead to build loops.</p></div>
+              <div><span>3</span><p><strong>Tracks & export</strong>Import MML or MIDI, merge tracks into the active track, then resolve any overlapping notes before export. Space plays the score, and every edit supports Undo and Redo.</p></div>
             </div>
             <button class="primary-button full-button modal-cancel">Start composing</button>
           </div>
@@ -572,6 +575,8 @@ let totalTicks = MIN_GRID_TICKS;
 let gridWidth = totalTicks * tickWidth;
 const PITCHES = Array.from({ length: PITCH_MAX - PITCH_MIN + 1 }, (_, index) => PITCH_MAX - index);
 const NOTE_NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const MUSICAL_KEY_OFFSETS = { a: 0, w: 1, s: 2, e: 3, d: 4, f: 5, t: 6, g: 7, y: 8, h: 9, u: 10, j: 11, k: 12 };
+const NOTE_CLIPBOARD_MIME = "application/x-mabiscore-notes";
 const BLACK_KEYS = new Set([1, 3, 6, 8, 10]);
 const INSTRUMENTS = [
   { name: "Lute", program: 0 }, { name: "Ukulele", program: 1 }, { name: "Mandolin", program: 2 },
@@ -657,6 +662,8 @@ const state = {
   selectedNoteIds: new Set(),
   multiSelectMode: false,
   boxSelectMode: false,
+  keyboardInput: false,
+  keyboardOctave: 4,
   showOtherTracks: true,
   isPlaying: false,
   playhead: 0,
@@ -667,6 +674,11 @@ const state = {
   future: [],
   exportSelection: new Set(),
   mergeSelection: new Set(),
+};
+
+const noteClipboard = {
+  notes: [],
+  span: 0,
 };
 
 const audio = {
@@ -734,6 +746,8 @@ const elements = {
   activeTrackName: document.querySelector("#active-track-name"),
   activeDot: document.querySelector("#active-dot"),
   selectionTools: document.querySelector("#selection-tools"),
+  keyboardInputToggle: document.querySelector("#keyboard-input-toggle"),
+  keyboardInputOctave: document.querySelector("#keyboard-input-octave"),
   toggleOtherTracks: document.querySelector("#toggle-other-tracks"),
   timelineWrap: document.querySelector("#timeline-wrap"),
   timelineScroll: document.querySelector("#timeline-scroll"),
@@ -1083,6 +1097,7 @@ function renderRollHeading() {
       </label>
       <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
+      <button id="copy-notes">⧉ Copy</button>
       <button id="delete-note">⌫ Delete</button>
     `;
     const lengthInput = document.querySelector("#selected-note-length");
@@ -1105,6 +1120,7 @@ function renderRollHeading() {
       <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
       <span>${selectedNotes.length} notes selected · drag any selected note to move together</span>
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
+      <button id="copy-notes">⧉ Copy</button>
       <button id="delete-note">⌫ Delete ${selectedNotes.length}</button>
     `;
     document.querySelector("#toggle-multi-select").addEventListener("click", () => {
@@ -1120,8 +1136,21 @@ function renderRollHeading() {
       <span>Select notes by rectangle, Shift/⌘/Ctrl-click, or ⌘/Ctrl+A</span>
     `;
   }
+  document.querySelector("#copy-notes")?.addEventListener("click", copySelectedNotes);
+  if (noteClipboard.notes.length) {
+    const pasteButton = document.createElement("button");
+    pasteButton.id = "paste-notes";
+    pasteButton.textContent = "⌘V Paste";
+    pasteButton.title = "Paste copied notes at the playhead";
+    pasteButton.addEventListener("click", pasteCopiedNotes);
+    elements.selectionTools.append(pasteButton);
+  }
   document.querySelector("#toggle-box-select").addEventListener("click", () => setBoxSelectMode(!state.boxSelectMode));
   elements.noteGrid.classList.toggle("is-box-selecting", state.boxSelectMode);
+  elements.keyboardInputToggle.classList.toggle("is-active", state.keyboardInput);
+  elements.keyboardInputToggle.setAttribute("aria-pressed", String(state.keyboardInput));
+  elements.keyboardInputToggle.setAttribute("aria-label", `${state.keyboardInput ? "Disable" : "Enable"} musical typing, octave ${state.keyboardOctave}`);
+  elements.keyboardInputOctave.textContent = `C${state.keyboardOctave}`;
   elements.toggleOtherTracks.classList.toggle("is-active", !state.showOtherTracks);
   elements.toggleOtherTracks.setAttribute("aria-pressed", String(!state.showOtherTracks));
   elements.toggleOtherTracks.setAttribute("aria-label", state.showOtherTracks ? "Hide notes from other tracks" : "Show notes from other tracks");
@@ -1181,6 +1210,16 @@ function renderPlayhead() {
   const left = `${state.playhead * tickWidth}px`;
   elements.timelinePlayhead.style.left = left;
   elements.gridPlayhead.style.left = left;
+}
+
+function revealPlayhead() {
+  const left = state.playhead * tickWidth;
+  const viewportStart = elements.gridScroll.scrollLeft;
+  const viewportEnd = viewportStart + elements.gridScroll.clientWidth;
+  if (left >= viewportStart + 36 && left <= viewportEnd - 36) return;
+  const scrollLeft = Math.max(0, left - 52);
+  elements.gridScroll.scrollLeft = scrollLeft;
+  elements.timelineScroll.scrollLeft = scrollLeft;
 }
 
 function renderAll() {
@@ -1337,6 +1376,195 @@ function deleteSelectedNotes() {
     ...track,
     notes: track.notes.filter((note) => !selectedIds.has(note.id)),
   })));
+}
+
+function storeSelectedNotes(showMessage = true) {
+  const track = activeTrack();
+  const selected = (track?.notes || [])
+    .filter((note) => state.selectedNoteIds.has(note.id))
+    .sort((a, b) => a.start - b.start || a.pitch - b.pitch);
+  if (!selected.length) {
+    if (showMessage) notify("Select one or more notes before copying.");
+    return false;
+  }
+  const firstTick = Math.min(...selected.map((note) => note.start));
+  const lastTick = Math.max(...selected.map((note) => note.start + note.duration));
+  noteClipboard.notes = selected.map((note) => ({
+    pitch: note.pitch,
+    start: note.start - firstTick,
+    duration: note.duration,
+    velocity: note.velocity,
+  }));
+  noteClipboard.span = Math.max(1, lastTick - firstTick);
+  renderRollHeading();
+  if (showMessage) notify(`${selected.length} ${selected.length === 1 ? "note" : "notes"} copied. Move the playhead, then paste.`);
+  return true;
+}
+
+function copySelectedNotes() {
+  storeSelectedNotes(true);
+}
+
+function noteClipboardPayload() {
+  return JSON.stringify({
+    format: "mabiscore-notes",
+    version: 1,
+    notes: noteClipboard.notes,
+    span: noteClipboard.span,
+  });
+}
+
+function loadNoteClipboardPayload(raw) {
+  if (!raw) return false;
+  try {
+    const payload = JSON.parse(raw);
+    if (payload?.format !== "mabiscore-notes" || !Array.isArray(payload.notes) || !payload.notes.length) return false;
+    noteClipboard.notes = payload.notes.map((note) => ({
+      pitch: Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(Number(note.pitch) || 60))),
+      start: Math.max(0, Math.round(Number(note.start) || 0)),
+      duration: Math.max(1, Math.round(Number(note.duration) || 1)),
+      velocity: Math.max(1, Math.min(127, Math.round(Number(note.velocity) || 96))),
+    }));
+    const calculatedSpan = Math.max(...noteClipboard.notes.map((note) => note.start + note.duration));
+    noteClipboard.span = Math.max(calculatedSpan, Math.round(Number(payload.span) || 0), 1);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function writeNoteClipboardEvent(event) {
+  if (!event.clipboardData) return;
+  try {
+    event.clipboardData.setData(NOTE_CLIPBOARD_MIME, noteClipboardPayload());
+  } catch {
+    // The in-app clipboard remains available when a browser rejects custom MIME types.
+  }
+  try {
+    event.clipboardData.setData("text/plain", `MabiScore notes (${noteClipboard.notes.length})`);
+  } catch {
+    // Copy/paste within the composer still works through noteClipboard.
+  }
+}
+
+function handleCopyEvent(event) {
+  if (event.target.matches("input, textarea, select") || !elements.modalBackdrop.hidden) return;
+  if (!storeSelectedNotes(false)) return;
+  writeNoteClipboardEvent(event);
+  event.preventDefault();
+  notify(`${noteClipboard.notes.length} ${noteClipboard.notes.length === 1 ? "note" : "notes"} copied. Move the playhead, then paste.`);
+}
+
+function handleCutEvent(event) {
+  if (event.target.matches("input, textarea, select") || !elements.modalBackdrop.hidden) return;
+  const count = state.selectedNoteIds.size;
+  if (!storeSelectedNotes(false)) return;
+  writeNoteClipboardEvent(event);
+  event.preventDefault();
+  deleteSelectedNotes();
+  notify(`${count} ${count === 1 ? "note" : "notes"} cut.`);
+}
+
+function handlePasteEvent(event) {
+  if (event.target.matches("input, textarea, select") || !elements.modalBackdrop.hidden) return;
+  const externalNotes = event.clipboardData?.getData(NOTE_CLIPBOARD_MIME);
+  if (externalNotes) loadNoteClipboardPayload(externalNotes);
+  if (!noteClipboard.notes.length) return;
+  event.preventDefault();
+  pasteCopiedNotes();
+}
+
+function cutSelectedNotes() {
+  const count = state.selectedNoteIds.size;
+  if (!storeSelectedNotes(false)) return;
+  deleteSelectedNotes();
+  notify(`${count} ${count === 1 ? "note" : "notes"} cut.`);
+}
+
+function pasteCopiedNotes() {
+  const track = activeTrack();
+  if (!track || !noteClipboard.notes.length) {
+    notify("Copy some notes before pasting.");
+    return;
+  }
+  if (state.isPlaying || audio.starting) stopPlayback();
+  const pasteTick = Math.max(0, Math.round(state.playhead));
+  const pasted = noteClipboard.notes.map((note) => ({
+    ...note,
+    id: uid("note"),
+    start: pasteTick + note.start,
+  }));
+  pushHistory();
+  state.tracks = state.tracks.map((item) => item.id === track.id
+    ? { ...item, notes: [...item.notes, ...pasted] }
+    : item);
+  state.selectedNoteIds = new Set(pasted.map((note) => note.id));
+  state.selectedNoteId = pasted.at(-1)?.id || null;
+  state.multiSelectMode = false;
+  state.boxSelectMode = false;
+  state.playhead = pasteTick + noteClipboard.span;
+  markUnsaved();
+  renderAll();
+  revealPlayhead();
+  notify(`${pasted.length} ${pasted.length === 1 ? "note" : "notes"} pasted. Paste again to repeat the loop.`);
+}
+
+function setKeyboardOctave(delta) {
+  const next = Math.max(1, Math.min(6, state.keyboardOctave + delta));
+  if (next === state.keyboardOctave) return;
+  state.keyboardOctave = next;
+  renderRollHeading();
+  notify(`Musical typing octave: C${state.keyboardOctave}`);
+}
+
+function toggleMusicalTyping(force) {
+  state.keyboardInput = typeof force === "boolean" ? force : !state.keyboardInput;
+  renderRollHeading();
+  notify(state.keyboardInput
+    ? `Musical typing on · A–K notes · Z/X octave · C${state.keyboardOctave}`
+    : "Musical typing off.");
+}
+
+function addKeyboardNote(pitch) {
+  const track = activeTrack();
+  if (!track) return;
+  if (pitch < PITCH_MIN || pitch > PITCH_MAX) {
+    notify("That key is outside the playable Mabinogi range. Change octave with Z/X.");
+    return;
+  }
+  if (state.isPlaying || audio.starting) stopPlayback();
+  const start = Math.max(0, Math.round(state.playhead));
+  const note = {
+    id: uid("note"),
+    pitch,
+    start,
+    duration: state.noteDuration,
+    velocity: volumeToVelocity(track.volume),
+  };
+  pushHistory();
+  state.tracks = state.tracks.map((item) => item.id === track.id
+    ? { ...item, notes: [...item.notes, note] }
+    : item);
+  selectOnlyNote(note.id);
+  state.playhead = start + state.noteDuration;
+  markUnsaved();
+  renderAll();
+  revealPlayhead();
+  auditionColumn(start);
+}
+
+function handleMusicalTyping(event) {
+  if (!state.keyboardInput || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return false;
+  const key = event.key.toLowerCase();
+  if (key === "z" || key === "x") {
+    event.preventDefault();
+    setKeyboardOctave(key === "z" ? -1 : 1);
+    return true;
+  }
+  if (!(key in MUSICAL_KEY_OFFSETS)) return false;
+  event.preventDefault();
+  addKeyboardNote((state.keyboardOctave + 1) * 12 + MUSICAL_KEY_OFFSETS[key]);
+  return true;
 }
 
 function changeSelectedNoteLength(event) {
@@ -2736,6 +2964,7 @@ function bindEvents() {
   elements.projectFile.addEventListener("change", () => openProjectFile(elements.projectFile.files[0]));
   document.querySelector("#save-project").addEventListener("click", saveProject);
   document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
+  elements.keyboardInputToggle.addEventListener("click", () => toggleMusicalTyping());
   elements.toggleOtherTracks.addEventListener("click", () => {
     state.showOtherTracks = !state.showOtherTracks;
     renderRollHeading();
@@ -2858,10 +3087,24 @@ function bindEvents() {
   elements.timelineScroll.addEventListener("pointerdown", (event) => {
     setPlayheadAtPoint(event.clientX);
   });
+  document.addEventListener("copy", handleCopyEvent);
+  document.addEventListener("cut", handleCutEvent);
+  document.addEventListener("paste", handlePasteEvent);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.modalBackdrop.hidden) closeModal();
+    if (event.key === "Escape") {
+      if (!elements.modalBackdrop.hidden) closeModal();
+      else if (state.keyboardInput) toggleMusicalTyping(false);
+    }
     if (event.target.matches("input, textarea, select")) return;
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "a") {
+    if (!elements.modalBackdrop.hidden) return;
+    const commandKey = event.metaKey || event.ctrlKey;
+    const key = event.key.toLowerCase();
+    if (commandKey && key === "k") {
+      event.preventDefault();
+      toggleMusicalTyping();
+      return;
+    }
+    if (commandKey && key === "a") {
       event.preventDefault();
       selectAllNotesInActiveTrack();
       return;
@@ -2869,19 +3112,24 @@ function bindEvents() {
     if ((event.key === "Delete" || event.key === "Backspace") && state.selectedNoteIds.size) {
       event.preventDefault();
       deleteSelectedNotes();
+      return;
     }
     if (event.code === "Space") {
       event.preventDefault();
       startPlayback();
+      return;
     }
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
+    if (commandKey && key === "z") {
       event.preventDefault();
       event.shiftKey ? redo() : undo();
+      return;
     }
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "y") {
+    if (commandKey && key === "y") {
       event.preventDefault();
       redo();
+      return;
     }
+    handleMusicalTyping(event);
   });
 }
 
