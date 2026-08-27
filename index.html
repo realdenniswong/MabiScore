@@ -322,6 +322,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 }
 .export-track:hover { background: #fafafd; }
 .export-track.has-warning { color: #9a725b; background: #fffaf6; cursor: not-allowed; }
+.export-track.is-too-long { color: #a44c45; border-color: #efc7c2; background: #fff7f6; }
 .export-track input { accent-color: var(--accent); }
 .export-track-dot { width: 8px; height: 8px; border-radius: 50%; }
 .export-track-name { min-width: 0; display: flex; flex-direction: column; }
@@ -347,7 +348,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 @media (max-width: 1050px) {
   .topbar { grid-template-columns: auto minmax(220px, 1fr) auto; }
-  .brand-pill, .save-button, .field-control > span:first-child, .selection-tools > span { display: none; }
+  .brand-pill, .field-control > span:first-child, .selection-tools > span { display: none; }
+  .draft-button { width: 38px; padding: 0; }
+  .draft-button span:last-child { display: none; }
   .workspace { grid-template-columns: 230px minmax(0, 1fr); }
   .track-panel { min-width: 0; }
 }
@@ -429,7 +432,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
         </div>
         <div class="top-actions">
           <button class="icon-button help-button" data-modal="help" aria-label="Help">?</button>
-          <button id="save-project" class="secondary-button save-button"><span aria-hidden="true">↓</span><span>Save draft</span></button>
+          <button id="open-project" class="secondary-button draft-button"><span aria-hidden="true">▤</span><span>Open draft</span></button>
+          <button id="save-project" class="secondary-button draft-button"><span aria-hidden="true">↓</span><span>Save draft</span></button>
+          <input id="project-file" hidden type="file" accept=".json,.mabiscore,application/json" />
           <button class="primary-button" data-modal="export" aria-label="Export MML"><span aria-hidden="true">↗</span><span>Export MML</span></button>
         </div>
       </header>
@@ -555,6 +560,9 @@ const PITCH_MAX = 95;
 const ROW_HEIGHT = 28;
 const TICKS_PER_WHOLE = 64;
 const TICKS_PER_BEAT = 16;
+const PROJECT_STORAGE_KEY = "mabiscore-project";
+const PROJECT_FORMAT = "mabiscore-project";
+const PROJECT_VERSION = 1;
 const DEFAULT_TICK_WIDTH = 6;
 const MIN_TICK_WIDTH = 3;
 const MAX_TICK_WIDTH = 24;
@@ -740,6 +748,7 @@ const elements = {
   selectionMarquee: document.querySelector("#selection-marquee"),
   undo: document.querySelector("#undo-action"),
   redo: document.querySelector("#redo-action"),
+  projectFile: document.querySelector("#project-file"),
   midiFile: document.querySelector("#midi-file"),
   modalBackdrop: document.querySelector("#modal-backdrop"),
   modalClose: document.querySelector("#modal-close"),
@@ -1924,10 +1933,31 @@ function tickLength(denominator, dots = 0) {
   return Math.max(1, Math.round(value));
 }
 
+function mmlTrackFingerprint(track) {
+  const notes = [...(track?.notes || [])]
+    .map((note) => [
+      Math.round(Number(note.pitch) || 0),
+      Math.round(Number(note.start) || 0),
+      Math.round(Number(note.duration) || 0),
+      Math.round(Number(note.velocity) || 0),
+    ])
+    .sort((a, b) => a[1] - b[1] || a[0] - b[0] || a[2] - b[2] || a[3] - b[3]);
+  const tempoEvents = (Array.isArray(track?.tempoEvents) ? track.tempoEvents : [])
+    .map((event) => [Math.round(Number(event.tick) || 0), normalizeMmlTempo(event.tempo)])
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return JSON.stringify({
+    volume: normalizeVolume(track?.volume),
+    endTick: trackEndTick(track),
+    tempoEvents,
+    notes,
+  });
+}
+
 function parseMml(source) {
   const body = source.trim().replace(/^MML@/i, "").replace(/;\s*$/, "");
   if (!body) throw new Error("No MML notes were found.");
-  const parts = body.split(",").map((part) => part.replace(/\s+/g, ""));
+  const rawParts = body.split(",");
+  const parts = rawParts.map((part) => part.replace(/\s+/g, ""));
   let importedTempo = null;
 
   const tracks = parts.map((part, partIndex) => {
@@ -1973,10 +2003,16 @@ function parseMml(source) {
       }
       if (command === "&") { pendingTie = true; continue; }
       if (command === "n") {
-        const pitch = readNumber();
-        if (pitch !== null) {
+        const numberPitch = readNumber();
+        if (numberPitch !== null) {
           const duration = tickLength(defaultLength, defaultDots);
-          notes.push({ id: uid("note"), pitch, start: cursor, duration, velocity: volumeToVelocity(volume) });
+          notes.push({
+            id: uid("note"),
+            pitch: numberPitch + 12,
+            start: cursor,
+            duration,
+            velocity: volumeToVelocity(volume),
+          });
           cursor += duration;
         }
         pendingTie = part[index] === "&";
@@ -1992,7 +2028,10 @@ function parseMml(source) {
       const denominator = specifiedLength ?? defaultLength;
       let dots = 0;
       while (part[index] === ".") { dots += 1; index += 1; }
-      const duration = tickLength(denominator, specifiedLength === null ? defaultDots : dots);
+      const duration = tickLength(
+        denominator,
+        specifiedLength === null ? Math.max(defaultDots, dots) : dots,
+      );
       if (command !== "r") {
         const semitone = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 }[command];
         const pitch = (octave + 1) * 12 + semitone + accidental;
@@ -2014,7 +2053,7 @@ function parseMml(source) {
       if (pendingTie) index += 1;
     }
 
-    return {
+    const track = {
       id: uid("track"),
       name: parts.length === 1 ? "Imported melody" : `MML part ${partIndex + 1}`,
       instrument: partIndex === 0 ? "Lute" : "Mandolin",
@@ -2024,9 +2063,13 @@ function parseMml(source) {
       preserveTempo: true,
       tempoEvents,
       endTick: cursor,
+      sourceMml: rawParts[partIndex].trim(),
       notes: notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX),
     };
+    track.sourceFingerprint = mmlTrackFingerprint(track);
+    return track;
   });
+  tracks.forEach((track) => { track.sourceTempo = importedTempo; });
   return { tracks, tempo: importedTempo };
 }
 
@@ -2044,23 +2087,92 @@ function splitDuration(duration) {
   return result;
 }
 
+function compactMmlAtoms(atoms, prefix = "") {
+  let states = new Map([["4|4", { length: "4", octave: 4, text: prefix }]]);
+
+  function keepBest(next, length, octave, text) {
+    const key = `${length}|${octave}`;
+    const existing = next.get(key);
+    if (!existing || text.length < existing.text.length) {
+      next.set(key, { length, octave, text });
+    }
+  }
+
+  atoms.forEach((atom) => {
+    const next = new Map();
+    states.forEach((state) => {
+      if (atom.type === "command") {
+        keepBest(next, state.length, state.octave, state.text + atom.value);
+        return;
+      }
+
+      if (atom.type === "rest") {
+        if (atom.length === state.length) {
+          keepBest(next, state.length, state.octave, `${state.text}r`);
+        }
+        keepBest(next, state.length, state.octave, `${state.text}r${atom.length}`);
+        keepBest(next, atom.length, state.octave, `${state.text}l${atom.length}r`);
+        return;
+      }
+
+      const tie = atom.tie ? "&" : "";
+      const targetOctave = Math.floor(atom.pitch / 12) - 1;
+      const delta = targetOctave - state.octave;
+      const relativeOctave = delta > 0 ? ">".repeat(delta) : "<".repeat(-delta);
+      const absoluteOctave = `o${targetOctave}`;
+      const octaveCommand = relativeOctave.length <= absoluteOctave.length ? relativeOctave : absoluteOctave;
+      const letterPrefix = `${state.text}${octaveCommand}${tie}${atom.name}`;
+
+      if (atom.length === state.length) {
+        keepBest(next, state.length, targetOctave, letterPrefix);
+      }
+      keepBest(next, state.length, targetOctave, `${letterPrefix}${atom.length}`);
+      keepBest(next, atom.length, targetOctave, `${state.text}${octaveCommand}l${atom.length}${tie}${atom.name}`);
+
+      const numberName = `n${atom.pitch - 12}`;
+      if (atom.length === state.length) {
+        keepBest(next, state.length, state.octave, `${state.text}${tie}${numberName}`);
+      } else {
+        keepBest(next, atom.length, state.octave, `${state.text}l${atom.length}${tie}${numberName}`);
+      }
+    });
+    states = next;
+  });
+
+  return [...states.values()].reduce((best, state) => (
+    !best || state.text.length < best.length ? state.text : best
+  ), "");
+}
+
 function trackToMml(track, tempo) {
+  const sourceTempoUnchanged = track.sourceTempo === null
+    || track.sourceTempo === undefined
+    || normalizeMmlTempo(track.sourceTempo) === normalizeMmlTempo(tempo);
+  if (
+    typeof track.sourceMml === "string"
+    && track.sourceMml.length
+    && track.sourceFingerprint === mmlTrackFingerprint(track)
+    && sourceTempoUnchanged
+  ) {
+    return track.sourceMml;
+  }
   const pitchNames = ["c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b"];
   const notes = [...track.notes].sort((a, b) => a.start - b.start || b.pitch - a.pitch);
   const tempoEvents = Array.isArray(track.tempoEvents)
     ? [...track.tempoEvents].sort((a, b) => a.tick - b.tick || (a.order ?? 0) - (b.order ?? 0))
     : [];
-  const preserveTempo = track.preserveTempo === true || Array.isArray(track.tempoEvents);
+  const preserveTempo = tempoEvents.length > 0;
   let cursor = 0;
-  let octave = 4;
   let currentVolume = normalizeVolume(track.volume);
   let tempoIndex = 0;
-  let output = `${preserveTempo ? "" : `t${normalizeMmlTempo(tempo)} `}`.trimEnd();
-  output += `v${currentVolume}o4`;
+  const prefix = `${preserveTempo ? "" : `t${normalizeMmlTempo(tempo)}`}v${currentVolume}`;
+  const atoms = [];
 
   function writeRestUntil(target) {
     const end = Math.max(cursor, Math.round(target));
-    if (end > cursor) output += splitDuration(end - cursor).map((length) => `r${length}`).join("");
+    if (end > cursor) {
+      splitDuration(end - cursor).forEach((length) => atoms.push({ type: "rest", length }));
+    }
     cursor = end;
   }
 
@@ -2069,7 +2181,7 @@ function trackToMml(track, tempo) {
     while (tempoIndex < tempoEvents.length && Number(tempoEvents[tempoIndex].tick) <= limit) {
       const event = tempoEvents[tempoIndex++];
       writeRestUntil(Number(event.tick));
-      output += `t${normalizeMmlTempo(event.tempo)}`;
+      atoms.push({ type: "command", value: `t${normalizeMmlTempo(event.tempo)}` });
     }
   }
 
@@ -2077,26 +2189,25 @@ function trackToMml(track, tempo) {
     if (note.start < cursor) continue;
     writeTempoEventsThrough(note.start);
     writeRestUntil(note.start);
-    const targetOctave = Math.floor(note.pitch / 12) - 1;
-    if (targetOctave !== octave) {
-      output += `o${targetOctave}`;
-      octave = targetOctave;
-    }
     const noteVolume = velocityToVolume(note.velocity);
     if (noteVolume !== currentVolume) {
-      output += `v${noteVolume}`;
+      atoms.push({ type: "command", value: `v${noteVolume}` });
       currentVolume = noteVolume;
     }
     const pitchName = pitchNames[note.pitch % 12];
-    output += splitDuration(note.duration)
-      .map((length, index) => `${index ? "&" : ""}${pitchName}${length}`)
-      .join("");
+    splitDuration(note.duration).forEach((length, index) => atoms.push({
+      type: "note",
+      pitch: note.pitch,
+      name: pitchName,
+      length,
+      tie: index > 0,
+    }));
     cursor = Math.round(note.start + note.duration);
   }
   const endTick = trackEndTick(track);
   writeTempoEventsThrough(endTick);
   writeRestUntil(endTick);
-  return output;
+  return compactMmlAtoms(atoms, prefix);
 }
 
 function toMml(tracks, tempo) {
@@ -2362,12 +2473,13 @@ function renderExport() {
   elements.exportTrackList.innerHTML = state.tracks.map((track, index) => {
     const hasPolyphony = trackHasPolyphony(track);
     const characters = trackToMml(track, state.tempo).length;
+    const isTooLong = characters > 2400;
     return `
-      <label class="export-track ${hasPolyphony ? "has-warning" : ""}">
+      <label class="export-track ${hasPolyphony ? "has-warning" : ""} ${isTooLong ? "is-too-long" : ""}">
         <input type="checkbox" value="${track.id}" ${state.exportSelection.has(track.id) ? "checked" : ""} ${hasPolyphony ? "disabled" : ""} />
         <span class="export-track-dot" style="background:${track.color}"></span>
         <span class="export-track-name"><strong>${escapeHtml(track.name)}</strong><small>${track.notes.length} notes</small></span>
-        <span class="export-track-length">${hasPolyphony ? "Overlapping notes" : `${characters} chars`}</span>
+        <span class="export-track-length">${hasPolyphony ? "Overlapping notes" : `${characters} chars${isTooLong ? " · over 2400" : ""}`}</span>
         <span class="export-track-number">${index + 1}</span>
       </label>
     `;
@@ -2399,6 +2511,8 @@ function importMml() {
     const source = elements.mmlInput.value.trim();
     const hasScoreWrapper = /^MML@/i.test(source);
     const result = parseMml(source);
+    const importedProjectTempo = result.tempo ?? state.tempo;
+    result.tracks.forEach((track) => { track.sourceTempo = importedProjectTempo; });
     const isMultiTrackScore = hasScoreWrapper && result.tracks.length > 1;
     stopPlayback(true);
 
@@ -2418,6 +2532,9 @@ function importMml() {
         preserveTempo: true,
         tempoEvents: imported.tempoEvents,
         endTick: imported.endTick,
+        sourceMml: imported.sourceMml,
+        sourceFingerprint: imported.sourceFingerprint,
+        sourceTempo: imported.sourceTempo,
         notes: imported.notes,
       } : track));
       state.activeTrackId = target.id;
@@ -2459,31 +2576,67 @@ async function importMidiFile(file) {
   }
 }
 
-function saveProject() {
-  localStorage.setItem("mabiscore-project", JSON.stringify({
+function createProjectData() {
+  return {
+    format: PROJECT_FORMAT,
+    version: PROJECT_VERSION,
     tracks: state.tracks,
+    activeTrackId: state.activeTrackId,
     tempo: state.tempo,
     name: state.projectName,
+    snap: state.snap,
     noteDuration: state.noteDuration,
     timingResolution: TICKS_PER_WHOLE,
-  }));
-  state.saved = true;
-  renderSaveState();
-  notify("Draft saved on this device.");
+  };
 }
 
-function loadProject() {
-  const raw = localStorage.getItem("mabiscore-project");
-  if (!raw) return;
+function safeProjectFilename(extension) {
+  const base = state.projectName.trim().replace(/[\\/:*?"<>|]+/g, "-").replace(/^\.+|\.+$/g, "") || "mabiscore";
+  return `${base}.${extension}`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.hidden = true;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function saveProject() {
+  const json = JSON.stringify(createProjectData(), null, 2);
+  let browserCopySaved = false;
   try {
-    const project = JSON.parse(raw);
-    if (!Array.isArray(project.tracks) || !project.tracks.length) return;
-    const previousResolution = Number(project.timingResolution) || 16;
-    const timingScale = TICKS_PER_WHOLE / previousResolution;
-    state.tracks = project.tracks.map((track, index) => ({
+    localStorage.setItem(PROJECT_STORAGE_KEY, json);
+    browserCopySaved = true;
+  } catch (error) {
+    console.warn("Browser draft storage is unavailable.", error);
+  }
+
+  downloadBlob(new Blob([json], { type: "application/json;charset=utf-8" }), safeProjectFilename("mabiscore.json"));
+  state.saved = true;
+  renderSaveState();
+  notify(browserCopySaved ? "Draft saved and downloaded." : "Draft downloaded. Browser storage is unavailable here.");
+}
+
+function applyProjectData(project) {
+  if (!project || !Array.isArray(project.tracks) || !project.tracks.length) {
+    throw new Error("This file is not a valid MabiScore draft.");
+  }
+  const previousResolution = Number(project.timingResolution) || 16;
+  const timingScale = TICKS_PER_WHOLE / previousResolution;
+  state.tracks = project.tracks.map((track, index) => {
+    const notes = Array.isArray(track.notes) ? track.notes : [];
+    return {
       ...track,
+      id: track.id || uid("track"),
+      name: String(track.name || `Track ${index + 1}`),
       instrument: instrumentByName(track.instrument).name,
-      volume: normalizeVolume(track.volume, track.notes?.length ? velocityToVolume(track.notes[0].velocity) : 12),
+      volume: normalizeVolume(track.volume, notes.length ? velocityToVolume(notes[0].velocity) : 12),
       color: normalizeTrackColor(track.color, COLORS[index % COLORS.length]),
       endTick: Number.isFinite(Number(track.endTick)) ? Math.max(0, Math.round(Number(track.endTick) * timingScale)) : undefined,
       tempoEvents: Array.isArray(track.tempoEvents)
@@ -2493,25 +2646,62 @@ function loadProject() {
           order: Number.isFinite(Number(event.order)) ? Number(event.order) : eventIndex,
         }))
         : undefined,
-      notes: track.notes.map((note) => ({
+      notes: notes.map((note) => ({
         ...note,
-        start: Math.round(note.start * timingScale),
-        duration: Math.max(1, Math.round(note.duration * timingScale)),
+        id: note.id || uid("note"),
+        pitch: Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(Number(note.pitch) || 60))),
+        start: Math.max(0, Math.round((Number(note.start) || 0) * timingScale)),
+        duration: Math.max(1, Math.round((Number(note.duration) || 1) * timingScale)),
       })),
-    }));
-    state.activeTrackId = project.tracks[0].id;
-    state.tempo = project.tempo || 120;
-    state.snap = 4;
-    state.noteDuration = Number(project.noteDuration) ? Math.max(1, Math.round(project.noteDuration * timingScale)) : 16;
-    state.projectName = project.name || "Untitled score";
-    elements.projectTitle.value = state.projectName;
-    elements.snap.value = String(state.snap);
-    if ([...elements.noteDuration.options].some((option) => Number(option.value) === state.noteDuration)) {
-      elements.noteDuration.value = String(state.noteDuration);
+    };
+  });
+  state.activeTrackId = state.tracks.some((track) => track.id === project.activeTrackId)
+    ? project.activeTrackId
+    : state.tracks[0].id;
+  state.tempo = normalizeMmlTempo(project.tempo || 120);
+  const savedSnap = Math.max(1, Math.round(Number(project.snap) || 4));
+  state.snap = [...elements.snap.options].some((option) => Number(option.value) === savedSnap) ? savedSnap : 4;
+  state.noteDuration = Number(project.noteDuration) ? Math.max(1, Math.round(project.noteDuration * timingScale)) : 16;
+  state.projectName = String(project.name || "Untitled score");
+  state.playhead = 0;
+  state.history = [];
+  state.future = [];
+  clearNoteSelection();
+  elements.projectTitle.value = state.projectName;
+  elements.snap.value = String(state.snap);
+  if ([...elements.noteDuration.options].some((option) => Number(option.value) === state.noteDuration)) {
+    elements.noteDuration.value = String(state.noteDuration);
+  }
+  syncTempoControl();
+  state.saved = true;
+}
+
+function loadProject() {
+  try {
+    const raw = localStorage.getItem(PROJECT_STORAGE_KEY);
+    if (raw) applyProjectData(JSON.parse(raw));
+  } catch (error) {
+    console.warn("The saved browser draft could not be loaded.", error);
+    // A damaged or unavailable local draft should never prevent the editor from opening.
+  }
+}
+
+async function openProjectFile(file) {
+  if (!file) return;
+  try {
+    if (state.isPlaying || audio.starting) stopPlayback(true);
+    applyProjectData(JSON.parse(await file.text()));
+    try {
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(createProjectData()));
+    } catch (error) {
+      console.warn("The opened draft could not be cached in browser storage.", error);
     }
-    syncTempoControl();
-  } catch {
-    // A damaged local draft should never prevent the editor from opening.
+    renderAll();
+    notify(`Draft opened: ${file.name}`);
+  } catch (error) {
+    notify(error.message || "The draft file could not be opened.");
+  } finally {
+    elements.projectFile.value = "";
   }
 }
 
@@ -2525,13 +2715,10 @@ function copyExport() {
 }
 
 function downloadExport() {
-  const blob = new Blob([elements.exportCode.value], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${state.projectName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "mabiscore"}.mml`;
-  anchor.click();
-  URL.revokeObjectURL(url);
+  downloadBlob(
+    new Blob([elements.exportCode.value], { type: "text/plain;charset=utf-8" }),
+    safeProjectFilename("mml"),
+  );
 }
 
 function bindEvents() {
@@ -2545,6 +2732,8 @@ function bindEvents() {
     if (event.target === elements.modalBackdrop) closeModal();
   });
   document.querySelector("#add-track").addEventListener("click", addTrack);
+  document.querySelector("#open-project").addEventListener("click", () => elements.projectFile.click());
+  elements.projectFile.addEventListener("change", () => openProjectFile(elements.projectFile.files[0]));
   document.querySelector("#save-project").addEventListener("click", saveProject);
   document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
   elements.toggleOtherTracks.addEventListener("click", () => {

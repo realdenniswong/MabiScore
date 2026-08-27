@@ -32,12 +32,13 @@ Live site: <https://realdenniswong.github.io/MabiScore/>
 - Choose a Mabinogi instrument per track with the high-quality MabiMML SoundFont
 - Set an independent MML `V0`–`V15` volume for every track
 - Choose tempo and new-note grid snapping from a practical 1/16 default down to 1/64, move every existing note freely in 1/64 steps, and resize notes to any 1/64 length
-- Import one-part MML into the selected track—with or without an `MML@...;` wrapper—or replace the full score with multi-track `MML@...;`; dotted lengths, per-note volume changes, and tempo automation inside each track are preserved on export
+- Import one-part MML into the selected track—with or without an `MML@...;` wrapper—or replace the full score with multi-track `MML@...;`; numeric notes, dotted default lengths, per-note volume changes, and tempo automation are preserved, and untouched imported tracks export verbatim
+- Re-export edited tracks with compact `L`, relative-octave, and numeric-note notation, with a visible warning whenever a part exceeds 2,400 characters
 - Import standard MIDI files, preserve low notes down to C1, split polyphony into non-empty exportable voices, use Piano as the broad-range default, and expand the grid to the full song length with a trailing blank bar
 - Preview piano keys, placed notes, aligned notes from every unmuted track when creating a note, and full-score playback in the browser, with live per-track mute/unmute
 - Undo and redo all score-editing actions, including notes, tracks, imports, merge, names, colors, instruments, volume, tempo, and note settings
 - Export any selection of monophonic tracks as `MML@...;`
-- Save a local draft in browser storage
+- Save a local browser draft and download a portable `.mabiscore.json` backup that can be opened again on any device
 
 ## Included three-channel test score
 
