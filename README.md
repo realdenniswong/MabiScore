@@ -16,6 +16,8 @@ The interface and application code are inside `index.html`:
 
 The favicon, social sharing image, SpessaSynth runtime, audio worklet, and Mabinogi SoundFont are separate static assets.
 
+Optional conversion regression tests run with `node --test tests/midi-three-track.test.cjs`.
+
 ## Publish it
 
 GitHub Pages publishes the root of the `main` branch directly. Push an updated `index.html` to `main` and GitHub will refresh the site automatically.
@@ -35,6 +37,7 @@ Live site: <https://realdenniswong.github.io/MabiScore/>
 - Import one-part MML into the selected track—with or without an `MML@...;` wrapper—or replace the full score with multi-track `MML@...;`; numeric notes, dotted default lengths, per-note volume changes, and tempo automation are preserved, and untouched imported tracks export verbatim
 - Re-export edited tracks with compact `L`, relative-octave, and numeric-note notation, with a visible warning whenever a part exceeds 2,400 characters
 - Import standard MIDI files, preserve low notes down to C1, split polyphony into non-empty exportable voices, use Piano as the broad-range default, and expand the grid to the full song length with a trailing blank bar
+- Use **MIDI → 3 MML** to detect role-bearing MIDI channels from their programs, register, polyphony, coverage, and phrasing, then reduce them to coherent melody, harmony, and bass lines. Every retained note keeps its imported, 1/64-grid start and duration; excess notes are omitted whole, never shortened. The converter preserves MIDI tempo changes, removes low-salience whole notes when necessary to fit the 2,400-character per-part limit, reports its detected source channels and omissions, and opens the three-part MML export immediately. The original **Import MIDI** option still retains all playable voices.
 - Preview piano keys, placed notes, aligned notes from every unmuted track when creating a note, and full-score playback in the browser, with live per-track mute/unmute
 - Turn on GarageBand-style Musical Typing with `Cmd/Ctrl+K`, enter notes with the A–K piano layout, and change octave with Z/X; step input advances the playhead by the selected note length
 - Copy, cut, and paste selected notes with `Cmd/Ctrl+C`, `Cmd/Ctrl+X`, and `Cmd/Ctrl+V`; timing and pitch relationships are preserved, paste starts at the playhead, and repeated paste builds consecutive loops
