@@ -1,183 +1,201 @@
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const test = require("node:test");
-const vm = require("node:vm");
-
-const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-const arrangementSource = html.match(/function midiProgramFamily\(program\) \{[\s\S]*?\n\}\n\nfunction syncTempoControl/)[0]
-  .replace(/\n\nfunction syncTempoControl$/, "");
-const parserSource = html.match(/function readVariableLength\(data, offset\) \{[\s\S]*?\n\}\n\nfunction midiProgramFamily/)[0]
-  .replace(/\n\nfunction midiProgramFamily$/, "");
-const exporterSource = html.match(/function splitDuration\(duration\) \{[\s\S]*?\n\}\n\nfunction readVariableLength/)[0]
-  .replace(/\n\nfunction readVariableLength$/, "");
-let nextId = 0;
-const context = vm.createContext({
-  COLORS: ["#ee6a5b", "#4f78c8", "#7b61c9"],
-  PITCH_MIN: 24,
-  PITCH_MAX: 95,
-  TICKS_PER_WHOLE: 64,
-  TICKS_PER_BEAT: 16,
-  uid: (prefix) => `${prefix}-${++nextId}`,
-  volumeToVelocity: (volume) => Math.max(1, Math.min(127, (volume + 1) * 8 - 1)),
-  velocityToVolume: (velocity) => Math.max(0, Math.min(15, Math.round((velocity + 1) / 8) - 1)),
-  normalizeVolume: (volume) => Math.max(0, Math.min(15, Math.round(volume))),
-  normalizeMmlTempo: (tempo) => Math.max(1, Math.min(255, Math.round(tempo))),
-  trackEndTick: (track) => Math.max(0, ...track.notes.map((note) => note.start + note.duration)),
-});
-vm.runInContext(`${parserSource}\n${arrangementSource}\n${exporterSource}`, context);
-const arrange = context.arrangeMidiInThreeTracks;
-
-function inputTrack(instrument, notes, metadata = {}) {
-  inputTrack.sequence = (inputTrack.sequence || 0) + 1;
-  return {
-    id: `source-${inputTrack.sequence}`,
-    instrument,
-    ...metadata,
-    notes: notes.map(([pitch, start, duration, velocity = 90], index) => ({
-      id: `source-${inputTrack.sequence}-note-${index}`,
-      pitch,
-      start,
-      duration,
-      velocity,
-    })),
-  };
-}
-
-function assertMonophonic(tracks) {
-  assert.equal(tracks.length, 3);
-  tracks.forEach((track) => {
-    const notes = [...track.notes].sort((a, b) => a.start - b.start);
-    for (let index = 1; index < notes.length; index += 1) {
-      assert.ok(notes[index - 1].start + notes[index - 1].duration <= notes[index].start);
-    }
-    notes.forEach((note) => assert.ok(note.duration >= 1));
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const test = require('node:test');
+const M = require('../mobile-converter.js');
+const Iterator = require('mml-iterator');
+const {parseMidi} = require('../scripts/load-app.cjs');
+let id=0;
+const source=(notes,program=0,channel=0)=>({midiSource:++id,midiChannel:channel,midiProgram:program,name:`Source ${id}`,instrument:'Piano',notes:notes.map(([pitch,start,duration,velocity=90])=>({id:`n-${++id}`,pitch,start,duration,velocity}))});
+const voices=(notes,events=[])=>['melody','harmony','bass'].map((role,i)=>({sourceRole:role,volume:10,notes:(notes[i]||[]).map(([pitch,start,duration])=>({pitch,start,duration,velocity:90})),endTick:Math.max(0,...notes.flat().map(n=>n[1]+n[2])),tempoEvents:events}));
+function independent(result) {
+  result.parts.forEach((part,i)=>{
+    // This independent dialect uses ^length for a tie; no pitch/timing calculations are shared.
+    const adapted=part.replace(/&[a-g][+-]?(\d*\.?)/g, (_,length)=>'^'+(length||part.match(/l(\d+)/)[1]));
+    const events=[...new Iterator(adapted)], notes=events.filter(e=>e.type==='note');
+    const expected=result.parsed[i];
+    const time=M.timeline(expected.tempoEvents.map(e=>({...e,tick:e.tick/3})),result.tempo);
+    assert.equal(notes.length,expected.notes.length);
+    notes.forEach((n,j)=>{
+      const q=expected.notes[j];assert.equal(n.noteNumber,q.pitch);
+      assert.ok(Math.abs(n.time-time(q.start/3))<1e-7);
+      assert.ok(Math.abs(n.duration-(time((q.start+q.duration)/3)-time(q.start/3)))<1e-7);
+    });
+    assert.ok(Math.abs(events.at(-1).time-time(expected.endTick/3))<1e-7);
   });
 }
+function verify(result){assert.ok(result.validation.ok);assert.equal(result.parts.length,3);independent(result);for(const t of result.tracks){assert.equal(t.endTick,result.tracks[0].endTick);t.notes.forEach((n,i)=>{assert.ok(n.duration>0);if(i)assert.ok(t.notes[i-1].start+t.notes[i-1].duration<=n.start);});}for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)for(const n of result.tracks[i].notes)for(const p of result.tracks[j].notes)assert.ok(n.pitch!==p.pitch||n.start>=p.start+p.duration||p.start>=n.start+n.duration);}
 
-function assertOriginalNotes(sourceTracks, outputTracks) {
-  const originals = new Set(sourceTracks.flatMap((track) => track.notes.map((note) =>
-    `${note.pitch}:${note.start}:${note.duration}:${note.velocity}`)));
-  outputTracks.flatMap((track) => track.notes).forEach((note) => {
-    assert.ok(originals.has(`${note.pitch}:${note.start}:${note.duration}:${note.velocity}`),
-      `The note ${note.pitch} at ${note.start} must retain its original duration and velocity`);
-  });
+test('melody follows a handoff between instruments while bass remains below it',()=>{
+ const a=M.arrange([source([[72,0,8],[74,8,8]],73),source([[76,16,8],[77,24,8]],56),source([[36,0,16],[38,16,16]],33)]);
+ assert.deepEqual(a.tracks[0].notes.map(n=>n.pitch),[72,74,76,77]);assert.equal(new Set(a.tracks[0].notes.map(n=>n.source)).size,2);
+ assert.deepEqual(a.tracks[2].notes.map(n=>n.pitch),[36,38]);verify(M.convert(a.tracks));
+});
+test('repeated attacks survive overlapping sustain without inventing legato across rests',()=>{
+ const a=M.arrange([source([[72,0,18],[72,16,8],[74,32,8]],73)]);
+ assert.equal(a.tracks[0].notes.length,3);assert.equal(a.tracks[0].notes[0].duration,16);assert.equal(a.tracks[0].notes[1].duration,8);
+ const r=M.convert(a.tracks,180,{compatibility:false});verify(r);assert.equal(r.parsed[2].notes.length,3);assert.ok(r.parsed[2].rests.length);
+});
+test('piano is default and chord reduction retains a foundation, not the highest three notes',()=>{
+ const a=M.arrange([source([[36,0,16],[60,0,16],[64,0,16],[72,0,16]])]);
+ assert.equal(a.tracks.length,3);assert.ok(a.tracks.every(t=>t.instrument==='Piano'));assert.ok(a.tracks[2].notes.some(n=>n.pitch===36));verify(M.convert(a.tracks));
+});
+test('single voice still exports three initialized synchronized fields',()=>{
+ const a=M.arrange([source([[60,16,16]])]);const r=M.convert(a.tracks);verify(r);
+ assert.equal(r.parts.filter(p=>M.parsePart(p).notes.length).length,1);r.parts.forEach(p=>assert.match(p,/^t\d+o4v\d+l4/));assert.match(r.fields[2],/Harmony 2.*melody/);
+});
+test('overlapping identical pitches are resolved in favor of melody even with different onsets',()=>{
+ const r=M.convert(voices([[[60,8,16]],[[60,0,16],[64,24,8]],[[60,12,16]]]),180);verify(r);
+ assert.equal(r.tracks[2].notes[0].duration,48);assert.equal(r.tracks[0].notes.length,0);assert.ok(r.warnings.some(w=>w.includes('same-pitch')));
+});
+test('accompaniment offset is absolute, ends are compensated and never accumulate drift',()=>{
+ const ns=Array.from({length:100},(_,i)=>[64,i*16,16]);const v=voices([[[72,0,1600]],ns,[[36,0,1600]]]);
+ const on=M.convert(v,180),off=M.convert(v,180,{compatibility:false});verify(on);verify(off);
+ assert.ok(Math.abs(on.offsetMs-20.833333)<.001);
+ on.tracks[1].notes.forEach((n,i)=>{assert.equal(n.start-off.tracks[1].notes[i].start,3);assert.equal(n.start+n.duration,off.tracks[1].notes[i].start+off.tracks[1].notes[i].duration);});
+ assert.equal(on.duration,off.duration);
+});
+test('triplets remain exact and repeated triplet attacks do not become ties',()=>{
+ const r=M.convert(voices([Array.from({length:12},(_,i)=>[72,i*16/3,16/3])]),180,{compatibility:false});verify(r);
+ assert.equal(r.parsed[2].notes.length,12);assert.ok(r.parts[2].includes('12'));assert.equal(r.parsed[2].notes.at(-1).start,176);
+});
+test('constant tempo integrates tempo changes inside sustained notes, rests and closing slowdown',()=>{
+ const events=[{tick:0,tempo:120},{tick:16,tempo:90},{tick:48,tempo:60}];
+ const r=M.convert(voices([[[72,0,32],[74,48,16]],[[60,32,16]],[[36,0,64]]],events),120,{compatibility:false,constantTempo:true,tempo:180});verify(r);
+ assert.ok(Math.abs(r.duration-(.5+2*60/90+1))<=1/24);
+ r.parts.forEach(p=>assert.equal((p.match(/t\d+/g)||[]).length,1));
+ assert.ok(Math.abs(r.parsed[2].notes[0].duration/48/3-7/6)<.02);
+});
+test('retained tempo events split a sustained note without introducing attacks',()=>{
+ const r=M.convert(voices([[[72,0,64]],[[60,0,64]],[[36,0,64]]],[{tick:0,tempo:120},{tick:32,tempo:60}]),120,{compatibility:false,constantTempo:false});
+ assert.ok(r.validation.ok);assert.equal(r.parsed[2].notes.length,1);assert.match(r.parts[2],/t60&/);assert.equal(r.duration,3);
+ // mml-iterator cannot change tempo inside its ^ tie syntax; use separate independent fixture below.
+});
+test('independent parser checks variable tempo when boundaries are between attacks',()=>{
+ const r=M.convert(voices([[[72,0,32],[74,32,32]]],[{tick:0,tempo:120},{tick:32,tempo:60}]),120,{compatibility:false,constantTempo:false});verify(r);
+});
+test('character limit is exact and never removes the finale',()=>{
+ const ns=Array.from({length:1600},(_,i)=>[60+i%12,i*4,4]);const a=M.arrange([source(ns)]);const r=M.convert(a.tracks,180,{compatibility:false});
+ verify(r);assert.ok(r.overLimit.some(Boolean));assert.equal(a.trimTick,null);assert.equal(a.tracks[0].notes.length,1600);assert.equal(r.parsed[2].notes.at(-1).pitch,63);
+ assert.equal(r.overLimit[2],r.parts[2].length>M.LIMIT);
+});
+test('validator catches altered pitch, attack, sustain, and trailing rest',()=>{
+ const r=M.convert(voices([[[60,0,16],[62,32,16]]]));
+ for(const change of [p=>p[2].notes[0].pitch++,p=>p[2].notes[1].start++,p=>p[2].notes[0].duration++,p=>p[0].endTick++,p=>p[0].tempoEvents[0].tempo++]){const p=structuredClone(r.parsed);change(p);assert.equal(M.validate(r.tracks,p).ok,false);}
+ assert.throws(()=>M.parsePart('t180o4v10l4c&d'),/tie/);assert.throws(()=>M.parsePart('t180x'),/Unsupported/);
+});
+test('percussion instruments on pitched channels are not promoted to the melody',()=>{
+ const a=M.arrange([source([[72,0,16],[74,16,16]],48),source(Array.from({length:32},(_,i)=>[51,i,1]),47)]);
+ assert.deepEqual(a.tracks[0].notes.map(n=>n.pitch),[72,74]);assert.equal(a.omittedPercussion,32);
+});
+for(const name of ['1812 Overture','Laufey - From The Start','Yankee Doodle Dandy']){
+ const file=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/${name}.mid`;
+ test(`provided MIDI regression: ${name}`,{skip:!fs.existsSync(file)},()=>{
+   const p=parseMidi(fs.readFileSync(file)),a=M.arrange(p.tracks,p.tempo,p.tempoEvents),r=M.convert(a.tracks,p.tempo,{constantTempo:true,tempo:180});verify(r);
+   assert.ok(Math.abs(r.duration-r.sourceDuration)<=1/24+.00001);assert.ok(r.maxTimingErrorMs<42);
+   const ids=new Map(p.tracks.flatMap(t=>t.notes).map(n=>[n.id,n]));
+   a.tracks.forEach(t=>t.notes.forEach(n=>{assert.equal(n.pitch,ids.get(n.sourceId).pitch);assert.equal(n.start,ids.get(n.sourceId).rawStart);assert.ok(n.duration<=ids.get(n.sourceId).rawDuration+1e-7);}));
+   if(name==='1812 Overture'){
+     assert.deepEqual(a.tracks[0].notes.slice(-11).map(n=>n.pitch),[75,77,79,80,82,84,86,87,63,63,63]);
+     assert.deepEqual(r.parsed[2].notes.slice(-11).map(n=>n.pitch),[75,77,79,80,82,84,86,87,63,63,63]);
+     assert.ok(r.parsed[2].notes.at(-1).duration/48/3>3.9);
+   }
+ });
 }
 
-test("reduces a chord to three non-overlapping MML parts", () => {
-  const result = arrange([inputTrack("Piano", [
-    [48, 0, 16], [60, 0, 16], [64, 0, 16], [72, 0, 16],
-  ])]);
-  assertMonophonic(result.tracks);
-  assert.equal(result.tracks.reduce((sum, track) => sum + track.notes.length, 0), 3);
-  assert.equal(result.omittedNotes, 1);
-  const mml = context.toMml(result.tracks, 120);
-  assert.match(mml, /^MML@.+,.+,.+;$/);
-  assert.equal((mml.match(/,/g) || []).length, 2);
+test('MIDI sustain pedal, repeated attacks, raw triplets and trailing silence are retained',()=>{
+ const bytes=Buffer.from([
+   0,0xb0,64,127, 0,0x90,60,90, 32,0x80,60,0,
+   0,0x90,60,80, 32,0x80,60,0, 32,0xb0,64,0,
+   96,0xff,0x2f,0,
+ ]);
+ const length=Buffer.alloc(4);length.writeUInt32BE(bytes.length);
+ const p=parseMidi(Buffer.concat([Buffer.from([77,84,104,100,0,0,0,6,0,0,0,1,0,96,77,84,114,107]),length,bytes]));
+ const notes=p.tracks.flatMap(t=>t.notes).sort((a,b)=>a.rawStart-b.rawStart);
+ assert.equal(notes.length,2);assert.equal(notes[0].rawDuration,16);assert.equal(notes[1].rawStart,16/3);assert.equal(p.tracks[0].endTick,32);
+ const a=M.arrange(p.tracks),r=M.convert(a.tracks,120,{compatibility:false});verify(r);
+ assert.equal(r.sourceDuration,1);assert.equal(r.parsed[2].notes.length,2);assert.ok(r.parsed[2].rests.at(-1).duration>0);
 });
 
-test("drops a conflicting note whole instead of shortening its sustain", () => {
-  const source = [
-    inputTrack("Piano", [[48, 0, 32, 25], [60, 0, 32, 25], [72, 0, 32, 25]]),
-    inputTrack("Piano", [[84, 8, 16, 127]]),
-  ];
-  const result = arrange(source);
-  assertMonophonic(result.tracks);
-  assertOriginalNotes(source, result.tracks);
-  assert.equal(result.omittedNotes, 1);
-  assert.ok(result.tracks.some((track) => track.notes.some((note) => note.pitch === 84)));
+test('upper octave doublings are removed while the bass octave foundation remains',()=>{
+ const a=M.arrange([source([[72,0,16],[74,16,16]],73),source([[60,0,16],[62,16,16]],48),source([[36,0,16],[38,16,16]],33)]);
+ assert.deepEqual(a.tracks[2].notes.map(n=>n.pitch),[36,38]);assert.equal(a.tracks[1].notes.length,0);assert.equal(a.changes.doublings,2);
 });
 
-test("a quiet same-pitch reattack uses another part instead of truncating a held note", () => {
-  const source = [
-    inputTrack("Piano", [[60, 0, 32, 100]]),
-    inputTrack("Piano", [[60, 8, 8, 20]]),
-  ];
-  const result = arrange(source);
-  assertMonophonic(result.tracks);
-  assertOriginalNotes(source, result.tracks);
-  assert.equal(result.omittedNotes, 0);
-  assert.ok(result.tracks.some((track) => track.notes.some((note) =>
-    note.pitch === 60 && note.start === 0 && note.duration === 32)));
+test('default export preserves different source BPMs without forcing 180',()=>{
+ for(const bpm of [60,72,90,120,150,173,200,240]) {
+  const r=M.convert(voices([[[72,0,16]],[[60,0,16]],[[36,0,16]]]),bpm);
+  verify(r);assert.equal(r.tempo,bpm);assert.equal(r.constantTempo,false);
+  assert.ok(Math.abs(r.duration-60/bpm)<1e-8);
+ }
+});
+test('flattening is opt-in and supports a user-selected tempo',()=>{
+ const v=voices([[[72,0,16],[74,16,16]]],[{tick:0,tempo:90},{tick:16,tempo:60}]);
+ const original=M.convert(v,90,{compatibility:false});verify(original);
+ assert.equal(original.tempo,90);assert.equal(original.parsed[2].tempoEvents.length,2);
+ for(const bpm of [90,120,180,240]) {
+  const r=M.convert(v,90,{constantTempo:true,tempo:bpm,compatibility:false});verify(r);
+  assert.equal(r.tempo,bpm);assert.equal(r.parsed[2].tempoEvents.length,1);
+  assert.ok(Math.abs(r.duration-5/3)<=6/48*60/bpm+1e-8);
+ }
+});
+test('delay follows local tempo and reports its representable duration',()=>{
+ const v=voices([[[72,0,32]],[[60,0,16],[62,16,16]],[[36,0,32]]],[{tick:0,tempo:180},{tick:16,tempo:60}]);
+ const r=M.convert(v,180);assert.ok(r.validation.ok);
+ assert.ok(Math.abs(r.offsetMinMs-20.833333)<.001);assert.equal(r.offsetMaxMs,62.5);
+ assert.ok(r.warnings.some(w=>w.includes('shortest supported delay')));
 });
 
-test("omits percussion when pitched material is available", () => {
-  const result = arrange([
-    inputTrack("Piano", [[60, 0, 16]]),
-    inputTrack("Drum Kit", [[36, 0, 16], [38, 16, 16]]),
-  ]);
-  assertMonophonic(result.tracks);
-  assert.equal(result.omittedPercussion, 2);
-  assert.equal(result.tracks.reduce((sum, track) => sum + track.notes.length, 0), 1);
+test('volume boost adds one common offset: V8/V9/V10 becomes V13/V14/V15',()=>{
+ const v=voices([[[72,0,16]],[[60,0,16]],[[36,0,16]]]);
+ v.forEach((t,i)=>{t.volume=8+i;t.notes[0].velocity=(9+i)*8-1;});
+ const before=structuredClone(v);
+ const r=M.convert(v,120,{boostVolume:true,melodyHarmony2:false,compatibility:false});
+ verify(r);assert.equal(r.volumeBoost,5);
+ assert.deepEqual(r.parsed.map(t=>t.notes[0].velocity),[111,119,127]);
+ assert.deepEqual(v,before);
+ assert.equal(M.convert(v,120).volumeBoost,0);
+});
+test('volume boost preserves dynamics and does not clip an existing V15 peak',()=>{
+ const v=voices([[[72,0,16],[74,16,16]],[[60,0,16]],[[36,0,16]]]);
+ v[0].notes[0].velocity=63;v[0].notes[1].velocity=127;
+ const r=M.convert(v,120,{boostVolume:true,compatibility:false});verify(r);
+ assert.equal(r.volumeBoost,0);assert.deepEqual(r.parsed[2].notes.map(n=>n.velocity),[63,127]);
 });
 
-test("still creates exactly three parts from a single voice", () => {
-  const result = arrange([inputTrack("Piano", [[60, 0, 16], [62, 16, 16]])]);
-  assertMonophonic(result.tracks);
-  assert.equal(result.tracks.filter((track) => track.notes.length).length, 1);
-  assert.equal((context.toMml(result.tracks, 120).match(/,/g) || []).length, 2);
+test('lossless compression preserves attacks, pitches, dynamics, rests, ties and tempo',()=>{
+ const part='t120o4v8l4c8&c8r8o5v10d8d8o4e4.t90r4g8';
+ const compact=M.compactPart(part);
+ assert.ok(compact.length<part.length);
+ assert.deepEqual(M.parsePart(compact),M.parsePart(part));
 });
-
-test("dense staggered passages remain monophonic", () => {
-  const notes = Array.from({ length: 120 }, (_, index) => [
-    36 + (index * 7) % 48,
-    Math.floor(index / 4) * 4,
-    4 + (index % 5) * 3,
-    45 + (index * 11) % 80,
-  ]);
-  const result = arrange([inputTrack("Piano", notes)]);
-  assertMonophonic(result.tracks);
-  assertOriginalNotes([inputTrack("Piano", notes)], result.tracks);
-  const kept = result.tracks.reduce((sum, track) => sum + track.notes.length, 0);
-  assert.equal(kept + result.omittedNotes, notes.length);
+test('capacity fitting removes notes without changing retained notes or cutting the ending',()=>{
+ const notes=Array.from({length:800},(_,i)=>[36+(i*17)%60,i*4,4]);
+ const v=voices([notes]);const original=M.convert(v,180,{compatibility:false});
+ const r=M.convert(v,180,{fitLimit:true,compatibility:false});verify(r);
+ assert.ok(r.counts.every(n=>n<=2400));assert.ok(r.fitting[2].removed>0);
+ assert.equal(r.duration,original.duration);
+ assert.deepEqual(r.parsed[2].notes.slice(-16),original.parsed[2].notes.slice(-16));
+ const originals=new Set(original.parsed[2].notes.map(n=>JSON.stringify(n)));
+ r.parsed[2].notes.forEach(n=>assert.ok(originals.has(JSON.stringify(n))));
+ assert.equal(v[0].notes.length,800);
 });
-
-test("uses MIDI programs and channels to detect melody, harmony, and bass", () => {
-  const source = [
-    inputTrack("Piano", [[60, 0, 16], [64, 0, 16], [67, 0, 16], [62, 16, 16], [65, 16, 16], [69, 16, 16]],
-      { midiChannel: 0, midiProgram: 0, midiGroupKey: "0:0:0" }),
-    inputTrack("Piano", [[72, 0, 8], [74, 8, 8], [76, 16, 8], [77, 24, 8]],
-      { midiChannel: 3, midiProgram: 48, midiGroupKey: "0:3:48" }),
-    inputTrack("Piano", [[36, 0, 16], [38, 16, 16]],
-      { midiChannel: 1, midiProgram: 33, midiGroupKey: "0:1:33" }),
-  ];
-  const result = arrange(source);
-  assert.deepEqual(Array.from(result.tracks, (track) => track.sourceMidiChannel), [3, 0, 1]);
-  assert.deepEqual(Array.from(result.tracks, (track) => track.sourceRole), ["melody", "harmony", "bass"]);
-  assert.match(result.roleSources.join(" "), /Melody: Ensemble.*Harmony: Piano.*Bass: Bass/);
+test('fitting leaves already-small arrangements musically unchanged',()=>{
+ const v=voices([[[72,0,16],[74,32,16]],[[60,0,16]],[[36,0,48]]]);
+ const before=M.convert(v,120),after=M.convert(v,120,{fitLimit:true});verify(after);
+ assert.deepEqual(after.parsed,before.parsed);assert.ok(after.fitting.every(f=>f.removed===0));
 });
-
-test("removes low-salience whole notes until every MML part fits 2,400 characters", () => {
-  const notes = Array.from({ length: 1600 }, (_, index) => [48 + (index * 5) % 36, index, 1, 80]);
-  const result = arrange([inputTrack("Piano", notes, { midiChannel: 0, midiProgram: 0, midiGroupKey: "0:0:0" })]);
-  assertMonophonic(result.tracks);
-  assert.ok(result.characterLimitOmissions > 0);
-  result.tracks.forEach((track) => assert.ok(context.trackToMml(track, 120).length <= 2400));
-  assertOriginalNotes([inputTrack("Piano", notes)], result.tracks);
-});
-
-test("a standard MIDI file converts through to a three-part MML score", () => {
-  const midiTrack = Buffer.from([
-    0x00, 0xff, 0x51, 0x03, 0x07, 0xa1, 0x20,
-    0x00, 0x90, 48, 90, 0x00, 0x90, 60, 90,
-    0x00, 0x90, 64, 90, 0x00, 0x90, 72, 90,
-    0x60, 0x80, 48, 0, 0x00, 0x80, 60, 0,
-    0x00, 0x80, 64, 0, 0x00, 0x80, 72, 0,
-    0x00, 0xff, 0x2f, 0x00,
-  ]);
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(midiTrack.length);
-  const midi = Buffer.concat([
-    Buffer.from([0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 0, 96]),
-    Buffer.from([0x4d, 0x54, 0x72, 0x6b]),
-    length,
-    midiTrack,
-  ]);
-  const parsed = context.parseMidi(midi.buffer.slice(midi.byteOffset, midi.byteOffset + midi.byteLength));
-  assert.equal(parsed.tempo, 120);
-  assert.deepEqual(Array.from(parsed.tempoEvents, (event) => ({ tick: event.tick, tempo: event.tempo })), [{ tick: 0, tempo: 120 }]);
-  assert.equal(parsed.tracks.length, 4);
-  const result = arrange(parsed.tracks);
-  assertMonophonic(result.tracks);
-  assert.equal((context.toMml(result.tracks, parsed.tempo).match(/,/g) || []).length, 2);
+for(const name of ['1812 Overture','Laufey - From The Start','Yankee Doodle Dandy']) {
+ const file=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/${name}.mid`;
+ test(`capacity regression: ${name}`,{skip:!fs.existsSync(file)},()=>{
+  const p=parseMidi(fs.readFileSync(file)),a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
+  const before=M.convert(a.tracks,p.tempo),r=M.convert(a.tracks,p.tempo,{fitLimit:true});
+  assert.ok(r.validation.ok);assert.ok(r.counts.every(n=>n<=2400));assert.equal(r.duration,before.duration);
+  assert.deepEqual(r.parsed[2].notes.slice(-16),before.parsed[2].notes.slice(-16));
+  // Independently check the flattened variant, whose ties this parser can represent.
+  verify(M.convert(a.tracks,p.tempo,{fitLimit:true,constantTempo:true,tempo:180}));
+ });
+}
+test('protected material that cannot fit is reported over limit, never truncated',()=>{
+ const v=voices([[[72,0,1000000]]]);const r=M.convert(v,180,{fitLimit:true,compatibility:false});
+ assert.equal(r.fitting[2].removed,0);assert.ok(r.overLimit[2]);assert.equal(r.parsed[2].notes.length,1);
 });

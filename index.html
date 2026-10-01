@@ -239,6 +239,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .selection-tools .box-select-button { width: 30px; flex: 0 0 30px; justify-content: center; padding: 0; font-size: 16px; }
 .selection-tools .box-select-button.is-active { color: white; background: var(--accent); }
 .roll-heading-actions { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.editor-view-switch { display: flex; flex: 0 0 auto; gap: 3px; padding: 3px; border-radius: 8px; background: #eff0f4; }
+.editor-view-switch button { height: 24px; padding: 0 8px; border: 0; border-radius: 6px; color: #777c8c; background: transparent; font-size: 9px; font-weight: 700; cursor: pointer; }
+.editor-view-switch button:hover { color: var(--ink); }
+.editor-view-switch button.is-active { color: var(--ink); background: white; box-shadow: 0 1px 4px rgba(32,42,72,.12); }
 .track-visibility-button, .keyboard-input-button { height: 30px; display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; color: #656b7c; background: #f8f8fa; font-size: 10px; font-weight: 650; cursor: pointer; }
 .track-visibility-button:hover, .keyboard-input-button:hover { color: var(--ink); border-color: #c8ccd6; }
 .track-visibility-button.is-active, .keyboard-input-button.is-active { color: var(--accent-dark); border-color: #f0b4ac; background: #fff1ef; }
@@ -292,6 +296,51 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .note-resize-handle { position: absolute; top: 0; right: 0; width: var(--resize-width, 10px); height: 100%; border: 0; border-left: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.12); cursor: ew-resize; touch-action: none; }
 .note-resize-handle::after { content: ""; position: absolute; top: 5px; bottom: 5px; left: 50%; width: 2px; transform: translateX(-50%); border-radius: 2px; background: rgba(255,255,255,.72); }
 .grid-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; z-index: 4; box-shadow: 0 0 0 1px rgba(255,255,255,.32); }
+
+.sheet-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: 43px minmax(0, 1fr); background: #f7f4ed; }
+.sheet-toolbar { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 14px; border-bottom: 1px solid #ddd8cc; color: #706d66; background: #fbfaf6; font-size: 10px; }
+.sheet-toolbar label { display: flex; align-items: center; gap: 6px; font-weight: 680; white-space: nowrap; }
+.sheet-toolbar select { height: 28px; padding: 0 25px 0 8px; border: 1px solid #d9d5ca; border-radius: 7px; color: #373a44; background: white; font-size: 11px; font-weight: 680; }
+.sheet-toolbar-tip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-toolbar-spacer { flex: 1; }
+.sheet-zoom { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.sheet-zoom button { width: 24px; height: 24px; display: grid; place-items: center; padding: 0; border: 1px solid #d9d5ca; border-radius: 6px; color: #5e626d; background: white; cursor: pointer; }
+.sheet-zoom strong { width: 34px; text-align: center; font-size: 8px; }
+.sheet-workspace { min-width: 0; min-height: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); overflow: hidden; }
+.sheet-clef-gutter { position: relative; min-height: 340px; border-right: 1px solid #ded9cc; color: #242936; background: #fffef9; overflow: hidden; z-index: 6; }
+.sheet-brace { position: absolute; left: 3px; top: 116px; font-family: Georgia, serif; font-size: 134px; font-weight: 400; line-height: 1; transform: scaleX(.52); transform-origin: left center; }
+.sheet-clef { position: absolute; right: 10px; font-family: "Noto Music", "Apple Symbols", "Segoe UI Symbol", serif; line-height: 1; }
+.sheet-clef.treble { top: 102px; font-size: 64px; }
+.sheet-clef.bass { top: 179px; font-size: 54px; }
+.sheet-middle-c-label { position: absolute; right: 7px; top: 172px; color: #8b705e; font-family: "DM Mono", monospace; font-size: 8px; text-align: right; }
+.sheet-gutter-line { position: absolute; left: 34px; right: 0; height: 1px; background: #41444d; }
+.sheet-scroll { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; background: #fffef9; }
+.sheet-score { position: relative; min-width: 100%; height: 340px; user-select: none; touch-action: pan-x pan-y; cursor: crosshair; background: linear-gradient(#fffef9, #fdfbf5); }
+.staff-line { position: absolute; height: 1px; background: #41444d; pointer-events: none; }
+.staff-guide { position: absolute; top: 102px; bottom: 80px; width: 1px; background: rgba(66,69,78,.08); pointer-events: none; }
+.staff-guide.is-beat { background: rgba(66,69,78,.13); }
+.staff-guide.is-measure { width: 1px; background: rgba(42,45,53,.58); }
+.staff-measure-label { position: absolute; top: 78px; color: #999184; font-family: "DM Mono", monospace; font-size: 8px; pointer-events: none; }
+.staff-middle-c-guide { position: absolute; height: 1px; background: rgba(169,114,81,.32); pointer-events: none; }
+.staff-middle-c-guide::after { content: "middle C"; position: absolute; right: 5px; top: -13px; color: #a27b63; font-family: "DM Mono", monospace; font-size: 7px; white-space: nowrap; }
+.staff-note { --note-color: var(--accent); position: absolute; width: 28px; height: 38px; padding: 0; border: 0; color: var(--note-color); background: transparent; overflow: visible; cursor: pointer; z-index: 3; }
+.staff-note:hover { filter: brightness(.9); }
+.staff-note.is-inactive { opacity: .28; z-index: 2; }
+.staff-note.is-muted { opacity: .1; }
+.staff-note.is-selected { z-index: 5; }
+.staff-note.is-selected .staff-notehead { box-shadow: 0 0 0 3px rgba(32,42,72,.24); }
+.staff-notehead { position: absolute; left: 8px; top: 14px; width: 15px; height: 10px; border: 2px solid currentColor; border-radius: 50%; background: currentColor; transform: rotate(-16deg); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset; }
+.staff-note.is-half .staff-notehead, .staff-note.is-whole .staff-notehead { background: #fffef9; box-shadow: none; }
+.staff-note.is-whole .staff-stem { display: none; }
+.staff-stem { position: absolute; left: 21px; top: -6px; width: 2px; height: 23px; background: currentColor; }
+.staff-note.is-stem-down .staff-stem { left: 8px; top: 21px; }
+.staff-note.is-eighth .staff-stem::after { content: ""; position: absolute; left: 1px; top: 0; width: 9px; height: 14px; border-top: 3px solid currentColor; border-radius: 0 8px 0 0; transform: rotate(24deg); transform-origin: left top; }
+.staff-note.is-stem-down.is-eighth .staff-stem::after { left: -8px; top: 19px; transform: scaleY(-1) rotate(24deg); }
+.staff-accidental { position: absolute; right: 21px; top: 5px; color: #2c303a; font-family: Georgia, serif; font-size: 22px; line-height: 1; }
+.staff-ledger { position: absolute; left: 3px; width: 26px; height: 1px; background: #41444d; pointer-events: none; }
+.staff-duration { position: absolute; left: 23px; top: 18px; height: 2px; border-radius: 99px; background: currentColor; opacity: .22; pointer-events: none; }
+.sheet-playhead { position: absolute; top: 74px; bottom: 59px; width: 2px; background: var(--accent); pointer-events: none; z-index: 7; box-shadow: 0 0 0 1px rgba(255,255,255,.55); }
+.sheet-playhead::before { content: ""; position: absolute; left: -3px; top: 0; width: 8px; height: 7px; border-radius: 0 0 5px 5px; background: var(--accent); }
 
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(19,25,44,.64); backdrop-filter: blur(5px); }
 .modal-card { width: min(550px, 100%); max-height: calc(100dvh - 40px); overflow: auto; position: relative; background: white; border-radius: 16px; padding: 31px; box-shadow: 0 26px 70px rgba(8,14,29,.28); }
@@ -394,11 +443,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .selection-tools { gap: 4px; }
   .track-visibility-button, .keyboard-input-button { width: 30px; padding: 0; justify-content: center; }
   .track-visibility-label, .keyboard-input-label, .keyboard-input-octave { display: none; }
+  .editor-view-switch button { width: 29px; padding: 0; font-size: 0; }
+  .editor-view-switch button::first-letter { font-size: 12px; }
   .selection-length > span:first-child { display: none; }
   .selection-length input { width: 48px; }
   .timeline-wrap { grid-template-columns: 62px minmax(0, 1fr); }
   .piano-key { padding-right: 6px; }
   .piano-key.is-black { width: 76%; }
+  .sheet-workspace { grid-template-columns: 62px minmax(0, 1fr); }
+  .sheet-clef { right: 5px; }
+  .sheet-toolbar-tip { display: none; }
   .modal-backdrop { padding: 10px; align-items: end; }
   .modal-card { max-height: calc(100dvh - 20px); padding: 25px 19px 20px; border-radius: 16px 16px 12px 12px; }
   .modal-card h2 { font-size: 22px; }
@@ -503,6 +557,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
               <span id="audio-status" class="audio-status">Hi-fi sounds load on first play</span>
             </div>
             <div class="roll-heading-actions">
+              <div class="editor-view-switch" role="group" aria-label="Editor view">
+                <button id="piano-roll-mode" class="is-active" type="button" aria-pressed="true" title="Piano roll editor">▦ Roll</button>
+                <button id="sheet-mode" type="button" aria-pressed="false" title="Grand staff editor with middle C">𝄞 Score</button>
+              </div>
               <button id="keyboard-input-toggle" class="keyboard-input-button" type="button" aria-pressed="false" title="Musical typing (⌘/Ctrl+K): A–K notes, Z/X octave"><span aria-hidden="true">⌨</span><span class="keyboard-input-label">Keys</span><span id="keyboard-input-octave" class="keyboard-input-octave">C4</span></button>
               <button id="toggle-other-tracks" class="track-visibility-button" type="button" aria-pressed="false" title="Hide notes from other tracks"><span class="track-visibility-icon" aria-hidden="true">◉</span><span class="track-visibility-label">Hide others</span></button>
               <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
@@ -513,6 +571,37 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
             <div id="timeline-scroll" class="timeline-scroll" title="Scroll here or pinch over the score to zoom"><div id="timeline" class="timeline"><div id="timeline-playhead" class="timeline-playhead"></div></div></div>
             <div id="key-scroll" class="key-scroll"><div id="piano-keys" class="piano-keys" aria-label="Playable piano keyboard"></div></div>
             <div id="grid-scroll" class="grid-scroll"><div id="note-grid" class="note-grid"><div id="grid-playhead" class="grid-playhead"></div><div id="selection-marquee" class="selection-marquee" aria-hidden="true"></div></div></div>
+          </div>
+          <div id="sheet-panel" class="sheet-panel" aria-label="Grand staff editor" hidden>
+            <div class="sheet-toolbar">
+              <label>Accidental
+                <select id="sheet-accidental" aria-label="Accidental for new staff notes">
+                  <option value="natural">♮ Natural</option>
+                  <option value="sharp">♯ Sharp</option>
+                  <option value="flat">♭ Flat</option>
+                </select>
+              </label>
+              <span class="sheet-toolbar-tip">Click a line or space to add a note. Middle C sits between the two staves.</span>
+              <span class="sheet-toolbar-spacer"></span>
+              <div class="sheet-zoom" title="Zoom the score horizontally">
+                <button id="sheet-zoom-out" type="button" aria-label="Zoom out score">−</button>
+                <strong id="sheet-zoom-label">100%</strong>
+                <button id="sheet-zoom-in" type="button" aria-label="Zoom in score">+</button>
+              </div>
+            </div>
+            <div class="sheet-workspace">
+              <div id="sheet-clef-gutter" class="sheet-clef-gutter" aria-hidden="true">
+                <span class="sheet-brace">{</span>
+                <span class="sheet-clef treble">𝄞</span>
+                <span class="sheet-clef bass">𝄢</span>
+                <span class="sheet-middle-c-label">C4<br />middle C</span>
+              </div>
+              <div id="sheet-scroll" class="sheet-scroll">
+                <div id="sheet-score" class="sheet-score">
+                  <div id="sheet-playhead" class="sheet-playhead"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </section>
@@ -529,11 +618,23 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           </div>
           <div id="export-modal" class="modal-view" hidden>
             <div class="modal-icon">≡</div><p class="eyebrow">Ready for Mabinogi</p><h2>Export MML</h2>
-            <p class="modal-intro">Choose one or more tracks to combine into a game-ready MML score.</p>
+            <p class="modal-intro">Review the score, character limits, and playback warnings before copying.</p>
             <p id="export-conversion-note" class="merge-warning" hidden></p>
+            <div id="mobile-export-options" style="font-size:12px;line-height:1.8" hidden>
+              <p class="modal-intro"><strong>Three-part MML · Mabinogi Mobile</strong></p>
+              <label><input id="mobile-compatibility" type="checkbox" checked> Mobile playback compatibility — delay middle accompaniment (nearest supported duration)</label><br>
+              <label><input id="mobile-melody-slot" type="checkbox" checked> Put main melody in Harmony 2 (community workaround)</label><br>
+              <label><input id="mobile-fit-limit" type="checkbox" checked> Fit each part to 2,400 characters (compress first, then reduce notes)</label><br>
+              <label><input id="mobile-volume-boost" type="checkbox"> Boost volumes equally so the loudest reaches V15</label><br>
+              <label><input id="mobile-constant-tempo" type="checkbox"> Flatten tempo changes into note and rest durations</label><br>
+              <label>Playback tempo when flattened: <input id="mobile-playback-tempo" type="number" min="32" max="255" step="1" placeholder="Original BPM" aria-label="Playback tempo when flattened" disabled style="width:100px"></label>
+              <p class="modal-intro">Original tempo and tempo changes are retained by default. Flattening preserves elapsed timing within quantization tolerance. Piano is the preview sound; choose your instrument in-game.</p>
+              <p class="modal-intro">These workarounds need in-game testing. <a href="./docs/mobile-compatibility.md" target="_blank">Compatibility research &amp; timing tolerance</a></p>
+            </div>
             <div id="export-track-list" class="export-track-list"></div>
             <div id="export-summary" class="export-summary"></div>
             <textarea id="export-code" class="export-code" readonly spellcheck="false" aria-label="Exported MML"></textarea>
+            <div id="mobile-fields" hidden></div>
             <div class="modal-actions export-actions"><button id="copy-export" class="secondary-button"><span aria-hidden="true">▣</span> Copy MML</button><button id="download-export" class="primary-button"><span aria-hidden="true">↓</span> Download .mml</button></div>
           </div>
           <div id="merge-modal" class="modal-view" hidden>
@@ -558,6 +659,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
       <div id="toast" class="toast" role="status" hidden></div>
     </main>
     <script src="./vendor/spessasynth.min.js"></script>
+    <script src="./mobile-converter.js"></script>
     <script>
 const COLORS = ["#ee6a5b", "#4f78c8", "#7b61c9", "#2f9d78", "#d58a32", "#d04f88"];
 const PITCH_MIN = 24;
@@ -572,6 +674,10 @@ const DEFAULT_TICK_WIDTH = 6;
 const MIN_TICK_WIDTH = 3;
 const MAX_TICK_WIDTH = 24;
 let tickWidth = DEFAULT_TICK_WIDTH;
+const SHEET_HEIGHT = 340;
+const SHEET_MIDDLE_C_Y = 180;
+const SHEET_STEP_HEIGHT = 6;
+const SHEET_TIME_PADDING = 24;
 const MIN_GRID_TICKS = TICKS_PER_WHOLE * 8;
 let totalTicks = MIN_GRID_TICKS;
 let gridWidth = totalTicks * tickWidth;
@@ -664,6 +770,8 @@ const state = {
   selectedNoteIds: new Set(),
   multiSelectMode: false,
   boxSelectMode: false,
+  editorMode: "roll",
+  sheetAccidental: "natural",
   keyboardInput: false,
   keyboardOctave: 4,
   showOtherTracks: true,
@@ -751,6 +859,8 @@ const elements = {
   keyboardInputToggle: document.querySelector("#keyboard-input-toggle"),
   keyboardInputOctave: document.querySelector("#keyboard-input-octave"),
   toggleOtherTracks: document.querySelector("#toggle-other-tracks"),
+  pianoRollMode: document.querySelector("#piano-roll-mode"),
+  sheetMode: document.querySelector("#sheet-mode"),
   timelineWrap: document.querySelector("#timeline-wrap"),
   timelineScroll: document.querySelector("#timeline-scroll"),
   timeline: document.querySelector("#timeline"),
@@ -762,6 +872,13 @@ const elements = {
   noteGrid: document.querySelector("#note-grid"),
   gridPlayhead: document.querySelector("#grid-playhead"),
   selectionMarquee: document.querySelector("#selection-marquee"),
+  sheetPanel: document.querySelector("#sheet-panel"),
+  sheetAccidental: document.querySelector("#sheet-accidental"),
+  sheetClefGutter: document.querySelector("#sheet-clef-gutter"),
+  sheetScroll: document.querySelector("#sheet-scroll"),
+  sheetScore: document.querySelector("#sheet-score"),
+  sheetPlayhead: document.querySelector("#sheet-playhead"),
+  sheetZoomLabel: document.querySelector("#sheet-zoom-label"),
   undo: document.querySelector("#undo-action"),
   redo: document.querySelector("#redo-action"),
   projectFile: document.querySelector("#project-file"),
@@ -867,7 +984,7 @@ function selectAllNotesInActiveTrack() {
   state.multiSelectMode = false;
   state.boxSelectMode = false;
   renderRollHeading();
-  renderNotes();
+  renderNoteEditors();
 }
 
 function setBoxSelectMode(enabled) {
@@ -889,6 +1006,62 @@ function syncNoteSelection() {
 
 function noteLabel(pitch) {
   return `${NOTE_NAMES[pitch % 12]}${Math.floor(pitch / 12) - 1}`;
+}
+
+function isNaturalPitch(pitch) {
+  return !BLACK_KEYS.has(((Math.round(pitch) % 12) + 12) % 12);
+}
+
+function staffStepToNaturalPitch(step) {
+  const naturalSemitones = [0, 2, 4, 5, 7, 9, 11];
+  const diatonicIndex = 28 + Math.round(step);
+  const octave = Math.floor(diatonicIndex / 7);
+  const letter = ((diatonicIndex % 7) + 7) % 7;
+  return (octave + 1) * 12 + naturalSemitones[letter];
+}
+
+function naturalPitchToStaffStep(pitch) {
+  const naturalLetters = { 0: 0, 2: 1, 4: 2, 5: 3, 7: 4, 9: 5, 11: 6 };
+  const rounded = Math.round(pitch);
+  const pitchClass = ((rounded % 12) + 12) % 12;
+  if (!(pitchClass in naturalLetters)) return null;
+  const octave = Math.floor(rounded / 12) - 1;
+  return octave * 7 + naturalLetters[pitchClass] - 28;
+}
+
+function staffPitchForStep(step, accidental = "natural") {
+  const basePitch = staffStepToNaturalPitch(step);
+  const shift = accidental === "sharp" ? 1 : accidental === "flat" ? -1 : 0;
+  return { pitch: basePitch + shift, basePitch, accidental };
+}
+
+function staffNoteSpelling(note) {
+  const pitch = Math.round(Number(note?.pitch) || 60);
+  const storedBase = Math.round(Number(note?.staffBasePitch));
+  const storedAccidental = ["natural", "sharp", "flat"].includes(note?.staffAccidental)
+    ? note.staffAccidental
+    : "natural";
+  const storedShift = storedAccidental === "sharp" ? 1 : storedAccidental === "flat" ? -1 : 0;
+  if (Number.isFinite(Number(note?.staffBasePitch)) && isNaturalPitch(storedBase) && storedBase + storedShift === pitch) {
+    return { basePitch: storedBase, accidental: storedAccidental };
+  }
+  if (BLACK_KEYS.has(((pitch % 12) + 12) % 12)) {
+    return { basePitch: pitch - 1, accidental: "sharp" };
+  }
+  return { basePitch: pitch, accidental: "natural" };
+}
+
+function staffPitchToY(note) {
+  const spelling = staffNoteSpelling(note);
+  return SHEET_MIDDLE_C_Y - naturalPitchToStaffStep(spelling.basePitch) * SHEET_STEP_HEIGHT;
+}
+
+function staffLedgerSteps(step) {
+  const lines = [];
+  if (step === 0) lines.push(0);
+  for (let value = 12; value <= step; value += 2) lines.push(value);
+  for (let value = -12; value >= step; value -= 2) lines.push(value);
+  return lines;
 }
 
 function instrumentByName(name) {
@@ -1062,7 +1235,7 @@ function renderTracks() {
       input.closest(".track-card").style.setProperty("--track-color", track.color);
       if (track.id === state.activeTrackId) elements.activeDot.style.background = track.color;
       markUnsaved();
-      renderNotes();
+      renderNoteEditors();
     };
     input.addEventListener("click", (event) => event.stopPropagation());
     input.addEventListener("focus", captureSnapshot);
@@ -1083,6 +1256,17 @@ function renderTracks() {
   });
 }
 
+function renderEditorMode() {
+  const sheet = state.editorMode === "sheet";
+  elements.timelineWrap.hidden = sheet;
+  elements.sheetPanel.hidden = !sheet;
+  elements.pianoRollMode.classList.toggle("is-active", !sheet);
+  elements.pianoRollMode.setAttribute("aria-pressed", String(!sheet));
+  elements.sheetMode.classList.toggle("is-active", sheet);
+  elements.sheetMode.setAttribute("aria-pressed", String(sheet));
+  elements.sheetAccidental.value = state.sheetAccidental;
+}
+
 function renderRollHeading() {
   const track = activeTrack();
   if (!track) return;
@@ -1093,12 +1277,15 @@ function renderRollHeading() {
   elements.activeDot.style.background = track.color;
   const selectedNotes = track.notes.filter((note) => state.selectedNoteIds.has(note.id));
   const selectedNote = selectedNotes.length === 1 ? selectedNotes[0] : null;
+  const boxSelectButton = state.editorMode === "roll"
+    ? `<button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>`
+    : "";
   if (selectedNote) {
     elements.selectionTools.innerHTML = `
       <label class="selection-length" title="${escapeHtml(formatDuration(selectedNote.duration))}">
         <span>Length</span><input id="selected-note-length" type="number" min="1" max="${totalTicks - selectedNote.start}" step="1" value="${selectedNote.duration}" aria-label="Selected note length in sixty-fourth notes" /><span>× 1/64</span>
       </label>
-      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
+      ${boxSelectButton}
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
       <button id="copy-notes">⧉ Copy</button>
       <button id="delete-note">⌫ Delete</button>
@@ -1120,7 +1307,7 @@ function renderRollHeading() {
     document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
   } else if (selectedNotes.length > 1) {
     elements.selectionTools.innerHTML = `
-      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
+      ${boxSelectButton}
       <span>${selectedNotes.length} notes selected · drag any selected note to move together</span>
       <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
       <button id="copy-notes">⧉ Copy</button>
@@ -1134,10 +1321,9 @@ function renderRollHeading() {
     });
     document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
   } else {
-    elements.selectionTools.innerHTML = `
-      <button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>
-      <span>Select notes by rectangle, Shift/⌘/Ctrl-click, or ⌘/Ctrl+A</span>
-    `;
+    elements.selectionTools.innerHTML = state.editorMode === "sheet"
+      ? "<span>Click a line or space to add a note · click a note to select it</span>"
+      : `${boxSelectButton}<span>Select notes by rectangle, Shift/⌘/Ctrl-click, or ⌘/Ctrl+A</span>`;
   }
   document.querySelector("#copy-notes")?.addEventListener("click", copySelectedNotes);
   if (noteClipboard.notes.length) {
@@ -1148,7 +1334,7 @@ function renderRollHeading() {
     pasteButton.addEventListener("click", pasteCopiedNotes);
     elements.selectionTools.append(pasteButton);
   }
-  document.querySelector("#toggle-box-select").addEventListener("click", () => setBoxSelectMode(!state.boxSelectMode));
+  document.querySelector("#toggle-box-select")?.addEventListener("click", () => setBoxSelectMode(!state.boxSelectMode));
   elements.noteGrid.classList.toggle("is-box-selecting", state.boxSelectMode);
   elements.keyboardInputToggle.classList.toggle("is-active", state.keyboardInput);
   elements.keyboardInputToggle.setAttribute("aria-pressed", String(state.keyboardInput));
@@ -1209,27 +1395,198 @@ function renderNotes() {
   elements.noteGrid.append(fragment);
 }
 
+function staffDurationClass(duration) {
+  if (duration >= 64) return "is-whole";
+  if (duration >= 32) return "is-half";
+  if (duration < 16) return "is-eighth";
+  return "is-quarter";
+}
+
+function selectStaffNote(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const button = event.currentTarget;
+  const track = state.tracks.find((item) => item.id === button.dataset.trackId);
+  const note = track?.notes.find((item) => item.id === button.dataset.noteId);
+  if (!track || !note) return;
+  if (track.id !== state.activeTrackId) {
+    state.activeTrackId = track.id;
+    selectOnlyNote(note.id);
+  } else if (event.shiftKey || event.metaKey || event.ctrlKey || state.multiSelectMode) {
+    toggleNoteSelection(note.id);
+  } else {
+    selectOnlyNote(note.id);
+  }
+  renderAll();
+  auditionPitch(note.pitch, track, note.duration);
+}
+
+function renderSheetScore() {
+  if (!elements.sheetScore) return;
+  elements.sheetScore.querySelectorAll(".sheet-generated").forEach((item) => item.remove());
+  elements.sheetClefGutter.querySelectorAll(".sheet-gutter-line").forEach((item) => item.remove());
+  const scoreWidth = gridWidth + SHEET_TIME_PADDING * 2;
+  elements.sheetScore.style.width = `${scoreWidth}px`;
+  elements.sheetScore.style.height = `${SHEET_HEIGHT}px`;
+  elements.sheetZoomLabel.textContent = `${Math.round(tickWidth / DEFAULT_TICK_WIDTH * 100)}%`;
+
+  const fragment = document.createDocumentFragment();
+  const staffLineSteps = [10, 8, 6, 4, 2, -2, -4, -6, -8, -10];
+  staffLineSteps.forEach((step) => {
+    const y = SHEET_MIDDLE_C_Y - step * SHEET_STEP_HEIGHT;
+    const line = document.createElement("span");
+    line.className = "staff-line sheet-generated";
+    line.style.left = "0";
+    line.style.right = "0";
+    line.style.top = `${y}px`;
+    fragment.append(line);
+    const gutterLine = document.createElement("span");
+    gutterLine.className = "sheet-gutter-line";
+    gutterLine.style.top = `${y}px`;
+    elements.sheetClefGutter.append(gutterLine);
+  });
+
+  const middleGuide = document.createElement("span");
+  middleGuide.className = "staff-middle-c-guide sheet-generated";
+  middleGuide.style.left = "0";
+  middleGuide.style.right = "0";
+  middleGuide.style.top = `${SHEET_MIDDLE_C_Y}px`;
+  fragment.append(middleGuide);
+
+  for (let tick = 0; tick <= totalTicks; tick += TICKS_PER_BEAT) {
+    const guide = document.createElement("span");
+    guide.className = `staff-guide sheet-generated ${tick % TICKS_PER_WHOLE === 0 ? "is-measure" : "is-beat"}`;
+    guide.style.left = `${SHEET_TIME_PADDING + tick * tickWidth}px`;
+    fragment.append(guide);
+    if (tick % TICKS_PER_WHOLE === 0) {
+      const label = document.createElement("span");
+      label.className = "staff-measure-label sheet-generated";
+      label.style.left = `${SHEET_TIME_PADDING + tick * tickWidth + 5}px`;
+      label.textContent = String(tick / TICKS_PER_WHOLE + 1);
+      fragment.append(label);
+    }
+  }
+
+  const visibleTracks = state.showOtherTracks
+    ? state.tracks
+    : state.tracks.filter((track) => track.id === state.activeTrackId);
+  const orderedTracks = [
+    ...visibleTracks.filter((track) => track.id !== state.activeTrackId),
+    ...visibleTracks.filter((track) => track.id === state.activeTrackId),
+  ];
+  orderedTracks.forEach((track) => {
+    const isActive = track.id === state.activeTrackId;
+    track.notes.forEach((note) => {
+      const spelling = staffNoteSpelling(note);
+      const step = naturalPitchToStaffStep(spelling.basePitch);
+      const y = SHEET_MIDDLE_C_Y - step * SHEET_STEP_HEIGHT;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = [
+        "staff-note", "sheet-generated", staffDurationClass(note.duration), step >= 6 ? "is-stem-down" : "",
+        isActive ? "" : "is-inactive", track.muted ? "is-muted" : "",
+        isActive && state.selectedNoteIds.has(note.id) ? "is-selected" : "",
+      ].filter(Boolean).join(" ");
+      button.dataset.noteId = note.id;
+      button.dataset.trackId = track.id;
+      button.style.left = `${SHEET_TIME_PADDING + note.start * tickWidth - 12}px`;
+      button.style.top = `${y - 19}px`;
+      button.style.setProperty("--note-color", track.color);
+      button.title = `${track.name} · ${noteLabel(note.pitch)} · ${formatDuration(note.duration)} · click to select`;
+      button.setAttribute("aria-label", button.title);
+
+      const ledgerLines = staffLedgerSteps(step).map((ledgerStep) => {
+        const ledgerY = SHEET_MIDDLE_C_Y - ledgerStep * SHEET_STEP_HEIGHT;
+        return `<i class="staff-ledger" style="top:${ledgerY - y + 19}px"></i>`;
+      }).join("");
+      const accidental = spelling.accidental === "sharp" ? "♯" : spelling.accidental === "flat" ? "♭" : "";
+      const durationWidth = Math.max(0, note.duration * tickWidth - 18);
+      button.innerHTML = `${ledgerLines}${accidental ? `<span class="staff-accidental">${accidental}</span>` : ""}<i class="staff-notehead"></i><i class="staff-stem"></i>${durationWidth ? `<i class="staff-duration" style="width:${durationWidth}px"></i>` : ""}`;
+      button.addEventListener("click", selectStaffNote);
+      fragment.append(button);
+    });
+  });
+  elements.sheetScore.insertBefore(fragment, elements.sheetPlayhead);
+}
+
+function renderNoteEditors() {
+  renderNotes();
+  renderSheetScore();
+}
+
+function addStaffNoteAtPoint(clientX, clientY) {
+  const track = activeTrack();
+  if (!track) return;
+  const rectangle = elements.sheetScore.getBoundingClientRect();
+  const x = clientX - rectangle.left - SHEET_TIME_PADDING;
+  const y = clientY - rectangle.top;
+  if (x < 0 || x > gridWidth) return;
+  const start = Math.max(0, Math.min(
+    totalTicks - state.noteDuration,
+    Math.floor(x / (tickWidth * state.snap)) * state.snap,
+  ));
+  const step = Math.round((SHEET_MIDDLE_C_Y - y) / SHEET_STEP_HEIGHT);
+  const spelling = staffPitchForStep(step, state.sheetAccidental);
+  if (spelling.pitch < PITCH_MIN || spelling.pitch > PITCH_MAX) {
+    notify("That line is outside the playable Mabinogi range.");
+    return;
+  }
+  const note = {
+    id: uid("note"),
+    pitch: spelling.pitch,
+    start,
+    duration: state.noteDuration,
+    velocity: volumeToVelocity(track.volume),
+    staffBasePitch: spelling.basePitch,
+    staffAccidental: spelling.accidental,
+  };
+  selectOnlyNote(note.id);
+  commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
+  auditionColumn(start);
+}
+
+function setEditorMode(mode) {
+  const next = mode === "sheet" ? "sheet" : "roll";
+  if (state.editorMode === next) return;
+  const horizontalPosition = state.editorMode === "sheet" ? elements.sheetScroll.scrollLeft : elements.gridScroll.scrollLeft;
+  state.editorMode = next;
+  state.boxSelectMode = false;
+  elements.noteGrid.classList.remove("is-box-selecting");
+  renderAll();
+  requestAnimationFrame(() => {
+    if (next === "sheet") elements.sheetScroll.scrollLeft = horizontalPosition;
+    else {
+      elements.gridScroll.scrollLeft = horizontalPosition;
+      elements.timelineScroll.scrollLeft = horizontalPosition;
+    }
+  });
+}
+
 function renderPlayhead() {
   const left = `${state.playhead * tickWidth}px`;
   elements.timelinePlayhead.style.left = left;
   elements.gridPlayhead.style.left = left;
+  elements.sheetPlayhead.style.left = `${SHEET_TIME_PADDING + state.playhead * tickWidth}px`;
 }
 
 function revealPlayhead() {
-  const left = state.playhead * tickWidth;
-  const viewportStart = elements.gridScroll.scrollLeft;
-  const viewportEnd = viewportStart + elements.gridScroll.clientWidth;
+  const sheet = state.editorMode === "sheet";
+  const scroll = sheet ? elements.sheetScroll : elements.gridScroll;
+  const left = state.playhead * tickWidth + (sheet ? SHEET_TIME_PADDING : 0);
+  const viewportStart = scroll.scrollLeft;
+  const viewportEnd = viewportStart + scroll.clientWidth;
   if (left >= viewportStart + 36 && left <= viewportEnd - 36) return;
   const scrollLeft = Math.max(0, left - 52);
-  elements.gridScroll.scrollLeft = scrollLeft;
-  elements.timelineScroll.scrollLeft = scrollLeft;
+  scroll.scrollLeft = scrollLeft;
+  if (!sheet) elements.timelineScroll.scrollLeft = scrollLeft;
 }
 
 function renderAll() {
   syncGridLength();
   renderTracks();
+  renderEditorMode();
   renderRollHeading();
-  renderNotes();
+  renderNoteEditors();
   renderPlayhead();
   renderHistory();
   renderSaveState();
@@ -1248,23 +1605,26 @@ function renderTimeScale() {
     line.style.left = `${Number(line.dataset.tick) * tickWidth}px`;
   });
   elements.zoomLabel.textContent = `${Math.round(tickWidth / DEFAULT_TICK_WIDTH * 100)}%`;
-  renderNotes();
+  renderNoteEditors();
   renderPlayhead();
 }
 
 function setTimeZoom(nextTickWidth, anchorClientX) {
   const next = Math.max(MIN_TICK_WIDTH, Math.min(MAX_TICK_WIDTH, Math.round(nextTickWidth * 4) / 4));
   if (next === tickWidth) return;
-  const rectangle = elements.gridScroll.getBoundingClientRect();
+  const sheet = state.editorMode === "sheet";
+  const scroll = sheet ? elements.sheetScroll : elements.gridScroll;
+  const rectangle = scroll.getBoundingClientRect();
   const anchor = Number.isFinite(anchorClientX)
     ? Math.max(0, Math.min(rectangle.width, anchorClientX - rectangle.left))
     : rectangle.width / 2;
-  const anchorTick = (elements.gridScroll.scrollLeft + anchor) / tickWidth;
+  const padding = sheet ? SHEET_TIME_PADDING : 0;
+  const anchorTick = Math.max(0, (scroll.scrollLeft + anchor - padding) / tickWidth);
   tickWidth = next;
   renderTimeScale();
-  const nextScrollLeft = Math.max(0, anchorTick * tickWidth - anchor);
-  elements.gridScroll.scrollLeft = nextScrollLeft;
-  elements.timelineScroll.scrollLeft = nextScrollLeft;
+  const nextScrollLeft = Math.max(0, padding + anchorTick * tickWidth - anchor);
+  scroll.scrollLeft = nextScrollLeft;
+  if (!sheet) elements.timelineScroll.scrollLeft = nextScrollLeft;
 }
 
 function zoomRollFromWheel(event) {
@@ -1687,7 +2047,7 @@ function endBoxSelection(event) {
   elements.selectionMarquee.classList.remove("is-visible");
   elements.noteGrid.classList.remove("is-box-selecting");
   renderRollHeading();
-  renderNotes();
+  renderNoteEditors();
 }
 
 function cancelBoxSelection(event) {
@@ -1821,7 +2181,7 @@ function beginNoteDrag(event) {
   if (additiveSelection && !resizeHandle) {
     toggleNoteSelection(noteId);
     renderRollHeading();
-    renderNotes();
+    renderNoteEditors();
     return;
   }
   if (!state.selectedNoteIds.has(noteId)) selectOnlyNote(noteId);
@@ -1841,7 +2201,7 @@ function beginNoteDrag(event) {
   drag.duration = note.duration;
   drag.snapshot = createHistorySnapshot();
   renderRollHeading();
-  renderNotes();
+  renderNoteEditors();
   if (drag.mode === "move") auditionPitch(note.pitch, activeTrack());
 }
 
@@ -1874,7 +2234,7 @@ function moveNoteDrag(event) {
   }
   if (!drag.changed) return;
   markUnsaved();
-  renderNotes();
+  renderNoteEditors();
 }
 
 function endNoteDrag() {
@@ -1926,6 +2286,13 @@ function currentPlaybackTick() {
 function setTrackMuted(trackId, muted) {
   const track = state.tracks.find((item) => item.id === trackId);
   if (!track || track.muted === muted) return;
+  if (audio.mobilePreview) {
+    stopPlayback();
+    commitTracks(tracks => tracks.map(item => item.id === trackId ? { ...item, muted } : item));
+    renderAll();
+    startPlayback();
+    return;
+  }
 
   const wasPlaying = state.isPlaying;
   const resumeAt = wasPlaying ? currentPlaybackTick() : state.playhead;
@@ -1943,6 +2310,7 @@ function setTrackMuted(trackId, muted) {
 }
 
 function stopPlayback(reset = false) {
+  audio.mobilePreview = false;
   audio.playRequest += 1;
   audio.starting = false;
   audio.timers.forEach((timer) => clearTimeout(timer));
@@ -2082,6 +2450,12 @@ function auditionColumn(tick) {
 }
 
 async function startPlayback() {
+  if (audio.mobilePreview) { stopPlayback(); return; }
+  if (state.tracks.length === 3 && state.tracks.every(t => t.mobileArrangement)) {
+    renderMobileExport();
+    await previewMobileMml("all");
+    return;
+  }
   if (state.isPlaying) {
     stopPlayback();
     return;
@@ -2466,19 +2840,22 @@ function readVariableLength(data, offset) {
   return { value, offset: next };
 }
 
-function parseMidi(buffer) {
+function parseMidi(buffer, preserveSourceRange = false) {
   const data = new DataView(buffer);
   const text = (offset, length) => String.fromCharCode(...Array.from({ length }, (_, index) => data.getUint8(offset + index)));
   if (text(0, 4) !== "MThd") throw new Error("This does not look like a standard MIDI file.");
   const headerLength = data.getUint32(4);
   const trackCount = data.getUint16(10);
+  if (data.getUint16(8) === 2) throw new Error("Asynchronous format-2 MIDI patterns are not supported; export a format-0 or format-1 song first.");
   const division = data.getUint16(12);
+  if (!division) throw new Error("MIDI timing resolution must be positive.");
   if (division & 0x8000) throw new Error("SMPTE-timed MIDI files are not supported yet.");
   const ppq = division;
   let offset = 8 + headerLength;
   let tempo = null;
   const tempoEvents = [];
   const collected = [];
+  let midiEndTick = 0;
   const trackNames = {};
   const channelPrograms = Array(16).fill(0);
 
@@ -2490,6 +2867,16 @@ function parseMidi(buffer) {
     let absolute = 0;
     let runningStatus = 0;
     const active = new Map();
+    const pedal = Array(16).fill(false);
+    const sustained = [];
+    const releasePedal = (channel, tick) => {
+      for (let i = sustained.length - 1; i >= 0; i--) {
+        if (sustained[i].channel === channel) {
+          collected.push({ ...sustained[i], end: tick });
+          sustained.splice(i, 1);
+        }
+      }
+    };
     while (cursor < end) {
       const delta = readVariableLength(data, cursor);
       absolute += delta.value;
@@ -2506,10 +2893,10 @@ function parseMidi(buffer) {
         cursor = metaLength.offset;
         if (type === 0x51 && metaLength.value === 3) {
           const microseconds = (data.getUint8(cursor) << 16) | (data.getUint8(cursor + 1) << 8) | data.getUint8(cursor + 2);
-          const eventTempo = Math.round(60000000 / microseconds);
+          const eventTempo = 60000000 / microseconds;
           if (tempo === null) tempo = eventTempo;
           tempoEvents.push({
-            tick: Math.round((absolute / ppq) * TICKS_PER_BEAT),
+            tick: (absolute / ppq) * TICKS_PER_BEAT,
             tempo: eventTempo,
             order: tempoEvents.length,
           });
@@ -2528,7 +2915,10 @@ function parseMidi(buffer) {
       const data1 = data.getUint8(cursor++);
       const oneByte = event === 0xc0 || event === 0xd0;
       const data2 = oneByte ? 0 : data.getUint8(cursor++);
-      if (event === 0xc0) {
+      if (event === 0xb0 && data1 === 64) {
+        pedal[channel] = data2 >= 64;
+        if (!pedal[channel]) releasePedal(channel, absolute);
+      } else if (event === 0xc0) {
         channelPrograms[channel] = data1;
       } else if (event === 0x90 && data2 > 0) {
         const key = `${channel}:${data1}`;
@@ -2539,7 +2929,7 @@ function parseMidi(buffer) {
         const key = `${channel}:${data1}`;
         const stack = active.get(key);
         const started = stack?.shift();
-        if (started) collected.push({
+        if (started) (pedal[channel] ? sustained : collected).push({
           pitch: data1,
           start: started.start,
           end: absolute,
@@ -2549,6 +2939,13 @@ function parseMidi(buffer) {
           channel,
         });
       }
+    }
+    midiEndTick = Math.max(midiEndTick, absolute / ppq * TICKS_PER_BEAT);
+    for (let channel = 0; channel < 16; channel++) releasePedal(channel, absolute);
+    // Unclosed key-downs end at the track boundary rather than disappearing silently.
+    for (const [key, stack] of active) for (const started of stack) {
+      const [channel, pitch] = key.split(':').map(Number);
+      if (absolute > started.start) collected.push({ ...started, pitch, channel, source: trackIndex, end: absolute });
     }
     offset = end;
   }
@@ -2577,12 +2974,12 @@ function parseMidi(buffer) {
         lane = { end: 0, notes: [] };
         lanes.push(lane);
       }
-      lane.notes.push({ id: uid("note"), pitch: item.pitch, start, duration, velocity: item.velocity });
+      lane.notes.push({ id: uid("note"), pitch: item.pitch, start, duration, rawStart: item.start / ppq * TICKS_PER_BEAT, rawDuration: (item.end - item.start) / ppq * TICKS_PER_BEAT, velocity: item.velocity });
       lane.end = start + duration;
     });
     lanes.forEach((lane, laneIndex) => {
       const baseName = trackNames[sourceIndex] || `MIDI track ${sourceIndex + 1}`;
-      const playableNotes = lane.notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX);
+      const playableNotes = preserveSourceRange ? lane.notes : lane.notes.filter((note) => note.pitch >= PITCH_MIN && note.pitch <= PITCH_MAX);
       const averageVelocity = playableNotes.length
         ? playableNotes.reduce((sum, note) => sum + note.velocity, 0) / playableNotes.length
         : volumeToVelocity(12);
@@ -2599,6 +2996,7 @@ function parseMidi(buffer) {
         midiSource: sourceIndex,
         midiVoice: laneIndex,
         midiGroupKey: key,
+        endTick: preserveSourceRange ? midiEndTick : undefined,
         notes: playableNotes,
       });
     });
@@ -2612,231 +3010,8 @@ function parseMidi(buffer) {
   return { tracks, tempo, tempoEvents: normalizedTempoEvents, skippedNotes: collected.length - importedNotes };
 }
 
-function midiProgramFamily(program) {
-  const value = Math.max(0, Math.min(127, Math.round(Number(program) || 0)));
-  const families = [
-    "Piano", "Chromatic percussion", "Organ", "Guitar", "Bass", "Solo strings", "Ensemble",
-    "Brass", "Reed", "Pipe", "Synth lead", "Synth pad", "Synth effects", "Ethnic", "Percussive", "Sound effects",
-  ];
-  return families[Math.floor(value / 8)];
-}
-
-function mabiInstrumentForMidi(program, averagePitch = 60) {
-  const family = midiProgramFamily(program);
-  if (family === "Piano") return "Piano";
-  if (family === "Guitar") return Number(program) >= 27 ? "Electric Guitar" : "Lute";
-  if (family === "Bass" || family === "Brass") return "Tuba";
-  if (family === "Solo strings") return averagePitch < 60 ? "Cello" : "Violin";
-  if (family === "Ensemble") return Number(program) >= 52 ? "Male Chorus" : "Violin";
-  if (family === "Reed") return "Chalumeau";
-  if (family === "Pipe") return "Flute";
-  if (family === "Organ" || family === "Synth pad") return "Male Chorus";
-  return "Piano";
-}
-
-function midiSourceGroups(importedTracks) {
-  const groups = new Map();
-  importedTracks.forEach((track, trackIndex) => {
-    const key = track.midiGroupKey || `imported:${trackIndex}`;
-    const group = groups.get(key) || {
-      key,
-      midiChannel: Number.isFinite(track.midiChannel) ? track.midiChannel : null,
-      midiProgram: Number.isFinite(track.midiProgram) ? track.midiProgram : 0,
-      name: String(track.name || `MIDI source ${trackIndex + 1}`).replace(/ · voice \d+$/, ""),
-      notes: [],
-    };
-    track.notes.forEach((note) => group.notes.push({ ...note, _sourceKey: `${key}:${group.notes.length}` }));
-    groups.set(key, group);
-  });
-  const songEnd = Math.max(1, ...importedTracks.flatMap((track) => track.notes.map((note) => note.start + note.duration)));
-  const totalWindows = Math.max(1, Math.ceil(songEnd / (TICKS_PER_WHOLE * 4)));
-  return [...groups.values()].map((group) => {
-    group.notes.sort((a, b) => a.start - b.start || b.pitch - a.pitch || b.duration - a.duration);
-    const count = group.notes.length;
-    const onsetCount = new Set(group.notes.map((note) => note.start)).size;
-    const average = (field) => group.notes.reduce((sum, note) => sum + Number(note[field] || 0), 0) / count;
-    const activeWindows = new Set(group.notes.map((note) => Math.floor(note.start / (TICKS_PER_WHOLE * 4)))).size;
-    group.family = group.midiChannel === 9 ? "Percussion" : midiProgramFamily(group.midiProgram);
-    group.averagePitch = average("pitch");
-    group.averageVelocity = average("velocity");
-    group.averageDuration = average("duration");
-    group.chordRatio = count / Math.max(1, onsetCount);
-    group.monophony = onsetCount / Math.max(1, count);
-    group.coverage = activeWindows / totalWindows;
-    const familyMelody = {
-      Pipe: 4, Reed: 3.5, "Synth lead": 3.5, "Solo strings": 3, Ensemble: 2.5,
-      Brass: 2, Guitar: 1.5, Piano: 0.5, Organ: 0.5, Bass: -10,
-    }[group.family] || 0;
-    const familyHarmony = {
-      Piano: 3.5, Guitar: 3, Ensemble: 2.5, "Solo strings": 2, Organ: 2,
-      "Synth pad": 2, Brass: 1, Bass: -10,
-    }[group.family] || 0;
-    group.melodyScore = group.monophony * 7
-      + group.coverage * 4
-      + group.averagePitch / 12
-      + familyMelody
-      - Math.max(0, group.chordRatio - 1) * 3
-      + Math.log1p(count) * 0.25;
-    group.bassScore = (group.family === "Bass" ? 12 : 0)
-      + (72 - group.averagePitch) / 5
-      + group.monophony * 4
-      + group.coverage * 4
-      - Math.max(0, group.chordRatio - 1) * 2;
-    group.harmonyScore = group.coverage * 5
-      + Math.log1p(count)
-      + familyHarmony
-      + Math.min(2, Math.max(0, group.chordRatio - 1)) * 2;
-    return group;
-  });
-}
-
-function groupsAreOctaveDuplicates(first, second) {
-  if (first.monophony < 0.8 || second.monophony < 0.8) return false;
-  const secondAtTick = new Map();
-  second.notes.forEach((note) => {
-    const pitches = secondAtTick.get(note.start) || [];
-    pitches.push(note.pitch);
-    secondAtTick.set(note.start, pitches);
-  });
-  const deltas = new Map();
-  first.notes.forEach((note) => {
-    (secondAtTick.get(note.start) || []).forEach((pitch) => {
-      const delta = pitch - note.pitch;
-      if (delta % 12 === 0) deltas.set(delta, (deltas.get(delta) || 0) + 1);
-    });
-  });
-  const matches = Math.max(0, ...deltas.values());
-  return matches / Math.max(1, Math.min(first.notes.length, second.notes.length)) >= 0.72;
-}
-
-function selectCoherentMidiLine(group, role, excluded = new Set()) {
-  const notes = group.notes.filter((note) => !excluded.has(note._sourceKey))
-    .sort((a, b) => a.start - b.start || b.pitch - a.pitch || b.duration - a.duration);
-  if (!notes.length) return [];
-  if (!trackHasPolyphony({ notes })) return notes;
-  const pitches = notes.map((note) => note.pitch);
-  const low = Math.min(...pitches);
-  const range = Math.max(1, Math.max(...pitches) - low);
-  const score = notes.map((note) => {
-    const register = (note.pitch - low) / range;
-    const roleRegister = role === "bass" ? 1 - register : register;
-    const beatStrength = note.start % TICKS_PER_BEAT === 0 ? 0.7 : note.start % (TICKS_PER_BEAT / 2) === 0 ? 0.3 : 0;
-    return 1.5
-      + Math.min(8, note.duration / TICKS_PER_BEAT) * 1.15
-      + (note.velocity / 127) * 0.8
-      + roleRegister * (role === "harmony" ? 0.8 : 1.25)
-      + beatStrength;
-  });
-  const best = [...score];
-  const previous = Array(notes.length).fill(-1);
-  for (let index = 0; index < notes.length; index += 1) {
-    for (let before = 0; before < index; before += 1) {
-      if (notes[before].start + notes[before].duration > notes[index].start) continue;
-      const leap = Math.abs(notes[index].pitch - notes[before].pitch);
-      const smoothness = leap <= 5 ? 0.7 : -Math.max(0, leap - (role === "bass" ? 7 : 12)) * 0.09;
-      const candidate = best[before] + score[index] + smoothness;
-      if (candidate > best[index]) {
-        best[index] = candidate;
-        previous[index] = before;
-      }
-    }
-  }
-  let cursor = best.reduce((winner, value, index) => value > best[winner] ? index : winner, 0);
-  const selected = [];
-  while (cursor >= 0) {
-    selected.push(notes[cursor]);
-    cursor = previous[cursor];
-  }
-  return selected.reverse();
-}
-
-function fitMidiTrackToMmlLimit(track, tempo, limit = 2400) {
-  if (trackToMml(track, tempo).length <= limit) return 0;
-  const candidates = [...track.notes].sort((a, b) => {
-    const importance = (note) => Math.min(8, note.duration / TICKS_PER_BEAT) * 1.4
-      + (note.velocity / 127)
-      + (note.start % TICKS_PER_BEAT === 0 ? 0.8 : note.start % (TICKS_PER_BEAT / 2) === 0 ? 0.3 : 0);
-    return importance(a) - importance(b) || a.duration - b.duration || a.velocity - b.velocity;
-  });
-  let removed = 0;
-  for (const candidate of candidates) {
-    if (trackToMml(track, tempo).length <= limit) break;
-    const index = track.notes.findIndex((note) => note.id === candidate.id);
-    if (index < 0) continue;
-    track.notes.splice(index, 1);
-    removed += 1;
-  }
-  return removed;
-}
-
 function arrangeMidiInThreeTracks(importedTracks, tempo = 120, tempoEvents = []) {
-  const pitchedTracks = importedTracks.filter((track) => track.instrument !== "Drum Kit" && track.midiChannel !== 9);
-  const sourceTracks = pitchedTracks.length ? pitchedTracks : importedTracks;
-  const omittedPercussion = pitchedTracks.length
-    ? importedTracks.filter((track) => track.instrument === "Drum Kit" || track.midiChannel === 9)
-      .reduce((sum, track) => sum + track.notes.length, 0)
-    : 0;
-  const groups = midiSourceGroups(sourceTracks);
-  const melodyGroup = [...groups].sort((a, b) => b.melodyScore - a.melodyScore)[0];
-  const distinctBassGroups = groups.filter((group) => group.key !== melodyGroup.key);
-  const bassGroup = [...(distinctBassGroups.length ? distinctBassGroups : groups)]
-    .sort((a, b) => b.bassScore - a.bassScore)[0];
-  const harmonyGroups = groups.filter((group) => group.key !== melodyGroup.key
-    && group.key !== bassGroup.key
-    && !groupsAreOctaveDuplicates(melodyGroup, group));
-  const harmonyGroup = [...(harmonyGroups.length ? harmonyGroups : groups.filter((group) => group.key !== melodyGroup.key))]
-    .sort((a, b) => b.harmonyScore - a.harmonyScore)[0] || melodyGroup;
-  const roles = [
-    { role: "melody", name: "Melody", group: melodyGroup },
-    { role: "harmony", name: "Harmony", group: harmonyGroup },
-    { role: "bass", name: "Bass", group: bassGroup },
-  ];
-  const usedByGroup = new Map();
-  const selections = new Map();
-  [roles[0], roles[2], roles[1]].forEach(({ role, group }) => {
-    const used = usedByGroup.get(group.key) || new Set();
-    const selected = selectCoherentMidiLine(group, role, used);
-    selected.forEach((note) => used.add(note._sourceKey));
-    usedByGroup.set(group.key, used);
-    selections.set(role, selected);
-  });
-  const tracks = roles.map(({ role, name, group }, index) => {
-    const notes = selections.get(role).map(({ _sourceKey, ...note }) => ({ ...note, id: uid("note") }));
-    const averageVelocity = notes.length
-      ? notes.reduce((sum, note) => sum + note.velocity, 0) / notes.length
-      : volumeToVelocity(10);
-    return {
-      id: uid("track"),
-      name: `${name} · ${group.family}`,
-      instrument: group.family === "Percussion" ? "Drum Kit" : mabiInstrumentForMidi(group.midiProgram, group.averagePitch),
-      volume: velocityToVolume(averageVelocity),
-      color: COLORS[index],
-      muted: false,
-      sourceRole: role,
-      sourceMidiChannel: group.midiChannel,
-      sourceMidiProgram: group.midiProgram,
-      sourceMidiGroup: group.key,
-      notes,
-    };
-  });
-  const sourceNoteCount = sourceTracks.reduce((sum, track) => sum + track.notes.length, 0);
-  const endTick = Math.max(0, ...sourceTracks.flatMap((track) => track.notes.map((note) => note.start + note.duration)));
-  tracks.forEach((track, index) => {
-    track.endTick = endTick;
-    if (index === 0 && tempoEvents.length) {
-      track.preserveTempo = true;
-      track.tempoEvents = tempoEvents.map((event) => ({ ...event }));
-    }
-  });
-  const characterLimitOmissions = tracks.reduce((sum, track) => sum + fitMidiTrackToMmlLimit(track, tempo), 0);
-  const keptNotes = tracks.reduce((sum, track) => sum + track.notes.length, 0);
-  return {
-    tracks,
-    omittedNotes: sourceNoteCount - keptNotes,
-    omittedPercussion,
-    characterLimitOmissions,
-    roleSources: roles.map(({ name, group }) => `${name}: ${group.family}${group.midiChannel === null ? "" : ` (MIDI ch. ${group.midiChannel + 1})`}`),
-  };
+  return MobileMml.arrange(importedTracks, tempo, tempoEvents);
 }
 
 function syncTempoControl() {
@@ -2957,7 +3132,16 @@ function mergeSelectedTracks() {
     : `${selected.length} tracks merged into ${target.name}. Undo is available.`);
 }
 
+let mobileExportResult = null;
 function renderExport() {
+  const mobile = state.tracks.length === 3 && state.tracks.every(t => t.mobileArrangement);
+  document.querySelector('#mobile-export-options').hidden = !mobile;
+  if (mobile) {
+    state.exportSelection = new Set(state.tracks.map(t => t.id));
+    elements.exportTrackList.innerHTML = '';
+    renderExportPreview();
+    return;
+  }
   elements.exportTrackList.innerHTML = state.tracks.map((track, index) => {
     const hasPolyphony = trackHasPolyphony(track);
     const characters = trackToMml(track, state.tempo).length;
@@ -2983,6 +3167,14 @@ function renderExport() {
 }
 
 function renderExportPreview() {
+  if (state.tracks.length === 3 && state.tracks.every(t => t.mobileArrangement)) {
+    renderMobileExport();
+    return;
+  }
+  mobileExportResult = null;
+  document.querySelector('#mobile-fields').hidden = true;
+  document.querySelector('#copy-export').disabled = false;
+  document.querySelector('#download-export').disabled = false;
   const selected = state.tracks.filter((track) => state.exportSelection.has(track.id));
   const value = toMml(selected, state.tempo);
   elements.exportCode.value = value;
@@ -2993,6 +3185,81 @@ function renderExportPreview() {
     <span>${value.length} characters</span>
   `;
 }
+
+
+function renderMobileExport() {
+  stopPlayback();
+  const box = document.querySelector('#mobile-fields');
+  box.hidden = false;
+  document.querySelector('#mobile-playback-tempo').disabled = !document.querySelector('#mobile-constant-tempo').checked;
+  document.querySelector('#mobile-playback-tempo').placeholder = `${Math.round(state.tempo)} BPM`;
+  try {
+    mobileExportResult = MobileMml.convert(state.tracks, state.tempo, {
+      compatibility: document.querySelector('#mobile-compatibility').checked,
+      boostVolume: document.querySelector('#mobile-volume-boost').checked,
+      fitLimit: document.querySelector('#mobile-fit-limit').checked,
+      melodyHarmony2: document.querySelector('#mobile-melody-slot').checked,
+      constantTempo: document.querySelector('#mobile-constant-tempo').checked,
+      tempo: Number(document.querySelector('#mobile-playback-tempo').value) || state.tempo,
+    });
+    const result = mobileExportResult;
+    elements.exportCode.value = result.mml;
+    elements.exportSummary.textContent = `3 voices · ${result.duration.toFixed(2)} seconds · ${result.tempo} BPM${result.constantTempo ? " (flattened)" : " (original tempo map)"} · volume boost +${result.volumeBoost} · round-trip validated · maximum timing adjustment ${result.maxTimingErrorMs.toFixed(1)} ms · accompaniment delay ${result.offsetMinMs.toFixed(1)}–${result.offsetMaxMs.toFixed(1)} ms`;
+    box.innerHTML = `<p class="merge-warning">${result.warnings.map(escapeHtml).join('<br>')}</p>
+      <button type="button" class="secondary-button" data-mobile-play="all">▶ Audition combined MML</button>
+      <button type="button" class="secondary-button" id="stop-mobile-preview">Stop</button>
+      ${result.parts.map((p,i)=>`<p><strong>${escapeHtml(result.fields[i])}</strong> · ${p.length} / 2,400 characters ${result.overLimit[i]?'— TOO LONG':''} · ${result.fitting[i].removed} notes removed to fit</p>
+      <textarea readonly spellcheck="false" aria-label="${escapeHtml(result.fields[i])}" style="width:100%;min-height:70px">${escapeHtml(p)}</textarea>
+      <button type="button" class="secondary-button" data-mobile-copy="${i}" ${result.overLimit[i]?'disabled':''}>Copy ${escapeHtml(MobileMml.fields[i])}</button>
+      <button type="button" class="secondary-button" data-mobile-play="${i}">▶ Audition part</button>`).join('')}`;
+    box.querySelectorAll('[data-mobile-copy]').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(result.parts[+b.dataset.mobileCopy]).then(()=>notify('Game field copied.')).catch(()=>notify('Select the field text and copy it manually.'))));
+    box.querySelectorAll('[data-mobile-play]').forEach(b=>b.addEventListener('click',()=>previewMobileMml(b.dataset.mobilePlay)));
+    box.querySelector('#stop-mobile-preview').addEventListener('click',()=>stopPlayback());
+    document.querySelector('#copy-export').disabled = result.overLimit.some(Boolean);
+    document.querySelector('#download-export').disabled = result.overLimit.some(Boolean);
+  } catch(error) {
+    mobileExportResult = null;
+    elements.exportCode.value = '';
+    elements.exportSummary.textContent = 'Export blocked: timing validation failed.';
+    box.textContent = `${error.message}. If retaining tempo changes caused this, enable constant tempo.`;
+    document.querySelector('#copy-export').disabled = true;
+    document.querySelector('#download-export').disabled = true;
+  }
+}
+
+async function previewMobileMml(part) {
+  if (!mobileExportResult) return;
+  stopPlayback();
+  const result = mobileExportResult;
+  const request = ++audio.playRequest;
+  const mode = await ensureAudio();
+  if (request !== audio.playRequest || mode === 'unavailable') return;
+  // Decode the actual field strings again: never audition pre-export notes.
+  const decoded = result.parts.map(MobileMml.parsePart);
+  const origin = audio.context.currentTime + .08;
+  audio.mobilePreview = true;
+  elements.playToggle.textContent = '■';
+  elements.playToggle.setAttribute('aria-label', 'Stop exported MML preview');
+  audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)stopPlayback();},(result.duration+.15)*1000));
+  decoded.forEach((track,i)=>{
+    if (part !== 'all' && +part !== i) return;
+    if (part === 'all' && state.tracks.find(t=>t.sourceRole===result.tracks[i].sourceRole)?.muted) return;
+    const channel = SYNTH_CHANNELS[i];
+    if(mode==='soundfont'){audio.synth.muteChannel(channel,false);audio.synth.programChange(channel,instrumentByName('Piano').program);}
+    const time = MobileMml.timeline(track.tempoEvents.map(e=>({...e,tick:e.tick/3})),result.tempo);
+    track.notes.forEach(n=>{
+      const start=time(n.start/3),end=time((n.start+n.duration)/3);
+      if(mode==='soundfont') {
+        audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)audio.synth.noteOn(channel,n.pitch,n.velocity,false);},(start+.08)*1000));
+        audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)audio.synth.noteOff(channel,n.pitch,true);},(end+.08)*1000));
+      } else scheduleFallbackNote(n.pitch,{instrument:'Piano'},origin+start,origin+Math.max(start+.015,end),n.velocity);
+    });
+  });
+  notify(mode==='soundfont'?'Playing exported MML on piano.':'Piano SoundFont unavailable; playing a synthetic approximation.');
+}
+
+['mobile-compatibility','mobile-melody-slot','mobile-constant-tempo','mobile-playback-tempo','mobile-volume-boost','mobile-fit-limit'].forEach(id=>document.getElementById(id).addEventListener('change',renderExportPreview));
+document.getElementById('mobile-playback-tempo').addEventListener('input', renderExportPreview);
 
 function importMml() {
   try {
@@ -3047,7 +3314,7 @@ function importMml() {
 async function importMidiFile(file, convertToThree = false) {
   if (!file) return;
   try {
-    const result = parseMidi(await file.arrayBuffer());
+    const result = parseMidi(await file.arrayBuffer(), convertToThree);
     const arrangement = convertToThree
       ? arrangeMidiInThreeTracks(result.tracks, result.tempo ?? state.tempo, result.tempoEvents)
       : null;
@@ -3055,6 +3322,10 @@ async function importMidiFile(file, convertToThree = false) {
     stopPlayback(true);
     clearNoteSelection();
     commitTracks(tracks);
+    if (arrangement) {
+      state.projectName = file.name.replace(/\.(mid|midi)$/i, "");
+      elements.projectTitle.value = state.projectName;
+    }
     state.activeTrackId = tracks[0].id;
     if (result.tempo) {
       state.tempo = Math.min(240, Math.max(32, result.tempo));
@@ -3063,21 +3334,7 @@ async function importMidiFile(file, convertToThree = false) {
     renderAll();
     const skipped = result.skippedNotes ? ` ${result.skippedNotes} out-of-range notes were skipped.` : "";
     if (arrangement) {
-      const reduction = [
-        ...(arrangement.omittedNotes ? [`${arrangement.omittedNotes} whole notes omitted`] : []),
-        ...(arrangement.characterLimitOmissions ? [`${arrangement.characterLimitOmissions} of those notes removed to fit the 2,400-character part limit`] : []),
-        ...(arrangement.omittedPercussion ? [`${arrangement.omittedPercussion} percussion notes omitted`] : []),
-        ...(result.skippedNotes ? [`${result.skippedNotes} out-of-range notes skipped`] : []),
-      ];
-      const capacityNote = arrangement.omittedNotes
-        ? " Every retained note keeps its imported start and duration; unplaceable notes are omitted, never shortened."
-        : "";
-      const detectedRoles = arrangement.roleSources?.length
-        ? ` Detected ${arrangement.roleSources.join("; ")}.`
-        : "";
-      const summary = reduction.length
-        ? `Three monophonic parts created: ${reduction.join("; ")}.${detectedRoles}${capacityNote}`
-        : `Three monophonic parts created. All playable MIDI notes were retained.${detectedRoles}`;
+      const summary = `Three-part arrangement: ${arrangement.omittedNotes} source notes omitted in the three-voice reduction; ${arrangement.omittedPercussion} percussion notes omitted. ${arrangement.changes.shortened} overlapping note endings shortened to preserve attacks. Full song length retained; no automatic trimming or invented gap sustains. Source selection is heuristic—audition themes and the finale. ${arrangement.roleSources.join('; ')}.`;
       openModal("export", summary);
       notify("Three-track MML is ready to copy or download.");
     } else {
@@ -3100,6 +3357,8 @@ function createProjectData() {
     name: state.projectName,
     snap: state.snap,
     noteDuration: state.noteDuration,
+    editorMode: state.editorMode,
+    sheetAccidental: state.sheetAccidental,
     timingResolution: TICKS_PER_WHOLE,
   };
 }
@@ -3152,30 +3411,34 @@ function applyProjectData(project) {
       instrument: instrumentByName(track.instrument).name,
       volume: normalizeVolume(track.volume, notes.length ? velocityToVolume(notes[0].velocity) : 12),
       color: normalizeTrackColor(track.color, COLORS[index % COLORS.length]),
-      endTick: Number.isFinite(Number(track.endTick)) ? Math.max(0, Math.round(Number(track.endTick) * timingScale)) : undefined,
+      endTick: Number.isFinite(Number(track.endTick)) ? Math.max(0, track.mobileArrangement ? Number(track.endTick) * timingScale : Math.round(Number(track.endTick) * timingScale)) : undefined,
       tempoEvents: Array.isArray(track.tempoEvents)
         ? track.tempoEvents.map((event, eventIndex) => ({
-          tick: Math.max(0, Math.round((Number(event.tick) || 0) * timingScale)),
-          tempo: normalizeMmlTempo(event.tempo),
+          tick: Math.max(0, track.mobileArrangement ? (Number(event.tick) || 0) * timingScale : Math.round((Number(event.tick) || 0) * timingScale)),
+          tempo: track.mobileArrangement ? Number(event.tempo) : normalizeMmlTempo(event.tempo),
           order: Number.isFinite(Number(event.order)) ? Number(event.order) : eventIndex,
         }))
         : undefined,
       notes: notes.map((note) => ({
         ...note,
         id: note.id || uid("note"),
-        pitch: Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(Number(note.pitch) || 60))),
-        start: Math.max(0, Math.round((Number(note.start) || 0) * timingScale)),
-        duration: Math.max(1, Math.round((Number(note.duration) || 1) * timingScale)),
+        pitch: Math.max(track.mobileArrangement ? 0 : PITCH_MIN, Math.min(track.mobileArrangement ? 127 : PITCH_MAX, Math.round(Number(note.pitch) || 60))),
+        start: Math.max(0, track.mobileArrangement ? (Number(note.start) || 0) * timingScale : Math.round((Number(note.start) || 0) * timingScale)),
+        duration: track.mobileArrangement ? Math.max(0.001, Number(note.duration) * timingScale) : Math.max(1, Math.round((Number(note.duration) || 1) * timingScale)),
       })),
     };
   });
   state.activeTrackId = state.tracks.some((track) => track.id === project.activeTrackId)
     ? project.activeTrackId
     : state.tracks[0].id;
-  state.tempo = normalizeMmlTempo(project.tempo || 120);
+  state.tempo = state.tracks.every(t => t.mobileArrangement) ? Number(project.tempo) || 120 : normalizeMmlTempo(project.tempo || 120);
   const savedSnap = Math.max(1, Math.round(Number(project.snap) || 4));
   state.snap = [...elements.snap.options].some((option) => Number(option.value) === savedSnap) ? savedSnap : 4;
   state.noteDuration = Number(project.noteDuration) ? Math.max(1, Math.round(project.noteDuration * timingScale)) : 16;
+  state.editorMode = project.editorMode === "sheet" ? "sheet" : "roll";
+  state.sheetAccidental = ["natural", "sharp", "flat"].includes(project.sheetAccidental)
+    ? project.sheetAccidental
+    : "natural";
   state.projectName = String(project.name || "Untitled score");
   state.playhead = 0;
   state.history = [];
@@ -3250,11 +3513,18 @@ function bindEvents() {
   elements.projectFile.addEventListener("change", () => openProjectFile(elements.projectFile.files[0]));
   document.querySelector("#save-project").addEventListener("click", saveProject);
   document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
+  elements.pianoRollMode.addEventListener("click", () => setEditorMode("roll"));
+  elements.sheetMode.addEventListener("click", () => setEditorMode("sheet"));
+  elements.sheetAccidental.addEventListener("change", () => {
+    state.sheetAccidental = ["natural", "sharp", "flat"].includes(elements.sheetAccidental.value)
+      ? elements.sheetAccidental.value
+      : "natural";
+  });
   elements.keyboardInputToggle.addEventListener("click", () => toggleMusicalTyping());
   elements.toggleOtherTracks.addEventListener("click", () => {
     state.showOtherTracks = !state.showOtherTracks;
     renderRollHeading();
-    renderNotes();
+    renderNoteEditors();
   });
   elements.playToggle.addEventListener("click", startPlayback);
   elements.loopToggle.addEventListener("click", () => {
@@ -3352,6 +3622,10 @@ function bindEvents() {
   elements.timelineWrap.addEventListener("pointerup", endRollTouch, { capture: true });
   elements.timelineWrap.addEventListener("pointercancel", (event) => endRollTouch(event, true), { capture: true });
   elements.noteGrid.addEventListener("pointerdown", addNoteFromPointer);
+  elements.sheetScore.addEventListener("click", (event) => {
+    if (event.target.closest(".staff-note")) return;
+    addStaffNoteAtPoint(event.clientX, event.clientY);
+  });
   window.addEventListener("pointermove", moveNoteDrag);
   window.addEventListener("pointermove", moveBoxSelection);
   window.addEventListener("pointerup", endNoteDrag);
@@ -3364,6 +3638,8 @@ function bindEvents() {
   });
   document.querySelector("#zoom-out").addEventListener("click", () => setTimeZoom(tickWidth / 1.25));
   document.querySelector("#zoom-in").addEventListener("click", () => setTimeZoom(tickWidth * 1.25));
+  document.querySelector("#sheet-zoom-out").addEventListener("click", () => setTimeZoom(tickWidth / 1.25));
+  document.querySelector("#sheet-zoom-in").addEventListener("click", () => setTimeZoom(tickWidth * 1.25));
   elements.timelineWrap.addEventListener("wheel", (event) => {
     const overRuler = event.target.closest(".timeline-scroll, .timeline-corner");
     if (overRuler || event.ctrlKey || event.metaKey || event.altKey) zoomRollFromWheel(event);
