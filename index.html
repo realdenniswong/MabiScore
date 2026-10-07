@@ -51,7 +51,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .app-shell {
   height: 100dvh;
   display: grid;
-  grid-template-rows: 68px 62px minmax(0, 1fr);
+  grid-template-rows: 68px auto minmax(0, 1fr);
   background: var(--canvas);
 }
 
@@ -152,15 +152,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 18px;
+  flex-wrap: wrap;
+  min-width: 0;
+  padding: 12px 18px;
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   position: relative;
   z-index: 4;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-.controlbar::-webkit-scrollbar { display: none; }
+.controlbar > * { flex-shrink: 0; }
 .transport { gap: 7px; }
 .play-button {
   width: 36px; height: 36px; display: grid; place-items: center;
@@ -180,7 +180,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   appearance: none; height: 34px; padding: 0 29px 0 10px; border: 1px solid var(--line); border-radius: 7px;
   background: #f8f8fa; color: var(--ink); font-size: 12px; font-weight: 620; cursor: pointer;
 }
-.select-shell svg { position: absolute; right: 9px; pointer-events: none; color: #8c91a0; }
+.select-shell .select-arrow { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); line-height: 1; pointer-events: none; color: #8c91a0; }
 .compact-select select { min-width: 72px; }
 .control-spacer { flex: 1; min-width: 8px; }
 .history-actions { display: flex; gap: 5px; }
@@ -408,7 +408,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 
 @media (max-width: 760px) {
   body { overflow: hidden; }
-  .app-shell { grid-template-rows: 58px 56px minmax(0, 1fr); }
+  .app-shell { grid-template-rows: 58px auto minmax(0, 1fr); }
   .topbar { grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; padding: 0 11px; }
   .brand { gap: 7px; }
   .brand-mark { width: 32px; height: 32px; border-radius: 9px; }
@@ -418,10 +418,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .save-state, .help-button, .topbar .secondary-button { display: none; }
   .topbar .primary-button { width: 38px; padding: 0; }
   .topbar .primary-button span:last-child { display: none; }
-  .controlbar { gap: 9px; padding: 0 10px; }
+  .controlbar { gap: 8px; padding: 8px 10px; }
+  .control-spacer { display: none; }
   .control-divider, .loop-button { display: none; }
-  .import-button { width: 34px; padding: 0; }
-  .import-button { font-size: 0; gap: 0; }
+  .import-button { padding: 0 9px; font-size: 11px; }
   .tempo-control > span:first-child { display: none; }
   .workspace { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 78px minmax(0, 1fr); }
   .track-panel { border-right: 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) 90px; grid-template-rows: 1fr; overflow: hidden; }
@@ -526,6 +526,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <span class="select-shell compact-select"><select id="track-volume" aria-label="Volume for active track"></select><span class="select-arrow">⌄</span></span>
         </label>
         <div class="control-spacer"></div>
+        <button class="import-button" data-modal="cut-time">Delete time range</button>
         <div class="history-actions">
           <button id="undo-action" class="icon-button" disabled aria-label="Undo" title="Undo (⌘/Ctrl+Z)">↶</button>
           <button id="redo-action" class="icon-button" disabled aria-label="Redo" title="Redo (⌘/Ctrl+Shift+Z or Ctrl+Y)">↷</button>
@@ -609,6 +610,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
       <div id="modal-backdrop" class="modal-backdrop" hidden>
         <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
           <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+          <div id="cut-time-modal" class="modal-view" hidden>
+            <h2>Delete time range</h2>
+            <p class="modal-intro">Remove a period from all tracks and move everything after it earlier to close the gap. Notes crossing the edges are shortened. Undo restores the cut.</p>
+            <p>Bar numbers start at 1. For example, from bar 2 to bar 4 removes bars 2 and 3. Decimals select part of a bar.</p>
+            <label>From bar <input id="cut-time-start" type="number" min="1" step="any" value="1"></label>
+            <label>To bar <input id="cut-time-end" type="number" min="1" step="any" value="2"></label>
+            <p id="cut-time-error" role="alert"></p>
+            <div class="modal-actions"><button class="secondary-button modal-cancel">Cancel</button><button id="confirm-cut-time" class="primary-button">Delete and close gap</button></div>
+          </div>
           <div id="mml-modal" class="modal-view" hidden>
             <div class="modal-icon">▣</div><p class="eyebrow">Bring in a score</p><h2 id="modal-title">Import Mabinogi MML</h2>
             <p class="modal-intro">One-part MML replaces only the selected track, with or without <code>MML@...;</code>. A multi-part <code>MML@...;</code> score replaces all tracks.</p>
@@ -622,9 +632,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
             <p id="export-conversion-note" class="merge-warning" hidden></p>
             <div id="mobile-export-options" style="font-size:12px;line-height:1.8" hidden>
               <p class="modal-intro"><strong>Three-part MML · Mabinogi Mobile</strong></p>
-              <label><input id="mobile-compatibility" type="checkbox" checked> Mobile playback compatibility — delay middle accompaniment (nearest supported duration)</label><br>
+              <label><input id="mobile-compatibility" type="checkbox"> Mobile playback compatibility — delay middle accompaniment (nearest supported duration)</label><br>
               <label><input id="mobile-melody-slot" type="checkbox" checked> Put main melody in Harmony 2 (community workaround)</label><br>
-              <label><input id="mobile-fit-limit" type="checkbox" checked> Fit each part to 2,400 characters (compress first, then reduce notes)</label><br>
+              <label><input id="mobile-fit-limit" type="checkbox"> Remove notes to fit each part to 2,400 characters (changes the arrangement)</label><br>
               <label><input id="mobile-volume-boost" type="checkbox"> Boost volumes equally so the loudest reaches V15</label><br>
               <label><input id="mobile-constant-tempo" type="checkbox"> Flatten tempo changes into note and rest durations</label><br>
               <label>Playback tempo when flattened: <input id="mobile-playback-tempo" type="number" min="32" max="255" step="1" placeholder="Original BPM" aria-label="Playback tempo when flattened" disabled style="width:100px"></label>
@@ -1731,6 +1741,48 @@ function removeTrack(id) {
   renderAll();
 }
 
+function cutTimeFromTracks(tracks, start, end) {
+  const shift = tick => tick <= start ? tick : tick < end ? start : tick - (end - start);
+  return tracks.map(track => {
+    const notes = track.notes.flatMap(note => {
+      const nextStart = shift(note.start), nextEnd = shift(note.start + note.duration);
+      if (nextEnd <= nextStart) return [];
+      const next = {...note, start: nextStart, duration: nextEnd - nextStart};
+      delete next.rawStart;
+      delete next.rawDuration;
+      return [next];
+    });
+    const next = {...track, notes};
+    delete next.sourceMml;
+    if (Number.isFinite(track.endTick)) next.endTick = shift(track.endTick);
+    if (Array.isArray(track.tempoEvents)) {
+      const events = [...track.tempoEvents].sort((a,b) => a.tick-b.tick || (a.order ?? 0)-(b.order ?? 0));
+      next.tempoEvents = events.map(event => ({...event, tick: shift(event.tick)}))
+        .filter((event,i,all) => i === all.length-1 || event.tick !== all[i+1].tick);
+    }
+    return next;
+  });
+}
+
+function deleteTimeRange() {
+  const from = document.querySelector('#cut-time-start').value;
+  const to = document.querySelector('#cut-time-end').value;
+  const start = (Number(from)-1)*TICKS_PER_WHOLE;
+  const end = (Number(to)-1)*TICKS_PER_WHOLE;
+  if (!from || !to || !Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start || end > songEnd()) {
+    document.querySelector('#cut-time-error').textContent = 'Choose an increasing range within the score.';
+    return;
+  }
+  stopPlayback();
+  clearNoteSelection();
+  commitTracks(tracks => cutTimeFromTracks(tracks, start, end));
+  state.playhead = start;
+  mobileExportResult = null;
+  renderPlayhead();
+  closeModal();
+  notify('Time range deleted across all tracks. Later notes moved earlier.');
+}
+
 function deleteSelectedNotes() {
   if (!state.selectedNoteIds.size) return;
   const selectedIds = new Set(state.selectedNoteIds);
@@ -2061,9 +2113,16 @@ function cancelBoxSelection(event) {
 }
 
 function setPlayheadAtPoint(clientX) {
+  const wasPlaying = state.isPlaying || audio.mobilePreview || audio.starting;
+  const previewPart = audio.mobilePreview ? audio.mobilePreviewPart : null;
+  if (wasPlaying) stopPlayback();
   const rectangle = elements.timeline.getBoundingClientRect();
   state.playhead = Math.max(0, Math.min(totalTicks, (clientX - rectangle.left) / tickWidth));
   renderPlayhead();
+  if (wasPlaying) {
+    if (previewPart != null) previewMobileMml(previewPart);
+    else startPlayback();
+  }
 }
 
 function rollTouchPair() {
@@ -2523,6 +2582,7 @@ async function startPlayback() {
     }
     state.playhead = position;
     renderPlayhead();
+    revealPlayhead();
     audio.animationFrame = requestAnimationFrame(update);
   }
   audio.animationFrame = requestAnimationFrame(update);
@@ -3028,6 +3088,12 @@ function openModal(name, conversionNote = "") {
   elements.modalBackdrop.hidden = false;
   document.querySelectorAll(".modal-view").forEach((view) => { view.hidden = true; });
   document.querySelector(`#${name}-modal`).hidden = false;
+  if (name === "cut-time") {
+    const start = Math.min(state.playhead, Math.max(0, songEnd()-TICKS_PER_WHOLE));
+    document.querySelector('#cut-time-start').value = 1 + start/TICKS_PER_WHOLE;
+    document.querySelector('#cut-time-end').value = 1 + Math.min(songEnd(), start+TICKS_PER_WHOLE)/TICKS_PER_WHOLE;
+    document.querySelector('#cut-time-error').textContent = '';
+  }
   if (name === "export") {
     state.exportSelection = new Set(state.tracks.filter((track) => !trackHasPolyphony(track)).map((track) => track.id));
     elements.exportConversionNote.textContent = conversionNote;
@@ -3208,7 +3274,7 @@ function renderMobileExport() {
     box.innerHTML = `<p class="merge-warning">${result.warnings.map(escapeHtml).join('<br>')}</p>
       <button type="button" class="secondary-button" data-mobile-play="all">▶ Audition combined MML</button>
       <button type="button" class="secondary-button" id="stop-mobile-preview">Stop</button>
-      ${result.parts.map((p,i)=>`<p><strong>${escapeHtml(result.fields[i])}</strong> · ${p.length} / 2,400 characters ${result.overLimit[i]?'— TOO LONG':''} · ${result.fitting[i].removed} notes removed to fit</p>
+      ${result.parts.map((p,i)=>`<p><strong>${escapeHtml(result.fields[i])}</strong> · ${p.length} / 2,400 characters · ${result.fitting[i].originalCharacters - (result.fitting[i].compressedCharacters ?? p.length)} characters saved losslessly ${result.overLimit[i]?'— TOO LONG':''} · ${result.fitting[i].removed} notes removed to fit</p>
       <textarea readonly spellcheck="false" aria-label="${escapeHtml(result.fields[i])}" style="width:100%;min-height:70px">${escapeHtml(p)}</textarea>
       <button type="button" class="secondary-button" data-mobile-copy="${i}" ${result.overLimit[i]?'disabled':''}>Copy ${escapeHtml(MobileMml.fields[i])}</button>
       <button type="button" class="secondary-button" data-mobile-play="${i}">▶ Audition part</button>`).join('')}`;
@@ -3238,9 +3304,40 @@ async function previewMobileMml(part) {
   const decoded = result.parts.map(MobileMml.parsePart);
   const origin = audio.context.currentTime + .08;
   audio.mobilePreview = true;
+  audio.mobilePreviewPart = part;
+  // Converted notes may use a flattened tempo, but the editor keeps source ticks.
+  const sourceEvents = state.tracks.flatMap(track => track.tempoEvents || [])
+    .sort((a, b) => a.tick - b.tick)
+    .filter((event, index, events) => index === events.length - 1 || event.tick !== events[index + 1].tick);
+  const playbackEvents = result.constantTempo ? sourceEvents : sourceEvents.map(event => ({
+    tick: Math.round(event.tick * 3) / 3,
+    tempo: Math.max(32, Math.min(255, Math.round(event.tempo))),
+  }));
+  const secondsAtTick = MobileMml.timeline(playbackEvents, result.constantTempo ? state.tempo : result.tempo);
+  const endTick = songEnd();
+  const selectedSeconds = secondsAtTick(Math.max(0, state.playhead));
+  const offsetSeconds = selectedSeconds >= result.duration ? 0 : selectedSeconds;
+  if (!offsetSeconds) state.playhead = 0;
+  renderPlayhead();
+  revealPlayhead();
+  function updatePreviewPlayhead() {
+    if (request !== audio.playRequest || !audio.mobilePreview) return;
+    const elapsed = offsetSeconds + Math.max(0, audio.context.currentTime - origin);
+    let low = 0, high = endTick;
+    for (let iteration = 0; iteration < 32; iteration += 1) {
+      const middle = (low + high) / 2;
+      if (secondsAtTick(middle) <= elapsed) low = middle;
+      else high = middle;
+    }
+    state.playhead = low;
+    renderPlayhead();
+    revealPlayhead();
+    audio.animationFrame = requestAnimationFrame(updatePreviewPlayhead);
+  }
+  audio.animationFrame = requestAnimationFrame(updatePreviewPlayhead);
   elements.playToggle.textContent = '■';
   elements.playToggle.setAttribute('aria-label', 'Stop exported MML preview');
-  audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)stopPlayback();},(result.duration+.15)*1000));
+  audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)stopPlayback();},(result.duration-offsetSeconds+.15)*1000));
   decoded.forEach((track,i)=>{
     if (part !== 'all' && +part !== i) return;
     if (part === 'all' && state.tracks.find(t=>t.sourceRole===result.tracks[i].sourceRole)?.muted) return;
@@ -3248,7 +3345,10 @@ async function previewMobileMml(part) {
     if(mode==='soundfont'){audio.synth.muteChannel(channel,false);audio.synth.programChange(channel,instrumentByName('Piano').program);}
     const time = MobileMml.timeline(track.tempoEvents.map(e=>({...e,tick:e.tick/3})),result.tempo);
     track.notes.forEach(n=>{
-      const start=time(n.start/3),end=time((n.start+n.duration)/3);
+      const noteEnd = time((n.start+n.duration)/3);
+      if (noteEnd <= offsetSeconds) return;
+      const start = Math.max(0, time(n.start/3) - offsetSeconds);
+      const end = noteEnd - offsetSeconds;
       if(mode==='soundfont') {
         audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)audio.synth.noteOn(channel,n.pitch,n.velocity,false);},(start+.08)*1000));
         audio.timers.push(setTimeout(()=>{if(request===audio.playRequest)audio.synth.noteOff(channel,n.pitch,true);},(end+.08)*1000));
@@ -3508,6 +3608,7 @@ function bindEvents() {
   elements.modalBackdrop.addEventListener("pointerdown", (event) => {
     if (event.target === elements.modalBackdrop) closeModal();
   });
+  document.querySelector("#confirm-cut-time").addEventListener("click", deleteTimeRange);
   document.querySelector("#add-track").addEventListener("click", addTrack);
   document.querySelector("#open-project").addEventListener("click", () => elements.projectFile.click());
   elements.projectFile.addEventListener("change", () => openProjectFile(elements.projectFile.files[0]));

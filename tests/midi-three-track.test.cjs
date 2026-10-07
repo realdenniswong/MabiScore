@@ -10,7 +10,11 @@ const voices=(notes,events=[])=>['melody','harmony','bass'].map((role,i)=>({sour
 function independent(result) {
   result.parts.forEach((part,i)=>{
     // This independent dialect uses ^length for a tie; no pitch/timing calculations are shared.
-    const adapted=part.replace(/&[a-g][+-]?(\d*\.?)/g, (_,length)=>'^'+(length||part.match(/l(\d+)/)[1]));
+    let defaultLength='4';
+    const adapted=part.replace(/l(\d+)|&[a-g][+-]?(\d*)(\.?)/g, (token,length,tiedLength,dot)=>{
+      if(length){defaultLength=length;return token;}
+      return '^'+(tiedLength||defaultLength)+(dot||'');
+    });
     const events=[...new Iterator(adapted)], notes=events.filter(e=>e.type==='note');
     const expected=result.parsed[i];
     const time=M.timeline(expected.tempoEvents.map(e=>({...e,tick:e.tick/3})),result.tempo);
@@ -41,7 +45,7 @@ test('piano is default and chord reduction retains a foundation, not the highest
 });
 test('single voice still exports three initialized synchronized fields',()=>{
  const a=M.arrange([source([[60,16,16]])]);const r=M.convert(a.tracks);verify(r);
- assert.equal(r.parts.filter(p=>M.parsePart(p).notes.length).length,1);r.parts.forEach(p=>assert.match(p,/^t\d+o4v\d+l4/));assert.match(r.fields[2],/Harmony 2.*melody/);
+ assert.equal(r.parts.filter(p=>M.parsePart(p).notes.length).length,1);r.parts.forEach(p=>assert.match(p,/^t\d+o4v\d+l\d+/));assert.match(r.fields[2],/Harmony 2.*melody/);
 });
 test('overlapping identical pitches are resolved in favor of melody even with different onsets',()=>{
  const r=M.convert(voices([[[60,8,16]],[[60,0,16],[64,24,8]],[[60,12,16]]]),180);verify(r);
@@ -49,7 +53,7 @@ test('overlapping identical pitches are resolved in favor of melody even with di
 });
 test('accompaniment offset is absolute, ends are compensated and never accumulate drift',()=>{
  const ns=Array.from({length:100},(_,i)=>[64,i*16,16]);const v=voices([[[72,0,1600]],ns,[[36,0,1600]]]);
- const on=M.convert(v,180),off=M.convert(v,180,{compatibility:false});verify(on);verify(off);
+ const on=M.convert(v,180,{compatibility:true}),off=M.convert(v,180,{compatibility:false});verify(on);verify(off);
  assert.ok(Math.abs(on.offsetMs-20.833333)<.001);
  on.tracks[1].notes.forEach((n,i)=>{assert.equal(n.start-off.tracks[1].notes[i].start,3);assert.equal(n.start+n.duration,off.tracks[1].notes[i].start+off.tracks[1].notes[i].duration);});
  assert.equal(on.duration,off.duration);
@@ -74,8 +78,8 @@ test('independent parser checks variable tempo when boundaries are between attac
  const r=M.convert(voices([[[72,0,32],[74,32,32]]],[{tick:0,tempo:120},{tick:32,tempo:60}]),120,{compatibility:false,constantTempo:false});verify(r);
 });
 test('character limit is exact and never removes the finale',()=>{
- const ns=Array.from({length:1600},(_,i)=>[60+i%12,i*4,4]);const a=M.arrange([source(ns)]);const r=M.convert(a.tracks,180,{compatibility:false});
- verify(r);assert.ok(r.overLimit.some(Boolean));assert.equal(a.trimTick,null);assert.equal(a.tracks[0].notes.length,1600);assert.equal(r.parsed[2].notes.at(-1).pitch,63);
+ const ns=Array.from({length:3208},(_,i)=>[60+i%12,i*4,4]);const a=M.arrange([source(ns)]);const r=M.convert(a.tracks,180,{compatibility:false});
+ verify(r);assert.ok(r.overLimit.some(Boolean));assert.equal(a.trimTick,null);assert.equal(a.tracks[0].notes.length,3208);assert.equal(r.parsed[2].notes.at(-1).pitch,63);
  assert.equal(r.overLimit[2],r.parts[2].length>M.LIMIT);
 });
 test('validator catches altered pitch, attack, sustain, and trailing rest',()=>{
@@ -140,7 +144,7 @@ test('flattening is opt-in and supports a user-selected tempo',()=>{
 });
 test('delay follows local tempo and reports its representable duration',()=>{
  const v=voices([[[72,0,32]],[[60,0,16],[62,16,16]],[[36,0,32]]],[{tick:0,tempo:180},{tick:16,tempo:60}]);
- const r=M.convert(v,180);assert.ok(r.validation.ok);
+ const r=M.convert(v,180,{compatibility:true});assert.ok(r.validation.ok);
  assert.ok(Math.abs(r.offsetMinMs-20.833333)<.001);assert.equal(r.offsetMaxMs,62.5);
  assert.ok(r.warnings.some(w=>w.includes('shortest supported delay')));
 });
@@ -169,7 +173,7 @@ test('lossless compression preserves attacks, pitches, dynamics, rests, ties and
  assert.deepEqual(M.parsePart(compact),M.parsePart(part));
 });
 test('capacity fitting removes notes without changing retained notes or cutting the ending',()=>{
- const notes=Array.from({length:800},(_,i)=>[36+(i*17)%60,i*4,4]);
+ const notes=Array.from({length:1200},(_,i)=>[36+(i*17)%60,i*4,4]);
  const v=voices([notes]);const original=M.convert(v,180,{compatibility:false});
  const r=M.convert(v,180,{fitLimit:true,compatibility:false});verify(r);
  assert.ok(r.counts.every(n=>n<=2400));assert.ok(r.fitting[2].removed>0);
@@ -177,7 +181,7 @@ test('capacity fitting removes notes without changing retained notes or cutting 
  assert.deepEqual(r.parsed[2].notes.slice(-16),original.parsed[2].notes.slice(-16));
  const originals=new Set(original.parsed[2].notes.map(n=>JSON.stringify(n)));
  r.parsed[2].notes.forEach(n=>assert.ok(originals.has(JSON.stringify(n))));
- assert.equal(v[0].notes.length,800);
+ assert.equal(v[0].notes.length,1200);
 });
 test('fitting leaves already-small arrangements musically unchanged',()=>{
  const v=voices([[[72,0,16],[74,32,16]],[[60,0,16]],[[36,0,48]]]);
@@ -198,4 +202,74 @@ for(const name of ['1812 Overture','Laufey - From The Start','Yankee Doodle Dand
 test('protected material that cannot fit is reported over limit, never truncated',()=>{
  const v=voices([[[72,0,1000000]]]);const r=M.convert(v,180,{fitLimit:true,compatibility:false});
  assert.equal(r.fitting[2].removed,0);assert.ok(r.overLimit[2]);assert.equal(r.parsed[2].notes.length,1);
+});
+
+test('polyphonic piano melody preserves sustains and rests over an active accompaniment',()=>{
+ const accompaniment=Array.from({length:24},(_,i)=>[48+[0,7,4,7][i%4],i*4,4]);
+ const a=M.arrange([source([...accompaniment,[79,0,8],[78,8,24],[79,64,8],[76,72,24]])]);
+ assert.deepEqual(a.tracks[0].notes.map(n=>[n.pitch,n.start,n.duration]),[[79,0,8],[78,8,24],[79,64,8],[76,72,24]]);
+ assert.equal(a.changes.shortened,0);verify(M.convert(a.tracks));
+});
+test('rolled guitar chord preserves three overlapping tones in separate voices',()=>{
+ const a=M.arrange([source([[48,0,24],[60,1.75,24],[72,3.5,24]],24)]);
+ const roll=a.tracks.flatMap(t=>t.notes).filter(n=>n.start<4);
+ assert.equal(roll.length,3);assert.ok(roll.every(n=>n.duration===24));
+ verify(M.convert(a.tracks));
+});
+test('default accompaniment export has no artificial delay',()=>{
+ const r=M.convert(voices([[[72,0,16]],[[60,0,16]],[[36,0,16]]]),101);
+ assert.equal(r.offsetMs,0);assert.ok(r.parsed.every(p=>p.notes[0].start===0));verify(r);
+});
+for(const name of ['Still Alive - Portal OST','Stephen Sanchez - Until I found You']){
+ const file=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/${name}.mid`;
+ test(`piano/guitar sustain regression: ${name}`,{skip:!fs.existsSync(file)},()=>{
+  const p=parseMidi(fs.readFileSync(file)),before=JSON.stringify(p),a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
+  assert.equal(JSON.stringify(p),before);
+  if(name.startsWith('Still')){
+   const held=a.tracks[0].notes.find(n=>n.pitch===78&&n.start===64);
+   assert.ok(held);assert.equal(held.duration,held.sourceDuration);
+   assert.ok(!a.tracks[0].notes.some(n=>n.start>=96&&n.start<152));
+   assert.equal(a.changes.shortened,0);
+  }else{
+   const first=a.tracks.flatMap(t=>t.notes).filter(n=>n.start<4);
+   assert.equal(first.length,3);assert.ok(first.every(n=>n.duration===n.sourceDuration));
+   assert.ok(a.changes.shortened<75);
+  }
+  const r=M.convert(a.tracks,p.tempo,{fitLimit:true});verify(r);
+  assert.ok(r.counts.every(n=>n<=2400));assert.ok(Math.abs(r.duration-r.sourceDuration)<.025);
+ });
+}
+
+test('default export compresses notation without removing notes to meet capacity',()=>{
+ const v=voices([Array.from({length:1200},(_,i)=>[36+(i*17)%60,i*4,4])]);
+ const r=M.convert(v,120);verify(r);
+ assert.equal(r.parsed[2].notes.length,1200);
+ assert.equal(r.fitting[2].removed,0);
+ assert.ok(r.overLimit[2]);
+ assert.ok(r.parts[2].length<M.encode(r.tracks[2],r.tempo).length);
+});
+const goldenFile=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/Golden Challenge（香港早晨）.mid`;
+test('Golden Challenge preserves selected voices unless capacity reduction is requested',{skip:!fs.existsSync(goldenFile)},()=>{
+ const p=parseMidi(fs.readFileSync(goldenFile)),a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
+ const preserved=M.convert(a.tracks,p.tempo),fitted=M.convert(a.tracks,p.tempo,{fitLimit:true});
+ verify(preserved);verify(fitted);
+ assert.ok(preserved.fitting.every(f=>f.removed===0));
+ assert.ok(preserved.overLimit.some(Boolean));
+ assert.ok(fitted.fitting.reduce((sum,f)=>sum+f.removed,0)>400);
+ assert.equal(preserved.duration,fitted.duration);
+});
+
+test('lossless compression changes default lengths between rhythmic sections',()=>{
+ const part='t120o4v10l4'+'c16d16e16f16'.repeat(30)+'g8a8b8>c8<'.repeat(30)+'d4.e4.f4.'.repeat(20);
+ const compact=M.compactPart(part);
+ assert.ok(compact.length<part.length*.65);
+ assert.ok((compact.match(/l\d+/g)||[]).length>=2);
+ assert.deepEqual(M.parsePart(compact),M.parsePart(part));
+ assert.equal(M.compactPart(compact),compact);
+});
+test('changing defaults preserves dotted notes and tied segments across tempo and volume commands',()=>{
+ const part='t120o4v10l16'+'cdef'.repeat(15)+'c&c8.t90&c8v8r8.'+'l8gab>c<'.repeat(15)+'l4d&d16r16';
+ const compact=M.compactPart(part);
+ assert.ok(compact.length<=part.length);
+ assert.deepEqual(M.parsePart(compact),M.parsePart(part));
 });

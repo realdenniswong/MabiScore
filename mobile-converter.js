@@ -36,6 +36,9 @@
       g.mean=g.notes.reduce((s,n)=>s+n.pitch,0)/g.notes.length;
       g.mono=new Set(g.notes.map(n=>n.start)).size/g.notes.length;
       g.family=Math.floor(g.program/8);
+      const rolled = g.notes.some((n,i)=>g.notes.slice(i+1,i+4).some(p=>
+        p.pitch!==n.pitch && p.start>n.start && p.start-n.start<=4 && n.start+n.duration-p.start>4));
+      g.voiceAware=[0,3].includes(g.family) && (g.mono<.9 || rolled);
       // Repeated interval motifs carry more weight than one-off orchestral decoration.
       const motifs=new Map();
       g.notes.forEach((n,i)=>{const k=g.notes.slice(i,i+4).map((x,j,a)=>j?x.pitch-a[j-1].pitch:0).join(','); n.motif=k; motifs.set(k,(motifs.get(k)||0)+1);});
@@ -53,8 +56,17 @@
         const family=role==='bass'?(g.family===4?4:0):role==='melody'?([5,6,7,8,9,10].includes(g.family)?2:g.family===4?-7:0):([0,3,6].includes(g.family)?2:0);
         const local=g.notes.filter(x=>Math.abs(x.start-n.start)<32);
         const localMono=new Set(local.map(x=>x.start)).size/local.length;
+        // A polyphonic source is not a single musical voice. Restrict its tune
+        // to the local upper register, including nearby held notes and rolls.
+        // Monophonic sources retain their full range (including phrase handoffs).
+        const polyphonic = g.voiceAware;
+        const phrase = g.notes.filter(x=>Math.abs(x.start-n.start)<128).map(x=>x.pitch).sort((a,b)=>a-b);
+        const upper = phrase[phrase.length-1];
+        if(role==='melody' && polyphonic && n.pitch < upper-12) continue;
         const affinity=family+register+(role==='melody'?localMono*3:0) - (role==='bass'?Math.max(0,n.pitch-55)*.35:role==='melody'?Math.max(0,55-n.pitch)*.4:0);
-        candidates.push({...n,affinity,score:3+affinity+Math.min(2,n.duration/16)+n.velocity/127+n.motifWeight*.35+(n.start>end-128?1:0)});
+        candidates.push({...n,affinity,voiceAware:g.voiceAware,score:g.voiceAware
+          ? .5+(3+affinity+n.velocity/127+n.motifWeight*.35)*Math.min(8,n.duration/8)+(n.start>end-128?1:0)
+          : 3+affinity+Math.min(2,n.duration/16)+n.velocity/127+n.motifWeight*.35+(n.start>end-128?1:0)});
       }
       candidates.sort((a,b)=>a.start-b.start||b.score-a.score);
       // Bounded dynamic programming follows coherent sources but permits phrase handoffs.
@@ -64,9 +76,13 @@
         for(let j=Math.max(0,i-240);j<i;j++) {
           const p=candidates[j]; if(p.start>=n.start-1e-8) continue;
           const crossing=p.start+p.duration>n.start+1e-8;
-          if(crossing && (p.source!==n.source || n.start-p.start<1)) continue;
+          // Preserve held chord tones. Only repeated attacks or a tiny key-release
+          // overlap may interrupt a note; another pitch in a roll may not.
+          const overlapTicks=p.start+p.duration-n.start;
+          if(crossing && (p.source!==n.source || n.start-p.start<1 ||
+            (p.voiceAware && p.pitch!==n.pitch && overlapTicks>1))) continue;
           const gap=Math.max(0,n.start-p.start-p.duration);
-          const continuity=p.source===n.source?2.8:n.phraseStart||gap>=4?.2:-2.8;
+          const continuity=p.source===n.source?(p.voiceAware?.5:2.8):n.phraseStart||gap>=4?.2:-2.8;
           const leap=Math.max(0,Math.abs(n.pitch-p.pitch)-7)*.13;
           const value=best[j]+n.score+continuity-leap-(crossing?1.2:0);
           if(value>best[i]) {best[i]=value;prev[i]=j;}
@@ -151,28 +167,56 @@
     }
     segment(cursor,track.endTick,null);return text;
   }
-  // Lossless: one explicit default length and shorter relative octave changes.
-  // Do not introduce numeric notes or dotted defaults with dialect-dependent behavior.
+  // Choose default-length changes globally, retaining every attack and command.
+  // Only ordinary lengths, ties and octave commands: no dialect-specific shortcuts.
   function compactPart(text) {
-    const tokens=text.match(/[tolv]\d+|[<>]|&|[a-gr][+-]?\d*\.?/g);
-    let octave=4;
-    const expanded=tokens.map(token=>{
-      if(/^o/.test(token)) {
-        const next=Number(token.slice(1)),delta=next-octave;octave=next;
-        if(token===tokens[1])return token;
-        return Math.abs(delta)===1?(delta>0?'>':'<'):token;
+    const tokens=text.match(/[tolv]\d+|[<>]|&|[a-gr][+-]?\d*\.?/g)||[];
+    if(tokens.join('')!==text)return text;
+    let length='4',octave=4;
+    const atoms=[];
+    for(const token of tokens) {
+      if(token[0]==='l'){length=token.slice(1);continue;}
+      if(token[0]==='o') {
+        const next=Number(token.slice(1)),delta=next-octave;
+        const relative=delta>0?'>'.repeat(delta):'<'.repeat(-delta);
+        // Keep the initialized octave explicit for standalone game fields.
+        atoms.push({command:atoms.length===1?token:relative.length<token.length?relative:token});
+        octave=next;continue;
       }
-      if(/^[a-gr]/.test(token)&&!/[0-9]/.test(token))return token.replace(/\.?$/,m=>'4'+m);
-      return token;
-    });
-    const counts=new Map();
-    for(const token of expanded){const match=/^[a-gr][+-]?(\d+)$/.exec(token);if(match)counts.set(match[1],(counts.get(match[1])||0)+1);}
-    let best=text;
-    for(const length of new Set(['4',...[...counts].sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0])])) {
-      const candidate=expanded.map(token=>token==='l4'?`l${length}`:token.replace(new RegExp(`^([a-gr][+-]?)${length}$`),'$1')).join('');
-      if(candidate.length<best.length)best=candidate;
+      if(token==='>'||token==='<'){octave+=token==='>'?1:-1;atoms.push({command:token});continue;}
+      const note=/^([a-gr][+-]?)(\d*)(\.?)$/.exec(token);
+      if(note)atoms.push({name:note[1],length:note[2]||length,dot:note[3]});
+      else atoms.push({command:token});
     }
-    return best;
+    const choices=new Set(['4',...atoms.filter(a=>a.name).map(a=>a.length)]);
+    const initialized=/^(t\d+o\d+v\d+)l\d+/.exec(text);
+    let states=new Map();
+    let remaining=atoms;
+    if(initialized) {
+      remaining=atoms.slice(3);
+      for(const value of choices)states.set(value,{cost:initialized[1].length+value.length+1,chunk:initialized[1]+'l'+value,prev:null});
+    } else states.set('4',{cost:0,chunk:'',prev:null});
+    let tied=false;
+    for(const atom of remaining) {
+      const next=new Map();
+      const keep=(value,prev,chunk)=>{
+        const cost=prev.cost+chunk.length;
+        if(!next.has(value)||cost<next.get(value).cost)next.set(value,{cost,chunk,prev});
+      };
+      for(const [value,state] of states) {
+        if(atom.command!==undefined){keep(value,state,atom.command);continue;}
+        keep(value,state,atom.name+(atom.length===value?'':atom.length)+atom.dot);
+        if(!tied && atom.length!==value)keep(atom.length,state,'l'+atom.length+atom.name+atom.dot);
+      }
+      if(atom.command==='&')tied=true;
+      else if(atom.name)tied=false;
+      states=next;
+    }
+    let best=[...states.values()].reduce((a,b)=>a.cost<=b.cost?a:b);
+    if(best.cost>=text.length)return text;
+    const chunks=[];
+    while(best){chunks.push(best.chunk);best=best.prev;}
+    return chunks.reverse().join('');
   }
   function fitPart(track,tempo,limit=LIMIT) {
     const render=()=>compactPart(encode(track,tempo));
@@ -203,7 +247,7 @@
   }
   function convert(tracks,inputTempo=120,options={}) {
     if(tracks.length!==3)throw new Error('Mobile export requires exactly three voices.');
-    const compatibility=options.compatibility!==false,constant=options.constantTempo===true;
+    const compatibility=options.compatibility===true,constant=options.constantTempo===true;
     const tempo=Math.max(32,Math.min(255,Math.round(constant?(options.tempo||inputTempo):inputTempo)));
     const events=tracks.flatMap(t=>t.tempoEvents||[]).sort((a,b)=>a.tick-b.tick).filter((e,i,a)=>i===a.length-1||e.tick!==a[i+1].tick);
     const seconds=timeline(events,inputTempo);
@@ -287,7 +331,7 @@
       t.volume=t.notes.length?noteVolume(t.notes[0]):Math.min(15,(t.volume??10)+volumeBoost);
     });
     gameTracks.forEach(t=>{t.initialTempo=initial;});
-    const fitting=gameTracks.map(t=>options.fitLimit?fitPart(t,initial):({text:encode(t,initial),removed:0,originalNotes:t.notes.length}));
+    const fitting=gameTracks.map(t=>options.fitLimit?fitPart(t,initial):({text:compactPart(encode(t,initial)),removed:0,originalNotes:t.notes.length,originalCharacters:encode(t,initial).length}));
     const parts=fitting.map(f=>f.text);
     fitting.forEach((f,i)=>{if(f.removed>f.originalNotes*.3)warnings.push(`${fields[i]} requires substantial reduction (${Math.round(f.removed/f.originalNotes*100)}% of notes). It will sound sparser; fitting cannot guarantee the same musical character.`);});
     fitting.forEach((f,i)=>{
@@ -300,7 +344,7 @@
     const validation=validate(gameTracks,parsed);
     if(!validation.ok)throw new Error(`Export validation failed: ${validation.errors.join('; ')}`);
     const counts=parts.map(p=>p.length),overLimit=counts.map(n=>n>LIMIT);
-    overLimit.forEach((over,i)=>{if(over)warnings.push(`${fields[i]} has ${counts[i]} characters: exceeds ${LIMIT}. Full duration retained, but protected material still exceeds capacity. Shorten or split explicitly before pasting.`);});
+    overLimit.forEach((over,i)=>{if(over)warnings.push(`${fields[i]} has ${counts[i]} characters: exceeds ${LIMIT}. Full duration retained. Shorten or split the score, or explicitly enable note removal before pasting.`);});
     if(collisions)warnings.push(`${collisions} overlapping same-pitch accompaniment notes resolved in favor of the melody, then bass.`);
     if(removed)warnings.push(`${removed} notes omitted during compatibility/timing resolution.`);
     if(shortened)warnings.push(`${shortened} note endings adjusted for timing or collisions.`);

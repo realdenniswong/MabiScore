@@ -10,7 +10,7 @@ for (const file of [outputPath, draftPath, reportPath]) if (fs.existsSync(file))
 const parsed = parseMidi(fs.readFileSync(inputPath));
 const tempo = parsed.tempo || 120;
 const arrangement = MobileMml.arrange(parsed.tracks, tempo, parsed.tempoEvents);
-const result = MobileMml.convert(arrangement.tracks, tempo, { fitLimit: true });
+const result = MobileMml.convert(arrangement.tracks, tempo, { fitLimit: process.argv.includes('--fit-limit') });
 const report = {
   source: path.basename(inputPath), sourceVoices: parsed.tracks.length,
   sourceNotes: parsed.tracks.reduce((s,t)=>s+t.notes.length,0),
