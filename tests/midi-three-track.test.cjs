@@ -172,16 +172,23 @@ test('lossless compression preserves attacks, pitches, dynamics, rests, ties and
  assert.ok(compact.length<part.length);
  assert.deepEqual(M.parsePart(compact),M.parsePart(part));
 });
-test('capacity fitting removes notes without changing retained notes or cutting the ending',()=>{
+test('phrase capacity fitting simplifies accompaniment without changing retained notes or the ending',()=>{
  const notes=Array.from({length:1200},(_,i)=>[36+(i*17)%60,i*4,4]);
- const v=voices([notes]);const original=M.convert(v,180,{compatibility:false});
+ const v=voices([[],notes]);const original=M.convert(v,180,{compatibility:false});
  const r=M.convert(v,180,{fitLimit:true,compatibility:false});verify(r);
- assert.ok(r.counts.every(n=>n<=2400));assert.ok(r.fitting[2].removed>0);
+ assert.ok(r.counts.every(n=>n<=2400));assert.ok(r.fitting[1].removed>0);
+ assert.ok(r.fitting[1].simplifiedPhrases>0);
  assert.equal(r.duration,original.duration);
- assert.deepEqual(r.parsed[2].notes.slice(-16),original.parsed[2].notes.slice(-16));
- const originals=new Set(original.parsed[2].notes.map(n=>JSON.stringify(n)));
- r.parsed[2].notes.forEach(n=>assert.ok(originals.has(JSON.stringify(n))));
- assert.equal(v[0].notes.length,1200);
+ assert.deepEqual(r.parsed[1].notes.slice(-8),original.parsed[1].notes.slice(-8));
+ const originals=new Set(original.parsed[1].notes.map(n=>JSON.stringify(n)));
+ r.parsed[1].notes.forEach(n=>assert.ok(originals.has(JSON.stringify(n))));
+ assert.equal(v[1].notes.length,1200);
+});
+test('capacity fitting preserves the entire melody and reports its limit rather than deleting themes',()=>{
+ const v=voices([Array.from({length:1200},(_,i)=>[36+(i*17)%60,i*4,4])]);
+ const before=M.convert(v,120),after=M.convert(v,120,{fitLimit:true});verify(after);
+ assert.deepEqual(after.parsed[2],before.parsed[2]);assert.equal(after.fitting[2].removed,0);
+ assert.ok(after.overLimit[2]);assert.ok(after.warnings.some(w=>w.includes('complete main melody')));
 });
 test('fitting leaves already-small arrangements musically unchanged',()=>{
  const v=voices([[[72,0,16],[74,32,16]],[[60,0,16]],[[36,0,48]]]);
@@ -193,8 +200,8 @@ for(const name of ['1812 Overture','Laufey - From The Start','Yankee Doodle Dand
  test(`capacity regression: ${name}`,{skip:!fs.existsSync(file)},()=>{
   const p=parseMidi(fs.readFileSync(file)),a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
   const before=M.convert(a.tracks,p.tempo),r=M.convert(a.tracks,p.tempo,{fitLimit:true});
-  assert.ok(r.validation.ok);assert.ok(r.counts.every(n=>n<=2400));assert.equal(r.duration,before.duration);
-  assert.deepEqual(r.parsed[2].notes.slice(-16),before.parsed[2].notes.slice(-16));
+  assert.ok(r.validation.ok);assert.ok(r.counts.slice(0,2).every(n=>n<=2400));assert.equal(r.duration,before.duration);
+  assert.deepEqual(r.parsed[2],before.parsed[2]);
   // Independently check the flattened variant, whose ties this parser can represent.
   verify(M.convert(a.tracks,p.tempo,{fitLimit:true,constantTempo:true,tempo:180}));
  });
@@ -236,7 +243,7 @@ for(const name of ['Still Alive - Portal OST','Stephen Sanchez - Until I found Y
    assert.ok(a.changes.shortened<75);
   }
   const r=M.convert(a.tracks,p.tempo,{fitLimit:true});verify(r);
-  assert.ok(r.counts.every(n=>n<=2400));assert.ok(Math.abs(r.duration-r.sourceDuration)<.025);
+  assert.ok(r.counts.slice(0,2).every(n=>n<=2400));assert.ok(Math.abs(r.duration-r.sourceDuration)<.025);
  });
 }
 
@@ -272,4 +279,104 @@ test('changing defaults preserves dotted notes and tied segments across tempo an
  const compact=M.compactPart(part);
  assert.ok(compact.length<=part.length);
  assert.deepEqual(M.parsePart(compact),M.parsePart(part));
+});
+
+test('automatic piano hand detection keeps a busy lower track out of the melody',()=>{
+ const upper=source(Array.from({length:40},(_,i)=>[79+i%3,i*16,12.8]));
+ const lower=source(Array.from({length:80},(_,i)=>[43+[0,7,12,7][i%4],i*8,7.2]));
+ upper.endTick=lower.endTick=640;
+ const input=[upper,lower],before=JSON.stringify(input);
+ const a=M.arrange(input);
+ assert.ok(a.tracks[0].notes.every(n=>n.source===`${upper.midiSource}:0`));
+ assert.equal(a.tracks[0].notes.length,40);
+ assert.equal(a.tracks[2].notes.length,80);
+ assert.equal(a.rhythm[0].gate,.8);assert.equal(a.rhythm[1].gate,.9);
+ assert.ok(a.tracks[0].notes.every(n=>n.duration===16));
+ assert.ok(a.tracks[2].notes.every(n=>n.duration===8));
+ assert.equal(JSON.stringify(input),before);verify(M.convert(a.tracks));
+ const raw=M.arrange(input,120,[],{tidyRhythm:false});
+ assert.equal(raw.rhythm.length,0);
+ assert.ok(raw.tracks[0].notes.every(n=>n.duration===12.8));
+});
+
+test('rhythm inference preserves phrase rests, isolated articulation, triplets and exact note values',()=>{
+ const notes=Array.from({length:32},(_,i)=>[72+i%3,i*16,12.8]);
+ notes.push([75,600,4]);
+ const a=M.arrange([source(notes)]);
+ const last=a.tracks[0].notes.at(-1);
+ assert.equal(last.start,600);assert.equal(last.duration,4);
+ assert.equal(a.tracks[0].notes[31].start+a.tracks[0].notes[31].duration,512);
+ const exact=M.arrange([source(Array.from({length:32},(_,i)=>[72+i%3,i*16/3,16/3]))]);
+ assert.equal(exact.rhythm[0].adjusted,0);verify(M.convert(exact.tracks));
+ const staccato=M.arrange([source(Array.from({length:32},(_,i)=>[72+i%3,i*16,8]))]);
+ assert.equal(staccato.rhythm[0].adjusted,0);
+ assert.ok(staccato.tracks[0].notes.every(n=>n.duration===8));
+});
+
+test('rhythm inference requires local support and does not normalize unrelated sections',()=>{
+ const notes=Array.from({length:64},(_,i)=>[72+i%3,i*16,12.8]);
+ notes.push(...Array.from({length:8},(_,i)=>[72+i%3,1024+i*16,8]));
+ const a=M.arrange([source(notes)]);
+ assert.ok(a.rhythm[0].adjusted>0);
+ assert.ok(a.tracks[0].notes.filter(n=>n.start>=1024).every(n=>n.duration===8));
+});
+
+test('a detected key gate does not collapse slightly staggered chord attacks',()=>{
+ const notes=Array.from({length:32},(_,i)=>[[60,i*16,12.8],[72,i*16+.08,12.8]]).flat();
+ const a=M.arrange([source(notes)]);
+ assert.equal(a.rhythm[0].gate,.8);assert.equal(a.rhythm[0].adjusted,0);
+ const starts=new Set(notes.map(n=>n[1]));
+ assert.ok(a.tracks.flatMap(t=>t.notes).every(n=>starts.has(n.start)&&!n.rhythmAdjusted));
+});
+
+test('dense synth chords do not displace the simultaneous piano bass foundation',()=>{
+ const piano=source([
+  ...Array.from({length:16},(_,i)=>[36,i*8,8]),
+  ...Array.from({length:64},(_,i)=>[[48,i*2,2],[52,i*2,2]]).flat(),
+ ]);
+ const synth=source(Array.from({length:64},(_,i)=>[[62,i*2,2],[67,i*2,2],[71,i*2,2]]).flat(),84,1);
+ const input=[piano,synth],before=JSON.stringify(input),a=M.arrange(input);
+ assert.equal(a.tracks[2].notes.length,16);
+ assert.ok(a.tracks[2].notes.every(n=>n.pitch===36&&n.source===`${piano.midiSource}:0`));
+ assert.equal(JSON.stringify(input),before);verify(M.convert(a.tracks));
+});
+
+const crocodileFile=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/Crocodile Rock - Elton John.mid`;
+test('Crocodile Rock retains piano bass rather than sending all three voices into synth chords',{skip:!fs.existsSync(crocodileFile)},()=>{
+ const p=parseMidi(fs.readFileSync(crocodileFile)),before=JSON.stringify(p);
+ const a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
+ const bass=a.tracks.find(t=>t.sourceRole==='bass');
+ assert.ok(bass.notes.every(n=>n.source==='0:0'));
+ assert.deepEqual(bass.notes.slice(0,7).map(n=>n.pitch),[26,28,30,31,31,31,31]);
+ assert.equal(bass.notes.find(n=>n.start===24)?.pitch,31);
+ assert.ok(a.tracks.find(t=>t.sourceRole==='harmony').notes.filter(n=>n.source==='0:0').length>60);
+ assert.ok(a.rhythm.every(r=>r.adjusted===0));
+ const r=M.convert(a.tracks,p.tempo),fit=M.convert(a.tracks,p.tempo,{fitLimit:true});verify(r);verify(fit);
+ assert.equal(r.maxTimingErrorMs,0);assert.ok(r.counts.every(c=>c<2400));
+ assert.deepEqual(r.parsed,fit.parsed);assert.ok(Math.abs(r.duration-36.081081081)<1e-8);
+ assert.equal(JSON.stringify(p),before);
+});
+
+test('a melody source override is honored without changing the MIDI input',()=>{
+ const high=source([[84,0,16],[85,16,16]]),low=source([[60,0,16],[62,16,16]]);
+ const a=M.arrange([high,low],120,[],{melodySource:`${low.midiSource}:0`});
+ assert.deepEqual(a.tracks[0].notes.map(n=>n.pitch),[60,62]);verify(M.convert(a.tracks));
+ assert.throws(()=>M.arrange([high],120,[],{melodySource:'missing'}),/not available/);
+});
+
+const autumnFile=`${process.env.MIDI_REGRESSION_DIR||'/Users/denniswong/Downloads'}/autumn_tale.mid`;
+test('Autumn Tale keeps the upper theme and fits every field without capacity deletion',{skip:!fs.existsSync(autumnFile)},()=>{
+ const p=parseMidi(fs.readFileSync(autumnFile)),before=JSON.stringify(p);
+ const a=M.arrange(p.tracks,p.tempo,p.tempoEvents);
+ assert.ok(a.tracks[0].notes.every(n=>n.source==='1:0'));
+ assert.ok(a.tracks[2].notes.length>400);
+ assert.ok(a.rhythm.every(r=>r.adjusted>0));
+ const full=M.convert(a.tracks,p.tempo),fit=M.convert(a.tracks,p.tempo,{fitLimit:true});
+ verify(full);verify(fit);
+ assert.ok(full.counts.every(n=>n<=2400));assert.ok(fit.fitting.every(f=>f.removed===0));
+ assert.equal(full.duration,160);assert.deepEqual(full.parsed,fit.parsed);
+ assert.equal(JSON.stringify(p),before);
+ const raw=M.arrange(p.tracks,p.tempo,p.tempoEvents,{tidyRhythm:false});
+ assert.ok(raw.tracks[0].notes.every(n=>n.source==='1:0'));
+ assert.ok(raw.tracks.flatMap(t=>t.notes).every(n=>!n.rhythmAdjusted));
 });

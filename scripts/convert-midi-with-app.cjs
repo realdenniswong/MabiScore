@@ -9,7 +9,10 @@ const reportPath = outputPath.replace(/\.mml$/i, '.report.json');
 for (const file of [outputPath, draftPath, reportPath]) if (fs.existsSync(file)) throw new Error(`Output already exists: ${file}`);
 const parsed = parseMidi(fs.readFileSync(inputPath));
 const tempo = parsed.tempo || 120;
-const arrangement = MobileMml.arrange(parsed.tracks, tempo, parsed.tempoEvents);
+const melodySource = process.argv.find(arg => arg.startsWith('--melody-source='))?.split('=')[1];
+const arrangement = MobileMml.arrange(parsed.tracks, tempo, parsed.tempoEvents, {
+  tidyRhythm: !process.argv.includes('--raw-rhythm'), melodySource,
+});
 const result = MobileMml.convert(arrangement.tracks, tempo, { fitLimit: process.argv.includes('--fit-limit') });
 const report = {
   source: path.basename(inputPath), sourceVoices: parsed.tracks.length,
@@ -20,6 +23,7 @@ const report = {
   fields: result.fields, characterCounts: result.counts, overLimit: result.overLimit, capacityFitting: result.fitting,
   omittedSourceNotes: arrangement.omittedNotes, omittedPercussion: arrangement.omittedPercussion,
   shortenedSourceOverlaps: arrangement.changes.shortened,
+  rhythmTidying: arrangement.rhythm, melodyContinuityReview: arrangement.review, sourceChoices: arrangement.sources,
   sourceRoles: arrangement.roleSources, validation: result.validation, warnings: result.warnings,
   ending: result.tracks.map(t=>({role:t.sourceRole,notes:t.notes.slice(-16).map(n=>({pitch:n.pitch,startSeconds:n.start/48*60/result.tempo,durationSeconds:n.duration/48*60/result.tempo,sourceStart:n.sourceStart,sourceDuration:n.sourceDuration}))})),
 };

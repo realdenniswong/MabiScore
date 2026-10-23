@@ -632,9 +632,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
             <p id="export-conversion-note" class="merge-warning" hidden></p>
             <div id="mobile-export-options" style="font-size:12px;line-height:1.8" hidden>
               <p class="modal-intro"><strong>Three-part MML · Mabinogi Mobile</strong></p>
+              <div id="mobile-arrangement-options" hidden>
+                <label>Main melody source: <select id="mobile-melody-source" aria-label="Main melody source"><option value="">Automatic</option></select></label><br>
+                <label><input id="mobile-tidy-rhythm" type="checkbox" checked> Simplify consistent short key releases into musical note lengths (changes articulation)</label>
+                <p id="mobile-arrangement-summary" class="modal-intro"></p>
+              </div>
               <label><input id="mobile-compatibility" type="checkbox"> Mobile playback compatibility — delay middle accompaniment (nearest supported duration)</label><br>
               <label><input id="mobile-melody-slot" type="checkbox" checked> Put main melody in Harmony 2 (community workaround)</label><br>
-              <label><input id="mobile-fit-limit" type="checkbox"> Remove notes to fit each part to 2,400 characters (changes the arrangement)</label><br>
+              <label><input id="mobile-fit-limit" type="checkbox"> Simplify accompaniment to fit 2,400 characters; keep the complete main melody</label><br>
               <label><input id="mobile-volume-boost" type="checkbox"> Boost volumes equally so the loudest reaches V15</label><br>
               <label><input id="mobile-constant-tempo" type="checkbox"> Flatten tempo changes into note and rest durations</label><br>
               <label>Playback tempo when flattened: <input id="mobile-playback-tempo" type="number" min="32" max="255" step="1" placeholder="Original BPM" aria-label="Playback tempo when flattened" disabled style="width:100px"></label>
@@ -3070,8 +3075,8 @@ function parseMidi(buffer, preserveSourceRange = false) {
   return { tracks, tempo, tempoEvents: normalizedTempoEvents, skippedNotes: collected.length - importedNotes };
 }
 
-function arrangeMidiInThreeTracks(importedTracks, tempo = 120, tempoEvents = []) {
-  return MobileMml.arrange(importedTracks, tempo, tempoEvents);
+function arrangeMidiInThreeTracks(importedTracks, tempo = 120, tempoEvents = [], options = {}) {
+  return MobileMml.arrange(importedTracks, tempo, tempoEvents, options);
 }
 
 function syncTempoControl() {
@@ -3199,9 +3204,58 @@ function mergeSelectedTracks() {
 }
 
 let mobileExportResult = null;
+let mobileImportSession = null;
+function mobileArrangementSummary(arrangement) {
+  const adjusted = arrangement.rhythm.reduce((sum, r) => sum + r.adjusted, 0);
+  const gates = arrangement.rhythm.filter(r => r.adjusted).map(r => `${r.name}: ${Math.round(r.gate * 100)}% key length`).join('; ');
+  const review = arrangement.review.length ? ` Review melody continuity near bars ${[...new Set(arrangement.review.map(r => 1 + Math.floor(r.tick / 64)))].join(', ')}.` : '';
+  return `${arrangement.omittedNotes} source notes omitted in the three-voice arrangement; ${arrangement.omittedPercussion} percussion notes omitted. ${adjusted} note lengths/onsets tidied${gates ? ` (${gates})` : ''}. ${arrangement.changes.shortened} overlapping endings shortened. Full timeline retained. ${arrangement.roleSources.join('; ')}.${review}`;
+}
+function renderMobileArrangementOptions() {
+  const session = mobileImportSession;
+  const available = session && state.tracks.length === 3 && state.tracks.every(t => t.mobileArrangement);
+  document.querySelector('#mobile-arrangement-options').hidden = !available;
+  if (!available) return;
+  const editable = session.fingerprint === JSON.stringify(state.tracks);
+  const select = document.querySelector('#mobile-melody-source');
+  select.innerHTML = '<option value="">Automatic</option>' + session.arrangement.sources.map(s => `<option value="${escapeHtml(s.key)}">${escapeHtml(s.name)}${s.accompaniment ? ' (likely accompaniment)' : ''}</option>`).join('');
+  select.value = session.options.melodySource;
+  select.disabled = !editable;
+  document.querySelector('#mobile-tidy-rhythm').checked = session.options.tidyRhythm;
+  document.querySelector('#mobile-tidy-rhythm').disabled = !editable;
+  document.querySelector('#mobile-arrangement-summary').textContent = editable
+    ? mobileArrangementSummary(session.arrangement)
+    : 'The score has been edited or restored. Re-import the MIDI to change source arrangement settings.';
+}
+function updateMobileArrangement() {
+  const session = mobileImportSession;
+  if (!session || session.fingerprint !== JSON.stringify(state.tracks)) return;
+  const options = {
+    melodySource: document.querySelector('#mobile-melody-source').value,
+    tidyRhythm: document.querySelector('#mobile-tidy-rhythm').checked,
+  };
+  try {
+    const arrangement = arrangeMidiInThreeTracks(session.parsed.tracks, session.parsed.tempo ?? state.tempo, session.parsed.tempoEvents, options);
+    stopPlayback(true);
+    clearNoteSelection();
+    // Refresh the session before rendering so the controls reflect the new score.
+    session.options = options;
+    session.arrangement = arrangement;
+    session.fingerprint = JSON.stringify(arrangement.tracks);
+    commitTracks(arrangement.tracks);
+    state.activeTrackId = arrangement.tracks[0].id;
+    elements.exportConversionNote.textContent = mobileArrangementSummary(arrangement);
+    renderAll();
+    renderExport();
+  } catch (error) {
+    renderMobileArrangementOptions();
+    notify(error.message || 'The arrangement could not be updated.');
+  }
+}
 function renderExport() {
   const mobile = state.tracks.length === 3 && state.tracks.every(t => t.mobileArrangement);
   document.querySelector('#mobile-export-options').hidden = !mobile;
+  renderMobileArrangementOptions();
   if (mobile) {
     state.exportSelection = new Set(state.tracks.map(t => t.id));
     elements.exportTrackList.innerHTML = '';
@@ -3274,7 +3328,7 @@ function renderMobileExport() {
     box.innerHTML = `<p class="merge-warning">${result.warnings.map(escapeHtml).join('<br>')}</p>
       <button type="button" class="secondary-button" data-mobile-play="all">▶ Audition combined MML</button>
       <button type="button" class="secondary-button" id="stop-mobile-preview">Stop</button>
-      ${result.parts.map((p,i)=>`<p><strong>${escapeHtml(result.fields[i])}</strong> · ${p.length} / 2,400 characters · ${result.fitting[i].originalCharacters - (result.fitting[i].compressedCharacters ?? p.length)} characters saved losslessly ${result.overLimit[i]?'— TOO LONG':''} · ${result.fitting[i].removed} notes removed to fit</p>
+      ${result.parts.map((p,i)=>`<p><strong>${escapeHtml(result.fields[i])}</strong> · ${p.length} / 2,400 characters · ${result.fitting[i].originalCharacters - (result.fitting[i].compressedCharacters ?? p.length)} characters saved losslessly ${result.overLimit[i]?'— TOO LONG':''} · ${result.fitting[i].removed} accompaniment notes removed across ${result.fitting[i].simplifiedPhrases || 0} phrases${result.tracks[i].sourceRole==='melody'?' · complete melody protected':''}</p>
       <textarea readonly spellcheck="false" aria-label="${escapeHtml(result.fields[i])}" style="width:100%;min-height:70px">${escapeHtml(p)}</textarea>
       <button type="button" class="secondary-button" data-mobile-copy="${i}" ${result.overLimit[i]?'disabled':''}>Copy ${escapeHtml(MobileMml.fields[i])}</button>
       <button type="button" class="secondary-button" data-mobile-play="${i}">▶ Audition part</button>`).join('')}`;
@@ -3359,6 +3413,7 @@ async function previewMobileMml(part) {
 }
 
 ['mobile-compatibility','mobile-melody-slot','mobile-constant-tempo','mobile-playback-tempo','mobile-volume-boost','mobile-fit-limit'].forEach(id=>document.getElementById(id).addEventListener('change',renderExportPreview));
+['mobile-melody-source','mobile-tidy-rhythm'].forEach(id=>document.getElementById(id).addEventListener('change',updateMobileArrangement));
 document.getElementById('mobile-playback-tempo').addEventListener('input', renderExportPreview);
 
 function importMml() {
@@ -3419,6 +3474,7 @@ async function importMidiFile(file, convertToThree = false) {
       ? arrangeMidiInThreeTracks(result.tracks, result.tempo ?? state.tempo, result.tempoEvents)
       : null;
     const tracks = arrangement ? arrangement.tracks : result.tracks;
+    mobileImportSession = arrangement ? {parsed:result,options:{melodySource:'',tidyRhythm:true},arrangement,fingerprint:JSON.stringify(tracks)} : null;
     stopPlayback(true);
     clearNoteSelection();
     commitTracks(tracks);
@@ -3434,9 +3490,9 @@ async function importMidiFile(file, convertToThree = false) {
     renderAll();
     const skipped = result.skippedNotes ? ` ${result.skippedNotes} out-of-range notes were skipped.` : "";
     if (arrangement) {
-      const summary = `Three-part arrangement: ${arrangement.omittedNotes} source notes omitted in the three-voice reduction; ${arrangement.omittedPercussion} percussion notes omitted. ${arrangement.changes.shortened} overlapping note endings shortened to preserve attacks. Full song length retained; no automatic trimming or invented gap sustains. Source selection is heuristic—audition themes and the finale. ${arrangement.roleSources.join('; ')}.`;
+      const summary = mobileArrangementSummary(arrangement);
       openModal("export", summary);
-      notify("Three-track MML is ready to copy or download.");
+      notify("Three-track MML arranged. Review the preview and field limits.");
     } else {
       notify(`${tracks.length} playable ${tracks.length === 1 ? "track" : "voices"} imported from MIDI.${skipped}`);
     }
