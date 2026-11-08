@@ -297,8 +297,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .note-resize-handle::after { content: ""; position: absolute; top: 5px; bottom: 5px; left: 50%; width: 2px; transform: translateX(-50%); border-radius: 2px; background: rgba(255,255,255,.72); }
 .grid-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; z-index: 4; box-shadow: 0 0 0 1px rgba(255,255,255,.32); }
 
-.sheet-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: 43px minmax(0, 1fr); background: #f7f4ed; }
-.sheet-toolbar { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 14px; border-bottom: 1px solid #ddd8cc; color: #706d66; background: #fbfaf6; font-size: 10px; }
+.sheet-panel { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); background: #f7f4ed; }
+.sheet-toolbar { display: flex; align-items: center; flex-wrap:wrap; gap: 10px; min-width: 0; min-height:44px; padding: 7px 14px; border-bottom: 1px solid #ddd8cc; color: #706d66; background: #fbfaf6; font-size: 10px; }
 .sheet-toolbar label { display: flex; align-items: center; gap: 6px; font-weight: 680; white-space: nowrap; }
 .sheet-toolbar select { height: 28px; padding: 0 25px 0 8px; border: 1px solid #d9d5ca; border-radius: 7px; color: #373a44; background: white; font-size: 11px; font-weight: 680; }
 .sheet-toolbar-tip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -306,42 +306,32 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .sheet-zoom { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .sheet-zoom button { width: 24px; height: 24px; display: grid; place-items: center; padding: 0; border: 1px solid #d9d5ca; border-radius: 6px; color: #5e626d; background: white; cursor: pointer; }
 .sheet-zoom strong { width: 34px; text-align: center; font-size: 8px; }
-.sheet-workspace { min-width: 0; min-height: 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); overflow: hidden; }
-.sheet-clef-gutter { position: relative; min-height: 340px; border-right: 1px solid #ded9cc; color: #242936; background: #fffef9; overflow: hidden; z-index: 6; }
-.sheet-brace { position: absolute; left: 3px; top: 116px; font-family: Georgia, serif; font-size: 134px; font-weight: 400; line-height: 1; transform: scaleX(.52); transform-origin: left center; }
-.sheet-clef { position: absolute; right: 10px; font-family: "Noto Music", "Apple Symbols", "Segoe UI Symbol", serif; line-height: 1; }
-.sheet-clef.treble { top: 102px; font-size: 64px; }
-.sheet-clef.bass { top: 179px; font-size: 54px; }
-.sheet-middle-c-label { position: absolute; right: 7px; top: 172px; color: #8b705e; font-family: "DM Mono", monospace; font-size: 8px; text-align: right; }
-.sheet-gutter-line { position: absolute; left: 34px; right: 0; height: 1px; background: #41444d; }
-.sheet-scroll { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; background: #fffef9; }
-.sheet-score { position: relative; min-width: 100%; height: 340px; user-select: none; touch-action: pan-x pan-y; cursor: crosshair; background: linear-gradient(#fffef9, #fdfbf5); }
-.staff-line { position: absolute; height: 1px; background: #41444d; pointer-events: none; }
-.staff-guide { position: absolute; top: 102px; bottom: 80px; width: 1px; background: rgba(66,69,78,.08); pointer-events: none; }
-.staff-guide.is-beat { background: rgba(66,69,78,.13); }
-.staff-guide.is-measure { width: 1px; background: rgba(42,45,53,.58); }
-.staff-measure-label { position: absolute; top: 78px; color: #999184; font-family: "DM Mono", monospace; font-size: 8px; pointer-events: none; }
-.staff-middle-c-guide { position: absolute; height: 1px; background: rgba(169,114,81,.32); pointer-events: none; }
-.staff-middle-c-guide::after { content: "middle C"; position: absolute; right: 5px; top: -13px; color: #a27b63; font-family: "DM Mono", monospace; font-size: 7px; white-space: nowrap; }
-.staff-note { --note-color: var(--accent); position: absolute; width: 28px; height: 38px; padding: 0; border: 0; color: var(--note-color); background: transparent; overflow: visible; cursor: pointer; z-index: 3; }
-.staff-note:hover { filter: brightness(.9); }
-.staff-note.is-inactive { opacity: .28; z-index: 2; }
-.staff-note.is-muted { opacity: .1; }
-.staff-note.is-selected { z-index: 5; }
-.staff-note.is-selected .staff-notehead { box-shadow: 0 0 0 3px rgba(32,42,72,.24); }
-.staff-notehead { position: absolute; left: 8px; top: 14px; width: 15px; height: 10px; border: 2px solid currentColor; border-radius: 50%; background: currentColor; transform: rotate(-16deg); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset; }
-.staff-note.is-half .staff-notehead, .staff-note.is-whole .staff-notehead { background: #fffef9; box-shadow: none; }
-.staff-note.is-whole .staff-stem { display: none; }
-.staff-stem { position: absolute; left: 21px; top: -6px; width: 2px; height: 23px; background: currentColor; }
-.staff-note.is-stem-down .staff-stem { left: 8px; top: 21px; }
-.staff-note.is-eighth .staff-stem::after { content: ""; position: absolute; left: 1px; top: 0; width: 9px; height: 14px; border-top: 3px solid currentColor; border-radius: 0 8px 0 0; transform: rotate(24deg); transform-origin: left top; }
-.staff-note.is-stem-down.is-eighth .staff-stem::after { left: -8px; top: 19px; transform: scaleY(-1) rotate(24deg); }
-.staff-accidental { position: absolute; right: 21px; top: 5px; color: #2c303a; font-family: Georgia, serif; font-size: 22px; line-height: 1; }
-.staff-ledger { position: absolute; left: 3px; width: 26px; height: 1px; background: #41444d; pointer-events: none; }
-.staff-duration { position: absolute; left: 23px; top: 18px; height: 2px; border-radius: 99px; background: currentColor; opacity: .22; pointer-events: none; }
-.sheet-playhead { position: absolute; top: 74px; bottom: 59px; width: 2px; background: var(--accent); pointer-events: none; z-index: 7; box-shadow: 0 0 0 1px rgba(255,255,255,.55); }
-.sheet-playhead::before { content: ""; position: absolute; left: -3px; top: 0; width: 8px; height: 7px; border-radius: 0 0 5px 5px; background: var(--accent); }
-
+ .sheet-workspace { min-width:0; min-height:0; display:block; overflow:hidden; }
+.sheet-clef-gutter { display:none; }
+.sheet-scroll { width:100%; height:100%; overflow:auto; overscroll-behavior:contain; background:#eeeff2; padding:20px; }
+.sheet-score { position:relative; background:#fff; margin:0 auto; box-shadow:0 2px 14px #202a4812; user-select:none; }
+.sheet-score > svg { display:block; pointer-events:none; }
+.engraved-hit { position:absolute; width:28px; height:30px; padding:0; background:transparent; border:2px solid transparent; border-radius:7px; cursor:pointer; z-index:3; }
+.engraved-hit:hover { background:#ef67591c; border-color:#ef675966; }
+.engraved-hit.is-selected { background:#ef67592b; border-color:var(--accent); }
+.score-bar-seek { position:absolute; height:23px; border:0; background:transparent; cursor:pointer; z-index:2; }
+.score-bar-seek:hover { background:#4f78c81a; }
+.score-beat-guide { display:none; position:absolute; width:1px; border-left:1px dashed #4f78c82b; pointer-events:none; z-index:1; }
+.score-beat-seek { display:block; position:absolute; width:24px; height:20px; padding:0; border:0; border-radius:4px; background:#eef1f6; color:#44546d; font-size:11px; font-weight:650; cursor:pointer; z-index:2; }
+.score-beat-seek:hover, .score-beat-seek:focus-visible { background:#dbe6f7; }
+.score-beat-seek[aria-current="time"] { background:#ffe0d5; color:#ab442f; box-shadow:0 0 0 1px #ef675966; }
+.sheet-score[data-tool="draw"] .score-beat-guide { display:block; }
+.score-time-ruler { position:absolute; height:30px; padding:0; border:0; border-bottom:1px solid #c9d1dd; background:#f4f6f9; cursor:pointer; z-index:1; border-radius:4px 4px 0 0; }
+.score-ruler-tick { position:absolute; width:1px; height:6px; background:#b9c3d2; z-index:2; pointer-events:none; }
+.score-ruler-tick.is-beat { height:10px; background:#75869f; }
+.score-position-readout { flex:0 0 auto; font-size:11px; font-weight:650; color:#a24531; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.score-playhead-label { position:absolute; top:-24px; padding:4px 7px; border-radius:5px; color:white; background:#d85442; font:600 11px Arial,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; pointer-events:none; box-shadow:0 2px 6px #202a481a; }
+.score-placement-bar { display:flex; align-items:center; gap:8px; min-height:36px; padding:6px 14px; background:#fff9f2; border-bottom:1px solid #e6ded0; font-size:12px; color:#735c46; }
+.score-placement-bar > span { flex:1; line-height:1.4; }
+.score-placement-bar button { padding:6px 10px; border-radius:6px; border:1px solid #e3c7bc; background:white; color:#864c36; cursor:pointer; white-space:nowrap; font-size:12px; }
+.score-placement-bar #confirm-score-note { background:var(--accent); color:white; border-color:var(--accent); }
+.score-placement-label { position:absolute; padding:5px 8px; max-width:240px; background:#fff4ef; color:#a44135; border:1px solid #efb8ac; border-radius:6px; font-size:11px; font-weight:650; pointer-events:none; z-index:6; box-shadow:0 2px 8px #202a4812; }
+.sheet-playhead { position:absolute; width:2px; background:var(--accent); pointer-events:none; z-index:5; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(19,25,44,.64); backdrop-filter: blur(5px); }
 .modal-card { width: min(550px, 100%); max-height: calc(100dvh - 40px); overflow: auto; position: relative; background: white; border-radius: 16px; padding: 31px; box-shadow: 0 26px 70px rgba(8,14,29,.28); }
 .modal-close { position: absolute; right: 16px; top: 16px; width: 32px; height: 32px; display: grid; place-items: center; color: #7f8493; background: #f4f5f7; border: 0; border-radius: 8px; cursor: pointer; }
@@ -472,6 +462,79 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   *, *::before, *::after { scroll-behavior: auto !important; }
 }
 
+
+/* Keep everyday actions visible; preferences and destructive time edits live in Settings. */
+.roll-panel { grid-template-rows:auto auto minmax(0,1fr) auto; }
+.roll-heading { min-height:52px; gap:12px; flex-wrap:wrap; padding:10px 16px; }
+.timeline-wrap, .sheet-panel { grid-row:3; }
+.editing-bar { display:flex; align-items:center; gap:14px; padding:9px 14px; background:#fafbfc; border-bottom:1px solid var(--line); min-width:0; overflow-x:auto; }
+.tool-switch { display:flex; gap:3px; background:#e9ecf1; border-radius:9px; padding:3px; flex-shrink:0; }
+.tool-switch button { border:0; background:transparent; padding:7px 11px; border-radius:6px; color:#656b7c; font-size:12px; cursor:pointer; white-space:nowrap; }
+.tool-switch button[aria-pressed="true"] { background:white; color:var(--ink); box-shadow:0 1px 4px #202a4820; font-weight:700; }
+.selection-tools { flex:1; min-width:max-content; font-size:12px; color:#646c7e; }
+.selection-tools button { background:white; border:1px solid var(--line); color:#444d60; min-height:34px; white-space:nowrap; }
+.selection-tools button:disabled { opacity:.4; cursor:default; }
+.selection-tools .delete-note-button { color:#aa3f35; background:#fff2f0; border-color:#f2c5be; }
+.selection-tools label { display:flex; align-items:center; gap:5px; white-space:nowrap; font-size:11px; }
+.selection-tools select, .selection-tools input { height:32px; background:white; border:1px solid var(--line); border-radius:6px; padding:0 6px; font-size:12px; color:var(--ink); }
+.selection-tools input { width:65px; }
+.selection-summary { min-width:95px; }
+.note-grid[data-tool="select"] { cursor:default; }
+.note-grid[data-tool="erase"], .sheet-score[data-tool="erase"], .note-grid[data-tool="erase"] .note-block, .sheet-score[data-tool="erase"] .engraved-hit { cursor:crosshair; }
+.sheet-score[data-tool="draw"] { cursor:crosshair; }
+.settings-group { border-top:1px solid var(--line); padding:18px 0; display:grid; gap:12px; }
+.settings-group h3 { margin:0; font-size:15px; }
+.settings-group > .field-control > span:first-child { display:flex; min-width:100px; }
+.settings-field { display:flex; align-items:center; gap:12px; font-size:13px; }
+.settings-field select { min-height:36px; border:1px solid var(--line); border-radius:7px; padding:0 8px; background:#fff; }
+.settings-hint { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+.layout-choices { margin:0; padding:0; border:0; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.layout-choices legend { color:var(--muted); font-size:12px; margin-bottom:8px; }
+.choice-card { display:flex; flex-direction:column; align-items:flex-start; gap:7px; padding:16px; border:1px solid var(--line); border-radius:10px; background:white; text-align:left; cursor:pointer; color:var(--ink); font-size:13px; }
+.choice-card span { color:var(--muted); font-size:12px; line-height:1.55; }
+.choice-card:has(input:checked) { border-color:var(--accent); background:#fff7f5; }
+.choice-card:hover { border-color:#a6adbc; }
+.import-choices { display:grid; gap:10px; }
+.keyboard-dock { grid-row:4; padding:12px 18px; background:#f8f9fb; border-top:1px solid var(--line); }
+.keyboard-dock-heading { display:flex; align-items:center; gap:12px; font-size:12px; flex-wrap:wrap; }
+.text-button { border:0; background:transparent; color:#526f9b; padding:4px 0; text-decoration:underline; cursor:pointer; font-size:11px; }
+.keyboard-octave-controls { display:inline-flex; align-items:center; gap:9px; margin-left:auto; font-size:12px; }
+.keyboard-octave-controls button { width:32px; height:32px; border:1px solid var(--line); border-radius:7px; background:white; cursor:pointer; }
+.keyboard-octave-controls button:disabled { opacity:.4; }
+.keyboard-dock .secondary-button { height:32px; font-size:11px; }
+.keyboard-map { display:flex; position:relative; gap:5px; max-width:640px; padding-top:29px; margin:8px auto 0; }
+.typing-key { flex:1; position:relative; min-width:26px; height:49px; border:1px solid #cdd2dc; border-radius:0 0 7px 7px; background:white; color:#555d70; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:end; gap:3px; padding:6px 0; }
+.typing-key kbd { font:700 12px Arial,sans-serif; }
+.typing-key span { font-size:10px; color:#888f9e; }
+.typing-key.is-black { position:absolute; top:0; width:7%; height:40px; background:#27324e; color:#fff; z-index:2; border-color:#1a2440; border-radius:5px; }
+.typing-key.is-black span { color:#ccd2df; }
+.typing-key:active { background:#ffe2dc; color:#a53d30; }
+.keyboard-map.letter-map { padding-top:0; }
+.keyboard-map.letter-map .typing-key { border-radius:7px; height:44px; }
+.keyboard-hint { text-align:center; font-size:11px; color:var(--muted); margin:9px 0 0; line-height:1.5; }
+.toast button { border:0; background:white; color:var(--navy); border-radius:5px; padding:5px 9px; cursor:pointer; font-weight:700; }
+@media(max-width:1050px) { .selection-tools > .selection-summary { display:inline; } }
+.settings-group .track-visibility-button { width:fit-content; padding:0 10px; }
+.settings-group .track-visibility-label { display:inline; }
+.selection-tools > * { flex-shrink:0; }
+@media(max-width:760px) {
+  .roll-heading { padding:8px 10px; gap:7px; }
+  .roll-heading-actions { margin-left:auto; }
+  .editing-bar { flex-direction:column; align-items:stretch; gap:7px; padding:7px 8px; overflow:hidden; }
+  .tool-switch { align-self:flex-start; }
+  .tool-switch button { padding:9px 8px; }
+  .selection-tools { gap:7px; min-width:0; overflow-x:auto; padding:2px 1px 4px; }
+  .selection-tools[data-has-selection="false"] > .selection-summary { display:inline; }
+  .selection-tools > .selection-summary { display:none; }
+  .selection-tools button { min-height:38px; }
+  .sheet-scroll { padding:10px; }
+  .sheet-workspace { display:block; }
+  .keyboard-dock { padding:8px 10px; }
+  .keyboard-hint { font-size:10px; }
+  .keyboard-dock-heading { gap:8px; }
+  .layout-choices { grid-template-columns:1fr; }
+}
+
     </style>
   </head>
   <body>
@@ -487,6 +550,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <span id="save-state" class="save-state is-saved">✓ Saved</span>
         </div>
         <div class="top-actions">
+          <button class="icon-button" data-modal="settings" aria-label="Settings" title="Input, editing, score and sound settings">⚙</button>
           <button class="icon-button help-button" data-modal="help" aria-label="Help">?</button>
           <button id="open-project" class="secondary-button draft-button"><span aria-hidden="true">▤</span><span>Open draft</span></button>
           <button id="save-project" class="secondary-button draft-button"><span aria-hidden="true">↓</span><span>Save draft</span></button>
@@ -514,26 +578,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           </span>
         </label>
         <label class="field-control">
-          <span title="Controls where new notes are placed; existing notes always move in 1/64 steps">Add grid</span>
-          <span class="select-shell compact-select"><select id="snap" aria-label="Grid snapping for new notes"><option value="1">1/64 · fine</option><option value="2">1/32</option><option value="4" selected>1/16 · default</option><option value="8">1/8 · ½ beat</option><option value="16">1/4 · 1 beat</option></select><span class="select-arrow">⌄</span></span>
-        </label>
-        <label class="field-control">
           <span>New note</span>
           <span class="select-shell compact-select"><select id="note-duration" aria-label="Default length for new notes"><option value="1">1/64</option><option value="2">1/32</option><option value="4">1/16</option><option value="8">1/8 · ½ beat</option><option value="12">Dotted 1/8</option><option value="16" selected>1/4 · 1 beat</option><option value="24">Dotted 1/4</option><option value="32">1/2 · 2 beats</option><option value="48">Dotted 1/2</option><option value="64">Whole · 1 bar</option></select><span class="select-arrow">⌄</span></span>
         </label>
-        <label class="field-control">
-          <span>Volume</span>
-          <span class="select-shell compact-select"><select id="track-volume" aria-label="Volume for active track"></select><span class="select-arrow">⌄</span></span>
-        </label>
         <div class="control-spacer"></div>
-        <button class="import-button" data-modal="cut-time">Delete time range</button>
         <div class="history-actions">
           <button id="undo-action" class="icon-button" disabled aria-label="Undo" title="Undo (⌘/Ctrl+Z)">↶</button>
           <button id="redo-action" class="icon-button" disabled aria-label="Redo" title="Redo (⌘/Ctrl+Shift+Z or Ctrl+Y)">↷</button>
         </div>
-        <button class="import-button" data-modal="mml"><span aria-hidden="true">▣</span><span>Import MML</span></button>
-        <button id="import-midi" class="import-button"><span aria-hidden="true">♪</span><span>Import MIDI</span></button>
-        <button id="convert-midi-3" class="import-button" aria-label="Convert MIDI to three-track MML" title="Convert MIDI directly to three monophonic MML tracks"><span aria-hidden="true">③</span><span>MIDI → 3 MML</span></button>
+        <button class="import-button" data-modal="import"><span aria-hidden="true">↓</span><span>Import…</span></button>
         <input id="midi-file" hidden type="file" accept=".mid,.midi,audio/midi,audio/x-midi" />
       </section>
 
@@ -563,9 +616,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
                 <button id="sheet-mode" type="button" aria-pressed="false" title="Grand staff editor with middle C">𝄞 Score</button>
               </div>
               <button id="keyboard-input-toggle" class="keyboard-input-button" type="button" aria-pressed="false" title="Musical typing (⌘/Ctrl+K): A–K notes, Z/X octave"><span aria-hidden="true">⌨</span><span class="keyboard-input-label">Keys</span><span id="keyboard-input-octave" class="keyboard-input-octave">C4</span></button>
-              <button id="toggle-other-tracks" class="track-visibility-button" type="button" aria-pressed="false" title="Hide notes from other tracks"><span class="track-visibility-icon" aria-hidden="true">◉</span><span class="track-visibility-label">Hide others</span></button>
-              <div id="selection-tools" class="selection-tools"><span>Select a note to move or delete it</span></div>
             </div>
+          </div>
+          <div class="editing-bar">
+            <div class="tool-switch" role="group" aria-label="Editing tool">
+              <button id="tool-select" type="button" aria-pressed="true" title="Select and move notes (V)">↖ Select</button>
+              <button id="tool-draw" type="button" aria-pressed="false" title="Add notes (N)">＋ Draw</button>
+              <button id="tool-erase" type="button" aria-pressed="false" title="Remove notes without closing time (E)">⌫ Erase</button>
+            </div>
+            <div id="selection-tools" class="selection-tools" aria-label="Selected note controls"></div>
           </div>
           <div id="timeline-wrap" class="timeline-wrap">
             <div class="timeline-corner" title="Scroll here or pinch over the score to zoom"><button id="zoom-out" type="button" aria-label="Zoom out score">−</button><strong id="zoom-label">100%</strong><button id="zoom-in" type="button" aria-label="Zoom in score">+</button></div>
@@ -575,6 +634,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           </div>
           <div id="sheet-panel" class="sheet-panel" aria-label="Grand staff editor" hidden>
             <div class="sheet-toolbar">
+              <label>Length <select id="score-note-duration" aria-label="Length of the note to place"></select></label>
               <label>Accidental
                 <select id="sheet-accidental" aria-label="Accidental for new staff notes">
                   <option value="natural">♮ Natural</option>
@@ -582,13 +642,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
                   <option value="flat">♭ Flat</option>
                 </select>
               </label>
-              <span class="sheet-toolbar-tip">Click a line or space to add a note. Middle C sits between the two staves.</span>
+              <span id="score-display-tip" class="sheet-toolbar-tip">Select a note to edit it. Draw adds notes; Erase removes them.</span>
               <span class="sheet-toolbar-spacer"></span>
+              <output id="score-position-readout" class="score-position-readout" aria-label="Playback position" aria-live="off">Bar 1 · Beat 1 · 0:00.00</output>
               <div class="sheet-zoom" title="Zoom the score horizontally">
                 <button id="sheet-zoom-out" type="button" aria-label="Zoom out score">−</button>
                 <strong id="sheet-zoom-label">100%</strong>
                 <button id="sheet-zoom-in" type="button" aria-label="Zoom in score">+</button>
               </div>
+            </div>
+            <div class="score-placement-bar">
+              <span id="score-placement-status" role="status" aria-live="polite">Choose a length, then use Draw to preview a note.</span>
+              <button id="confirm-score-note" type="button" hidden>Place note</button>
+              <button id="cancel-score-note" type="button" hidden>Cancel</button>
             </div>
             <div class="sheet-workspace">
               <div id="sheet-clef-gutter" class="sheet-clef-gutter" aria-hidden="true">
@@ -599,10 +665,20 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
               </div>
               <div id="sheet-scroll" class="sheet-scroll">
                 <div id="sheet-score" class="sheet-score">
-                  <div id="sheet-playhead" class="sheet-playhead"></div>
+                  <div id="sheet-playhead" class="sheet-playhead"><span id="score-playhead-label" class="score-playhead-label" aria-hidden="true"></span></div>
                 </div>
               </div>
             </div>
+          </div>
+          <div id="keyboard-dock" class="keyboard-dock" hidden>
+            <div class="keyboard-dock-heading">
+              <strong id="keyboard-layout-name">Piano keys</strong>
+              <button type="button" class="text-button" data-modal="settings">Change layout</button>
+              <span class="keyboard-octave-controls"><button id="octave-down" type="button" aria-label="Lower octave" title="Lower octave (Z or Shift+−)">−</button><span id="octave-label">Octave 4</span><button id="octave-up" type="button" aria-label="Higher octave" title="Higher octave (X or Shift+=)">+</button></span>
+              <button id="keyboard-rest" class="secondary-button" type="button" title="Advance without adding a note (R)">Rest →</button>
+            </div>
+            <div id="keyboard-map" class="keyboard-map" role="group" aria-label="Musical typing keys"></div>
+            <p id="keyboard-hint" class="keyboard-hint"></p>
           </div>
         </section>
       </section>
@@ -610,6 +686,51 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
       <div id="modal-backdrop" class="modal-backdrop" hidden>
         <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
           <button id="modal-close" class="modal-close" aria-label="Close">×</button>
+          <div id="import-modal" class="modal-view" hidden>
+            <p class="eyebrow">Bring in music</p><h2>Import a score</h2>
+            <p class="modal-intro">Imports replace the current track or score. Your changes can be restored with Undo.</p>
+            <div class="import-choices">
+              <button id="import-project" class="choice-card"><strong>Open saved draft</strong><span>Continue from a .mabiscore.json backup. Undo returns to the current score.</span></button>
+              <button class="choice-card" data-modal="mml"><strong>Paste MML</strong><span>One part into the active track, or a complete MML@ score.</span></button>
+              <button id="import-midi" class="choice-card"><strong>Open MIDI</strong><span>Keep every playable voice as an editable track.</span></button>
+              <button id="convert-midi-3" class="choice-card"><strong>MIDI → 3 MML</strong><span>Arrange melody, accompaniment and bass for Mabinogi Mobile.</span></button>
+            </div>
+          </div>
+          <div id="settings-modal" class="modal-view" hidden>
+            <p class="eyebrow">Make it yours</p><h2>Settings</h2>
+            <section class="settings-group"><h3>Keyboard input</h3>
+              <fieldset class="layout-choices"><legend>Note layout</legend>
+                <label class="choice-card"><input type="radio" name="keyboard-layout" value="piano" checked><strong>Piano keys</strong><span>A S D F G H J → C D E F G A B<br>W E T Y U → C♯ D♯ F♯ G♯ A♯</span></label>
+                <label class="choice-card"><input type="radio" name="keyboard-layout" value="letters"><strong>MML letters</strong><span>C D E F G A B → the same note names<br>Then = / + for ♯, − for ♭, 0 for ♮</span></label>
+              </fieldset>
+              <p class="settings-hint">Z / X and the octave buttons work in both layouts. Shift+= raises the octave; Shift+− lowers it. R inserts a rest. Notes start at the playhead and advance by the new-note length.</p>
+            </section>
+            <section id="editing-settings" class="settings-group"><h3>Editing</h3>
+        <label class="field-control">
+          <span title="Controls where new notes are placed; existing notes always move in 1/64 steps">Add grid</span>
+          <span class="select-shell compact-select"><select id="snap" aria-label="Grid snapping for new notes"><option value="1">1/64 · fine</option><option value="2">1/32</option><option value="4" selected>1/16 · default</option><option value="8">1/8 · ½ beat</option><option value="16">1/4 · 1 beat</option></select><span class="select-arrow">⌄</span></span>
+        </label>
+
+              <p class="settings-hint">Select moves existing notes; Draw adds notes; Erase deletes notes and leaves the time in place. Delete / Backspace removes the selection. Arrow keys move it; Shift+↑ / ↓ moves one octave.</p>
+              <button class="secondary-button" data-modal="cut-time">Delete time range &amp; close gap…</button>
+            </section>
+            <section id="score-settings" class="settings-group"><h3>Score display</h3>
+              <label class="settings-field">Space between notes<select id="score-spacing"><option value="28">Compact</option><option value="38" selected>Comfortable</option><option value="50">Spacious</option></select></label>
+              <button id="toggle-other-tracks" class="track-visibility-button" type="button" aria-pressed="false"><span class="track-visibility-icon" aria-hidden="true">◉</span><span class="track-visibility-label">Hide others</span></button>
+              <p class="settings-hint">The score wraps into grand-staff systems in 4/4, with rests, beams, accidentals and ties. The same notes are used by the roll, score and export.</p>
+            </section>
+            <section class="settings-group"><h3>Drafts &amp; recovery</h3>
+              <p class="settings-hint">Edits are saved automatically in this browser. Download a backup to keep a separate copy or move your score to another device.</p>
+              <button id="settings-save-draft" class="secondary-button" type="button">Download draft backup</button>
+            </section>
+            <section id="sound-settings" class="settings-group"><h3>Active track &amp; sound</h3>
+        <label class="field-control">
+          <span>Volume</span>
+          <span class="select-shell compact-select"><select id="track-volume" aria-label="Volume for active track"></select><span class="select-arrow">⌄</span></span>
+        </label>
+<p class="settings-hint">Choose the instrument beside the track name. Track volume applies to every note in that track.</p></section>
+            <div class="modal-actions"><button class="primary-button modal-cancel">Done</button></div>
+          </div>
           <div id="cut-time-modal" class="modal-view" hidden>
             <h2>Delete time range</h2>
             <p class="modal-intro">Remove a period from all tracks and move everything after it earlier to close the gap. Notes crossing the edges are shortened. Undo restores the cut.</p>
@@ -663,8 +784,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
           <div id="help-modal" class="modal-view help-modal" hidden>
             <div class="modal-icon">♫</div><p class="eyebrow">Quick guide</p><h2>Make your first score</h2>
             <div class="help-steps">
-              <div><span>1</span><p><strong>Add & arrange</strong>Tap to add and hear all notes in that time column. Use the ▧ button to drag-select an area, then move the group in time and pitch.</p></div>
-              <div><span>2</span><p><strong>Type & refine</strong>Turn on Keys (⌘/Ctrl+K), play A–K like a piano, and use Z/X to change octave. Copy selected notes and paste repeatedly from the playhead to build loops.</p></div>
+              <div><span>1</span><p><strong>Add & arrange</strong>Choose Draw to add notes, Select to move them, or Erase to remove them. Select a note to change pitch, starting beat and length. Delete keeps the time in place; Undo restores the note.</p></div>
+              <div><span>2</span><p><strong>Type & refine</strong>Turn on Keys (⌘/Ctrl+K). Settings offers Piano keys or MML letters (C–B, then = for sharp or − for flat). Keep Z/X or use Shift+= / Shift+− for octave. R adds a rest; on-screen keys work on touch.</p></div>
               <div><span>3</span><p><strong>Tracks & export</strong>Use MIDI → 3 MML to reduce a MIDI file to three non-overlapping parts and open the MML export. Extra simultaneous notes may be omitted. Space plays the score, and every edit supports Undo and Redo.</p></div>
             </div>
             <button class="primary-button full-button modal-cancel">Start composing</button>
@@ -675,10 +796,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     </main>
     <script src="./vendor/spessasynth.min.js"></script>
     <script src="./mobile-converter.js"></script>
+    <script src="./vendor/vexflow-bravura.js"></script>
+    <script src="./score-engraver.js?v=20261108-time-ruler"></script>
     <script>
 const COLORS = ["#ee6a5b", "#4f78c8", "#7b61c9", "#2f9d78", "#d58a32", "#d04f88"];
-const PITCH_MIN = 24;
-const PITCH_MAX = 95;
+const PITCH_MIN = 0;
+const PITCH_MAX = 127;
 const ROW_HEIGHT = 28;
 const TICKS_PER_WHOLE = 64;
 const TICKS_PER_BEAT = 16;
@@ -789,6 +912,10 @@ const state = {
   sheetAccidental: "natural",
   keyboardInput: false,
   keyboardOctave: 4,
+  keyboardLayout: "piano",
+  lastTypedNoteId: null,
+  editorTool: "select",
+  scoreSpacing: 38,
   showOtherTracks: true,
   isPlaying: false,
   playhead: 0,
@@ -800,6 +927,15 @@ const state = {
   exportSelection: new Set(),
   mergeSelection: new Set(),
 };
+
+let scoreLayout = null;
+let draftSaveTimer = null;
+let modalReturnFocus = null;
+let scorePlacement = null;
+let scoreTouchGesture = null;
+const scoreTouchPointers = new Set();
+let suppressScoreClickUntil = 0;
+let scoreClockCache = null;
 
 const noteClipboard = {
   notes: [],
@@ -835,6 +971,7 @@ const drag = {
   pitch: 0,
   duration: 0,
   snapshot: null,
+  pointerId: null,
 };
 
 const boxSelection = {
@@ -853,6 +990,7 @@ const rollGesture = {
   startDistance: 0,
   startTickWidth: DEFAULT_TICK_WIDTH,
   pendingTap: null,
+  pan: null,
 };
 
 const elements = {
@@ -969,6 +1107,7 @@ function activeTrack() {
 
 function clearNoteSelection() {
   state.selectedNoteId = null;
+  state.lastTypedNoteId = null;
   state.selectedNoteIds.clear();
   state.multiSelectMode = false;
   state.boxSelectMode = false;
@@ -1148,15 +1287,41 @@ function buildVolumeOptions() {
 function markUnsaved() {
   state.saved = false;
   renderSaveState();
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(flushDraft, 600);
 }
 
-function notify(message) {
-  elements.toast.textContent = `✓  ${message}`;
-  elements.toast.hidden = false;
+function flushDraft() {
+  clearTimeout(draftSaveTimer);
+  if (state.saved) return true;
+  try {
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(createProjectData()));
+    state.saved = true;
+    renderSaveState();
+    return true;
+  } catch (error) {
+    elements.saveState.textContent = 'Not saved · download a draft';
+    console.warn('Automatic draft saving is unavailable.', error);
+    return false;
+  }
+}
+
+function notify(message, undoable = false) {
+  elements.toast.replaceChildren(document.createTextNode(message));
+  if (undoable) {
+    const button=document.createElement('button');
+    button.type='button'; button.textContent='Undo';
+    // The action only applies to this deletion, even if another edit follows it.
+    const deletionSnapshot=state.history.at(-1);
+    button.addEventListener('click',()=>{
+      if(state.history.at(-1)===deletionSnapshot) { undo(); elements.toast.hidden=true; }
+      else notify('Use Undo in the toolbar to step back through later edits.');
+    });
+    elements.toast.append(button);
+  }
+  elements.toast.hidden=false;
   clearTimeout(notify.timer);
-  notify.timer = setTimeout(() => {
-    elements.toast.hidden = true;
-  }, 2600);
+  notify.timer=setTimeout(()=>{elements.toast.hidden=true;}, undoable ? 7000 : 3500);
 }
 
 function commitTracks(nextTracks) {
@@ -1167,7 +1332,7 @@ function commitTracks(nextTracks) {
 }
 
 function renderSaveState() {
-  elements.saveState.textContent = state.saved ? "✓ Saved" : "Unsaved";
+  elements.saveState.textContent = state.saved ? "✓ Draft saved" : "Saving…";
   elements.saveState.classList.toggle("is-saved", state.saved);
 }
 
@@ -1290,77 +1455,111 @@ function renderRollHeading() {
   elements.instrumentSelect.value = instrumentByName(track.instrument).name;
   elements.trackVolume.value = String(normalizeVolume(track.volume));
   elements.activeDot.style.background = track.color;
-  const selectedNotes = track.notes.filter((note) => state.selectedNoteIds.has(note.id));
-  const selectedNote = selectedNotes.length === 1 ? selectedNotes[0] : null;
-  const boxSelectButton = state.editorMode === "roll"
-    ? `<button id="toggle-box-select" class="box-select-button ${state.boxSelectMode ? "is-active" : ""}" aria-label="Select notes with a rectangle" title="Drag a rectangle over notes">▧</button>`
-    : "";
-  if (selectedNote) {
-    elements.selectionTools.innerHTML = `
-      <label class="selection-length" title="${escapeHtml(formatDuration(selectedNote.duration))}">
-        <span>Length</span><input id="selected-note-length" type="number" min="1" max="${totalTicks - selectedNote.start}" step="1" value="${selectedNote.duration}" aria-label="Selected note length in sixty-fourth notes" /><span>× 1/64</span>
-      </label>
-      ${boxSelectButton}
-      <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
-      <button id="copy-notes">⧉ Copy</button>
-      <button id="delete-note">⌫ Delete</button>
-    `;
-    const lengthInput = document.querySelector("#selected-note-length");
-    lengthInput.addEventListener("change", changeSelectedNoteLength);
-    lengthInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        changeSelectedNoteLength(event);
-      }
-    });
-    document.querySelector("#toggle-multi-select").addEventListener("click", () => {
-      state.multiSelectMode = !state.multiSelectMode;
-      state.boxSelectMode = false;
-      elements.noteGrid.classList.remove("is-box-selecting");
-      renderRollHeading();
-    });
-    document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
-  } else if (selectedNotes.length > 1) {
-    elements.selectionTools.innerHTML = `
-      ${boxSelectButton}
-      <span>${selectedNotes.length} notes selected · drag any selected note to move together</span>
-      <button id="toggle-multi-select">${state.multiSelectMode ? "✓ Done selecting" : "＋ Add notes"}</button>
-      <button id="copy-notes">⧉ Copy</button>
-      <button id="delete-note">⌫ Delete ${selectedNotes.length}</button>
-    `;
-    document.querySelector("#toggle-multi-select").addEventListener("click", () => {
-      state.multiSelectMode = !state.multiSelectMode;
-      state.boxSelectMode = false;
-      elements.noteGrid.classList.remove("is-box-selecting");
-      renderRollHeading();
-    });
-    document.querySelector("#delete-note").addEventListener("click", deleteSelectedNotes);
-  } else {
-    elements.selectionTools.innerHTML = state.editorMode === "sheet"
-      ? "<span>Click a line or space to add a note · click a note to select it</span>"
-      : `${boxSelectButton}<span>Select notes by rectangle, Shift/⌘/Ctrl-click, or ⌘/Ctrl+A</span>`;
-  }
-  document.querySelector("#copy-notes")?.addEventListener("click", copySelectedNotes);
-  if (noteClipboard.notes.length) {
-    const pasteButton = document.createElement("button");
-    pasteButton.id = "paste-notes";
-    pasteButton.textContent = "⌘V Paste";
-    pasteButton.title = "Paste copied notes at the playhead";
-    pasteButton.addEventListener("click", pasteCopiedNotes);
-    elements.selectionTools.append(pasteButton);
-  }
-  document.querySelector("#toggle-box-select")?.addEventListener("click", () => setBoxSelectMode(!state.boxSelectMode));
-  elements.noteGrid.classList.toggle("is-box-selecting", state.boxSelectMode);
-  elements.keyboardInputToggle.classList.toggle("is-active", state.keyboardInput);
-  elements.keyboardInputToggle.setAttribute("aria-pressed", String(state.keyboardInput));
-  elements.keyboardInputToggle.setAttribute("aria-label", `${state.keyboardInput ? "Disable" : "Enable"} musical typing, octave ${state.keyboardOctave}`);
+  const selected = track.notes.filter(note => state.selectedNoteIds.has(note.id));
+  const note = selected.length === 1 ? selected[0] : null;
+  const lengths = [[1,'1/64'],[2,'1/32'],[3,'Dotted 1/32'],[4,'1/16'],[6,'Dotted 1/16'],[8,'1/8'],[12,'Dotted 1/8'],[16,'Quarter'],[24,'Dotted quarter'],[32,'Half'],[48,'Dotted half'],[64,'Whole']];
+  const duration = selected.length && selected.every(n => n.duration === selected[0].duration) ? selected[0].duration : '';
+  const options = lengths.map(([value,label]) => `<option value="${value}" ${value === duration ? 'selected' : ''}>${label}</option>`).join('');
+  elements.selectionTools.dataset.hasSelection=String(selected.length>0);
+  elements.selectionTools.innerHTML = `
+    <button id="delete-note" class="delete-note-button" ${selected.length ? '' : 'disabled'} title="Delete selected notes; keep the time in place">⌫ Delete${selected.length > 1 ? ` ${selected.length}` : ''}</button>
+    <span class="selection-summary">${note ? noteLabel(note.pitch) : selected.length ? `${selected.length} notes selected` : state.editorTool === 'draw' ? 'Tap an empty space to add' : state.editorTool === 'erase' ? 'Tap a note to delete' : 'Tap a note to select'}</span>
+    ${note ? `<label>Pitch <select id="selected-note-pitch" aria-label="Selected note pitch">${Array.from({length:128},(_,pitch)=>`<option value="${pitch}" ${pitch === note.pitch ? 'selected' : ''}>${noteLabel(pitch)}</option>`).join('')}</select></label><label>Beat <input id="selected-note-start" aria-label="Selected note starting beat" type="number" min="1" step="0.0625" value="${1 + note.start / TICKS_PER_BEAT}"></label>` : ''}
+    ${selected.length ? `<label>Length <select id="selected-note-length" aria-label="Selected note length">${duration === '' ? '<option value="">Mixed</option>' : !lengths.some(([value]) => value === duration) ? `<option value="${duration}" selected>Custom: ${duration} × 1/64</option>` : ''}${options}</select></label>` : ''}
+    <button id="toggle-multi-select" aria-pressed="${state.multiSelectMode}">${state.multiSelectMode ? '✓ Multi-select' : '＋ Multi-select'}</button>
+    ${state.editorMode === 'roll' ? `<button id="toggle-box-select" aria-pressed="${state.boxSelectMode}" title="Drag a rectangle around notes">▧ Box</button>` : ''}
+    <button id="copy-notes" ${selected.length ? '' : 'disabled'}>Copy</button>
+    ${noteClipboard.notes.length ? '<button id="paste-notes">Paste</button>' : ''}`;
+  document.querySelector('#selected-note-pitch')?.addEventListener('change', event => editSelectedNotes({ pitch: Number(event.target.value) }));
+  document.querySelector('#selected-note-start')?.addEventListener('change', event => editSelectedNotes({ start: Math.max(0, Math.round((Number(event.target.value) - 1) * TICKS_PER_BEAT)) }));
+  document.querySelector('#selected-note-length')?.addEventListener('change', changeSelectedNoteLength);
+  document.querySelector('#toggle-multi-select').addEventListener('click', () => {
+    state.multiSelectMode = !state.multiSelectMode;
+    state.boxSelectMode = false;
+    if (state.multiSelectMode) state.editorTool = 'select';
+    renderRollHeading();
+  });
+  document.querySelector('#toggle-box-select')?.addEventListener('click', () => { const next=!state.boxSelectMode; setEditorTool('select'); setBoxSelectMode(next); });
+  document.querySelector('#delete-note').addEventListener('click', deleteSelectedNotes);
+  document.querySelector('#copy-notes').addEventListener('click', copySelectedNotes);
+  document.querySelector('#paste-notes')?.addEventListener('click', pasteCopiedNotes);
+  for (const tool of ['select','draw','erase']) document.querySelector(`#tool-${tool}`).setAttribute('aria-pressed', String(state.editorTool === tool));
+  elements.noteGrid.dataset.tool = state.editorTool;
+  elements.sheetScore.dataset.tool = state.editorTool;
+  elements.noteGrid.classList.toggle('is-box-selecting', state.boxSelectMode);
+  elements.keyboardInputToggle.classList.toggle('is-active', state.keyboardInput);
+  elements.keyboardInputToggle.setAttribute('aria-pressed', String(state.keyboardInput));
+  elements.keyboardInputToggle.setAttribute('aria-label', `${state.keyboardInput ? 'Disable' : 'Enable'} musical typing, octave ${state.keyboardOctave}`);
+  elements.keyboardInputToggle.title = 'Musical typing (⌘/Ctrl+K) · Choose your layout in Settings';
   elements.keyboardInputOctave.textContent = `C${state.keyboardOctave}`;
-  elements.toggleOtherTracks.classList.toggle("is-active", !state.showOtherTracks);
-  elements.toggleOtherTracks.setAttribute("aria-pressed", String(!state.showOtherTracks));
-  elements.toggleOtherTracks.setAttribute("aria-label", state.showOtherTracks ? "Hide notes from other tracks" : "Show notes from other tracks");
-  elements.toggleOtherTracks.title = state.showOtherTracks ? "Hide notes from other tracks" : "Show notes from other tracks";
-  elements.toggleOtherTracks.querySelector(".track-visibility-icon").textContent = state.showOtherTracks ? "◉" : "⊘";
-  elements.toggleOtherTracks.querySelector(".track-visibility-label").textContent = state.showOtherTracks ? "Hide others" : "Show others";
+  elements.toggleOtherTracks.classList.toggle('is-active', !state.showOtherTracks);
+  elements.toggleOtherTracks.setAttribute('aria-pressed', String(!state.showOtherTracks));
+  elements.toggleOtherTracks.querySelector('.track-visibility-icon').textContent = state.showOtherTracks ? '◉' : '⊘';
+  elements.toggleOtherTracks.querySelector('.track-visibility-label').textContent = state.showOtherTracks ? 'Hide other tracks' : 'Show other tracks';
+  if(state.editorTool!=='draw') clearScorePlacement();
+  syncScoreDurationControl();
+  renderKeyboardDock();
+}
+
+function setEditorTool(tool) {
+  state.editorTool = ['draw','erase'].includes(tool) ? tool : 'select';
+  state.boxSelectMode = false;
+  state.multiSelectMode = false;
+  renderRollHeading();
+}
+
+function editSelectedNotes(changes) {
+  if (!state.selectedNoteIds.size) return;
+  if (state.isPlaying || audio.starting) stopPlayback();
+  commitTracks(tracks => tracks.map(track => track.id !== state.activeTrackId ? track : {
+    ...track, notes: track.notes.map(note => state.selectedNoteIds.has(note.id) ? { ...note, ...changes, staffBasePitch: undefined, staffAccidental: undefined } : note),
+  }));
+}
+
+function moveSelectedNotes(ticks, semitones) {
+  const selected = activeTrack()?.notes.filter(note => state.selectedNoteIds.has(note.id)) || [];
+  if (!selected.length) return;
+  const timeShift = Math.max(-Math.min(...selected.map(n=>n.start)), ticks);
+  const pitchShift = Math.max(-Math.min(...selected.map(n=>n.pitch)), Math.min(127 - Math.max(...selected.map(n=>n.pitch)), semitones));
+  if (!timeShift && !pitchShift) return;
+  if (state.isPlaying || audio.starting) stopPlayback();
+  commitTracks(tracks => tracks.map(track => track.id !== state.activeTrackId ? track : { ...track, notes: track.notes.map(note => state.selectedNoteIds.has(note.id) ? { ...note, start: note.start + timeShift, pitch: note.pitch + pitchShift, staffBasePitch: undefined, staffAccidental: undefined } : note) }));
+}
+
+function renderKeyboardDock() {
+  const dock = document.querySelector('#keyboard-dock');
+  dock.hidden = !state.keyboardInput;
+  if (!state.keyboardInput) return;
+  document.querySelector('#keyboard-layout-name').textContent = state.keyboardLayout === 'letters' ? 'MML letters' : 'Piano keys';
+  document.querySelector('#octave-label').textContent = `Octave ${state.keyboardOctave}`;
+  document.querySelector('#octave-down').disabled = state.keyboardOctave <= 1;
+  document.querySelector('#octave-up').disabled = state.keyboardOctave >= 6;
+  const map = document.querySelector('#keyboard-map');
+  map.classList.toggle('letter-map', state.keyboardLayout === 'letters');
+  const whites = state.keyboardLayout === 'letters' ? ['c','d','e','f','g','a','b'] : ['a','s','d','f','g','h','j','k'];
+  const labels = ['C','D','E','F','G','A','B','C'];
+  const offsets = [0,2,4,5,7,9,11,12];
+  map.innerHTML = whites.map((key,index)=>`<button type="button" class="typing-key" data-offset="${offsets[index]}" aria-label="Enter ${labels[index]}${state.keyboardOctave + (index === 7 ? 1 : 0)}"><kbd>${key.toUpperCase()}</kbd><span>${labels[index]}</span></button>`).join('');
+  if (state.keyboardLayout === 'piano') map.innerHTML += [['w',1,'C♯',8.3],['e',3,'D♯',21],['t',6,'F♯',46.4],['y',8,'G♯',59.1],['u',10,'A♯',71.8]].map(([key,offset,label,left])=>`<button type="button" class="typing-key is-black" style="left:${left}%" data-offset="${offset}" aria-label="Enter ${label}${state.keyboardOctave}"><kbd>${key.toUpperCase()}</kbd><span>${label}</span></button>`).join('');
+  else map.innerHTML += '<button type="button" class="typing-key" data-accidental="sharp" aria-label="Sharpen last typed note"><kbd>= / +</kbd><span>♯</span></button><button type="button" class="typing-key" data-accidental="flat" aria-label="Flatten last typed note"><kbd>−</kbd><span>♭</span></button><button type="button" class="typing-key" data-accidental="natural" aria-label="Restore last typed note to natural"><kbd>0</kbd><span>♮</span></button>';
+  map.querySelectorAll('[data-offset]').forEach(button=>button.addEventListener('click',()=>addKeyboardNote((state.keyboardOctave+1)*12 + Number(button.dataset.offset))));
+  map.querySelectorAll('[data-accidental]').forEach(button=>button.addEventListener('click',()=>applyTypingAccidental(button.dataset.accidental)));
+  document.querySelector('#keyboard-hint').textContent = state.keyboardLayout === 'letters' ? 'C D E F G A B · then = / + sharp, − flat, 0 natural · Shift+= / Shift+− octave · Z / X also work · R rest' : 'A S D F G H J = C D E F G A B · W E T Y U = sharps · Z / X octave · R rest';
+}
+
+function savePreferences() {
+  try { localStorage.setItem('mabiscore-preferences', JSON.stringify({ keyboardLayout:state.keyboardLayout, keyboardOctave:state.keyboardOctave, scoreSpacing:state.scoreSpacing, showOtherTracks:state.showOtherTracks })); }
+  catch (error) { console.warn('Preferences could not be saved.', error); }
+}
+
+function loadPreferences() {
+  try {
+    const prefs = JSON.parse(localStorage.getItem('mabiscore-preferences') || '{}');
+    state.keyboardLayout = prefs.keyboardLayout === 'letters' ? 'letters' : 'piano';
+    state.keyboardOctave = Math.max(1, Math.min(6, Math.round(Number(prefs.keyboardOctave) || 4)));
+    state.scoreSpacing = Number.isFinite(prefs.scoreSpacing) ? Math.max(22,Math.min(80,prefs.scoreSpacing)) : 38;
+    state.showOtherTracks = prefs.showOtherTracks !== false;
+  } catch (error) { console.warn('Preferences could not be loaded.', error); }
 }
 
 function renderNotes() {
@@ -1404,6 +1603,7 @@ function renderNotes() {
       button.setAttribute("aria-label", `${track.name}, ${noteLabel(note.pitch)}, ${formatDuration(note.duration)}${isActive ? "" : ", switch to track"}`);
       button.innerHTML = `<span>${noteLabel(note.pitch)}</span>${isActive && !isGroupSelected ? '<i class="note-resize-handle" aria-hidden="true"></i>' : ""}`;
       button.addEventListener("pointerdown", beginNoteDrag);
+      button.addEventListener('click', event => { if (event.detail === 0) selectStaffNote(event); });
       fragment.append(button);
     });
   });
@@ -1424,6 +1624,7 @@ function selectStaffNote(event) {
   const track = state.tracks.find((item) => item.id === button.dataset.trackId);
   const note = track?.notes.find((item) => item.id === button.dataset.noteId);
   if (!track || !note) return;
+  if (state.editorTool === "erase") { state.activeTrackId=track.id; selectOnlyNote(note.id); deleteSelectedNotes(); return; }
   if (track.id !== state.activeTrackId) {
     state.activeTrackId = track.id;
     selectOnlyNote(note.id);
@@ -1437,91 +1638,31 @@ function selectStaffNote(event) {
 }
 
 function renderSheetScore() {
-  if (!elements.sheetScore) return;
-  elements.sheetScore.querySelectorAll(".sheet-generated").forEach((item) => item.remove());
-  elements.sheetClefGutter.querySelectorAll(".sheet-gutter-line").forEach((item) => item.remove());
-  const scoreWidth = gridWidth + SHEET_TIME_PADDING * 2;
-  elements.sheetScore.style.width = `${scoreWidth}px`;
-  elements.sheetScore.style.height = `${SHEET_HEIGHT}px`;
-  elements.sheetZoomLabel.textContent = `${Math.round(tickWidth / DEFAULT_TICK_WIDTH * 100)}%`;
-
-  const fragment = document.createDocumentFragment();
-  const staffLineSteps = [10, 8, 6, 4, 2, -2, -4, -6, -8, -10];
-  staffLineSteps.forEach((step) => {
-    const y = SHEET_MIDDLE_C_Y - step * SHEET_STEP_HEIGHT;
-    const line = document.createElement("span");
-    line.className = "staff-line sheet-generated";
-    line.style.left = "0";
-    line.style.right = "0";
-    line.style.top = `${y}px`;
-    fragment.append(line);
-    const gutterLine = document.createElement("span");
-    gutterLine.className = "sheet-gutter-line";
-    gutterLine.style.top = `${y}px`;
-    elements.sheetClefGutter.append(gutterLine);
-  });
-
-  const middleGuide = document.createElement("span");
-  middleGuide.className = "staff-middle-c-guide sheet-generated";
-  middleGuide.style.left = "0";
-  middleGuide.style.right = "0";
-  middleGuide.style.top = `${SHEET_MIDDLE_C_Y}px`;
-  fragment.append(middleGuide);
-
-  for (let tick = 0; tick <= totalTicks; tick += TICKS_PER_BEAT) {
-    const guide = document.createElement("span");
-    guide.className = `staff-guide sheet-generated ${tick % TICKS_PER_WHOLE === 0 ? "is-measure" : "is-beat"}`;
-    guide.style.left = `${SHEET_TIME_PADDING + tick * tickWidth}px`;
-    fragment.append(guide);
-    if (tick % TICKS_PER_WHOLE === 0) {
-      const label = document.createElement("span");
-      label.className = "staff-measure-label sheet-generated";
-      label.style.left = `${SHEET_TIME_PADDING + tick * tickWidth + 5}px`;
-      label.textContent = String(tick / TICKS_PER_WHOLE + 1);
-      fragment.append(label);
-    }
-  }
-
-  const visibleTracks = state.showOtherTracks
-    ? state.tracks
-    : state.tracks.filter((track) => track.id === state.activeTrackId);
-  const orderedTracks = [
-    ...visibleTracks.filter((track) => track.id !== state.activeTrackId),
-    ...visibleTracks.filter((track) => track.id === state.activeTrackId),
-  ];
-  orderedTracks.forEach((track) => {
-    const isActive = track.id === state.activeTrackId;
-    track.notes.forEach((note) => {
-      const spelling = staffNoteSpelling(note);
-      const step = naturalPitchToStaffStep(spelling.basePitch);
-      const y = SHEET_MIDDLE_C_Y - step * SHEET_STEP_HEIGHT;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = [
-        "staff-note", "sheet-generated", staffDurationClass(note.duration), step >= 6 ? "is-stem-down" : "",
-        isActive ? "" : "is-inactive", track.muted ? "is-muted" : "",
-        isActive && state.selectedNoteIds.has(note.id) ? "is-selected" : "",
-      ].filter(Boolean).join(" ");
-      button.dataset.noteId = note.id;
-      button.dataset.trackId = track.id;
-      button.style.left = `${SHEET_TIME_PADDING + note.start * tickWidth - 12}px`;
-      button.style.top = `${y - 19}px`;
-      button.style.setProperty("--note-color", track.color);
-      button.title = `${track.name} · ${noteLabel(note.pitch)} · ${formatDuration(note.duration)} · click to select`;
-      button.setAttribute("aria-label", button.title);
-
-      const ledgerLines = staffLedgerSteps(step).map((ledgerStep) => {
-        const ledgerY = SHEET_MIDDLE_C_Y - ledgerStep * SHEET_STEP_HEIGHT;
-        return `<i class="staff-ledger" style="top:${ledgerY - y + 19}px"></i>`;
-      }).join("");
-      const accidental = spelling.accidental === "sharp" ? "♯" : spelling.accidental === "flat" ? "♭" : "";
-      const durationWidth = Math.max(0, note.duration * tickWidth - 18);
-      button.innerHTML = `${ledgerLines}${accidental ? `<span class="staff-accidental">${accidental}</span>` : ""}<i class="staff-notehead"></i><i class="staff-stem"></i>${durationWidth ? `<i class="staff-duration" style="width:${durationWidth}px"></i>` : ""}`;
-      button.addEventListener("click", selectStaffNote);
-      fragment.append(button);
+  clearScorePlacement();
+  if (state.editorMode !== 'sheet' || !elements.sheetScore) return;
+  const visibleTracks = state.showOtherTracks ? state.tracks : state.tracks.filter(track => track.id === state.activeTrackId);
+  try {
+    scoreLayout = ScoreEngraver.render(elements.sheetScore, {
+      tracks:visibleTracks, activeTrackId:state.activeTrackId, selectedIds:state.selectedNoteIds,
+      width:Math.max(620, elements.sheetScroll.clientWidth - 40), spacing:state.scoreSpacing,
+      title:state.projectName, endTick:Math.max(64,state.playhead+1,...state.tracks.map(trackEndTick)),
+      timeAtTick:scoreSecondsAtTick, formatTime:formatScoreTime, snapStep:()=>state.snap,
+      noteLabel, onSelect:selectStaffNote,
+      onSeek:seekScoreToTick,
     });
-  });
-  elements.sheetScore.insertBefore(fragment, elements.sheetPlayhead);
+    elements.sheetScore.append(elements.sheetPlayhead);
+    elements.sheetScore.dataset.tool = state.editorTool;
+    elements.sheetZoomLabel.textContent = `${Math.round(state.scoreSpacing / 38 * 100)}%`;
+    document.querySelector('#score-display-tip').textContent = scoreLayout.rounded ? 'Display rounded to 1/64; original timing is kept for playback and export.' : 'Draw: align notes with beat guides 1–4. Rest symbols mark empty time.';
+  } catch (error) {
+    console.error('Score engraving failed.', error);
+    scoreLayout = null;
+    elements.sheetScore.replaceChildren();
+    const message=document.createElement('p');
+    message.className='merge-warning';
+    message.textContent='The score could not be displayed. Your notes are safe; switch to Roll to keep editing.';
+    elements.sheetScore.append(message,elements.sheetPlayhead);
+  }
 }
 
 function renderNoteEditors() {
@@ -1529,71 +1670,177 @@ function renderNoteEditors() {
   renderSheetScore();
 }
 
-function addStaffNoteAtPoint(clientX, clientY) {
-  const track = activeTrack();
-  if (!track) return;
-  const rectangle = elements.sheetScore.getBoundingClientRect();
-  const x = clientX - rectangle.left - SHEET_TIME_PADDING;
-  const y = clientY - rectangle.top;
-  if (x < 0 || x > gridWidth) return;
-  const start = Math.max(0, Math.min(
-    totalTicks - state.noteDuration,
-    Math.floor(x / (tickWidth * state.snap)) * state.snap,
-  ));
-  const step = Math.round((SHEET_MIDDLE_C_Y - y) / SHEET_STEP_HEIGHT);
-  const spelling = staffPitchForStep(step, state.sheetAccidental);
-  if (spelling.pitch < PITCH_MIN || spelling.pitch > PITCH_MAX) {
-    notify("That line is outside the playable Mabinogi range.");
+function scoreDurationName(duration) {
+  return ({1:'Sixty-fourth note',2:'Thirty-second note',3:'Dotted thirty-second',4:'Sixteenth note',6:'Dotted sixteenth',8:'Eighth note',12:'Dotted eighth',16:'Quarter note',24:'Dotted quarter',32:'Half note',48:'Dotted half',64:'Whole note'})[duration] || 'Custom note';
+}
+
+function scoreDurationText(duration) {
+  const beats=duration/TICKS_PER_BEAT;
+  return `${scoreDurationName(duration)} · ${beats} ${beats===1?'beat':'beats'}`;
+}
+
+function syncScoreDurationControl() {
+  const select=document.querySelector('#score-note-duration');
+  const values=[...elements.noteDuration.options].map(option=>Number(option.value));
+  if(!values.includes(state.noteDuration)) values.push(state.noteDuration);
+  select.replaceChildren(...values.map(value=>{
+    const option=document.createElement('option');option.value=value;option.textContent=scoreDurationText(value);return option;
+  }));
+  select.value=state.noteDuration;
+  renderScorePlacement();
+}
+
+function setNewNoteDuration(value) {
+  const duration=Number(value);
+  if(!Number.isFinite(duration) || duration<=0 || duration===state.noteDuration) return;
+  const before=createHistorySnapshot();
+  state.noteDuration=duration;
+  if(![...elements.noteDuration.options].some(option=>Number(option.value)===duration)) {
+    const option=document.createElement('option');option.value=duration;option.textContent=scoreDurationText(duration);elements.noteDuration.append(option);
+  }
+  elements.noteDuration.value=duration;
+  pushHistory(before);markUnsaved();renderHistory();syncScoreDurationControl();
+}
+
+function clearScorePlacement() {
+  scorePlacement=null;
+  scoreLayout?.clearPlacement();
+  document.querySelector('.score-placement-label')?.remove();
+  renderScorePlacement();
+}
+
+function renderScorePlacement() {
+  const status=document.querySelector('#score-placement-status');
+  const confirm=document.querySelector('#confirm-score-note'),cancel=document.querySelector('#cancel-score-note');
+  confirm.hidden=cancel.hidden=!scorePlacement?.touch;
+  if(!scorePlacement) {
+    status.textContent=`${scoreDurationText(state.noteDuration)} · ${state.editorTool==='draw'?'Move over the staff to preview. On touch, tap to preview, then Place note.':'Choose Draw to preview a note before placing it.'}`;
     return;
   }
-  const note = {
-    id: uid("note"),
-    pitch: spelling.pitch,
-    start,
-    duration: state.noteDuration,
-    velocity: volumeToVelocity(track.volume),
-    staffBasePitch: spelling.basePitch,
-    staffAccidental: spelling.accidental,
-  };
+  if(state.editorMode!=='sheet' || state.editorTool!=='draw' || scorePlacement.trackId!==state.activeTrackId || !scoreLayout) {clearScorePlacement();return;}
+  const spelling=staffPitchForStep(scorePlacement.point.step,state.sheetAccidental);
+  const proposed={start:scorePlacement.point.start,duration:state.noteDuration,pitch:spelling.pitch,staffBasePitch:spelling.basePitch,staffAccidental:spelling.accidental};
+  if(proposed.pitch<0 || proposed.pitch>127) {clearScorePlacement();return;}
+  const position=scoreLayout.previewPlacement(proposed);
+  const startBar=1+Math.floor(proposed.start/TICKS_PER_WHOLE),startBeat=1+(proposed.start%TICKS_PER_WHOLE)/TICKS_PER_BEAT;
+  const end=proposed.start+proposed.duration,endBar=1+Math.floor(end/TICKS_PER_WHOLE),endBeat=1+(end%TICKS_PER_WHOLE)/TICKS_PER_BEAT;
+  const crossesBar=Math.floor((end-1)/TICKS_PER_WHOLE)>Math.floor(proposed.start/TICKS_PER_WHOLE);
+  status.textContent=`${noteLabel(proposed.pitch)} · Bar ${startBar}, beat ${startBeat} · ${scoreDurationText(proposed.duration)} · Ends bar ${endBar}, beat ${endBeat}${crossesBar?' · Tied across the barline':''}${scorePlacement.touch?' · Tap Place note to confirm':''}`;
+  let label=document.querySelector('.score-placement-label');
+  if(!label) {label=document.createElement('div');label.className='score-placement-label';label.setAttribute('aria-hidden','true');elements.sheetScore.append(label);}
+  label.textContent=`${noteLabel(proposed.pitch)} · ${scoreDurationText(proposed.duration)}`;
+  if(position) {label.style.left=`${Math.max(4,Math.min(parseFloat(elements.sheetScore.style.width)-245,position.x+14))}px`;label.style.top=`${Math.max(4,position.y-76)}px`;}
+}
+
+function previewStaffNoteAtPoint(clientX,clientY,touch=false) {
+  if(state.editorMode!=='sheet' || state.editorTool!=='draw' || !scoreLayout) return false;
+  const rectangle=elements.sheetScore.getBoundingClientRect();
+  const point=scoreLayout.pointToNote(clientX-rectangle.left,clientY-rectangle.top,state.snap);
+  if(!point) {clearScorePlacement();return false;}
+  if(scorePlacement && scorePlacement.point.start===point.start && scorePlacement.point.step===point.step && scorePlacement.touch===touch && scorePlacement.trackId===state.activeTrackId) return true;
+  scorePlacement={point,touch,trackId:state.activeTrackId};
+  renderScorePlacement();
+  return true;
+}
+
+function placeScorePlacement() {
+  const placement=scorePlacement,track=activeTrack();
+  if(!placement || !track || placement.trackId!==track.id || state.editorMode!=='sheet' || state.editorTool!=='draw') return;
+  const spelling=staffPitchForStep(placement.point.step,state.sheetAccidental);
+  if(spelling.pitch<0 || spelling.pitch>127) return;
+  const note={id:uid('note'),pitch:spelling.pitch,start:placement.point.start,duration:state.noteDuration,velocity:volumeToVelocity(track.volume),staffBasePitch:spelling.basePitch,staffAccidental:spelling.accidental};
+  clearScorePlacement();
+  if(state.isPlaying || audio.starting) stopPlayback();
   selectOnlyNote(note.id);
-  commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
-  auditionColumn(start);
+  commitTracks(tracks=>tracks.map(item=>item.id===track.id?{...item,notes:[...item.notes,note]}:item));
+  auditionColumn(note.start);
+}
+
+function addStaffNoteAtPoint(clientX, clientY) {
+  if(!activeTrack() || !scoreLayout) return;
+  if(state.editorTool==='draw') {
+    if(previewStaffNoteAtPoint(clientX,clientY)) placeScorePlacement();
+    return;
+  }
+  const rectangle=elements.sheetScore.getBoundingClientRect();
+  const point=scoreLayout.pointToNote(clientX-rectangle.left,clientY-rectangle.top,state.snap);
+  if(!point) return;
+  clearNoteSelection();state.playhead=point.start;renderRollHeading();renderNoteEditors();renderPlayhead();
 }
 
 function setEditorMode(mode) {
-  const next = mode === "sheet" ? "sheet" : "roll";
+  const next = mode === 'sheet' ? 'sheet' : 'roll';
   if (state.editorMode === next) return;
-  const horizontalPosition = state.editorMode === "sheet" ? elements.sheetScroll.scrollLeft : elements.gridScroll.scrollLeft;
-  state.editorMode = next;
-  state.boxSelectMode = false;
-  elements.noteGrid.classList.remove("is-box-selecting");
+  state.editorMode=next;
+  state.boxSelectMode=false;
   renderAll();
-  requestAnimationFrame(() => {
-    if (next === "sheet") elements.sheetScroll.scrollLeft = horizontalPosition;
-    else {
-      elements.gridScroll.scrollLeft = horizontalPosition;
-      elements.timelineScroll.scrollLeft = horizontalPosition;
-    }
-  });
+  requestAnimationFrame(revealPlayhead);
+}
+
+function formatScoreTime(seconds) {
+  const hundredths=Math.max(0,Math.round((Number(seconds)||0)*100));
+  const minutes=Math.floor(hundredths/6000);
+  return `${minutes}:${String(Math.floor(hundredths/100)%60).padStart(2,'0')}.${String(hundredths%100).padStart(2,'0')}`;
+}
+
+function scoreSecondsAtTick(tick) {
+  if(audio.mobilePreview && audio.scoreSecondsAtTick) return audio.scoreSecondsAtTick(tick);
+  if(state.isPlaying && audio.playbackTimeline) return audio.playbackTimeline.tickToSeconds(tick);
+  const track=state.tracks[0],events=track?.tempoEvents;
+  if(!scoreClockCache || scoreClockCache.track!==track || scoreClockCache.events!==events || scoreClockCache.tempo!==state.tempo) {
+    scoreClockCache={track,events,tempo:state.tempo,map:createTempoTimeline(events,state.tempo)};
+  }
+  return scoreClockCache.map.tickToSeconds(tick);
+}
+
+function scorePositionText(tick) {
+  const value=Math.max(0,Number(tick)||0),bar=1+Math.floor(value/TICKS_PER_WHOLE);
+  const beat=1+(value%TICKS_PER_WHOLE)/TICKS_PER_BEAT;
+  const precision=state.isPlaying || audio.mobilePreview ? 100 : 10000;
+  const beatText=String(Math.floor((beat+1e-9)*precision)/precision);
+  return `Bar ${bar} · Beat ${beatText} · ${formatScoreTime(scoreSecondsAtTick(value))}`;
+}
+
+function seekScoreToTick(tick) {
+  if(!Number.isFinite(tick)) return;
+  const wasPlaying=state.isPlaying || audio.mobilePreview || audio.starting;
+  const part=audio.mobilePreview?audio.mobilePreviewPart:null;
+  if(wasPlaying) stopPlayback();
+  clearScorePlacement();
+  state.playhead=Math.max(0,tick);
+  renderPlayhead();
+  if(wasPlaying) { if(part!=null) previewMobileMml(part);else startPlayback(); }
 }
 
 function renderPlayhead() {
   const left = `${state.playhead * tickWidth}px`;
   elements.timelinePlayhead.style.left = left;
   elements.gridPlayhead.style.left = left;
-  elements.sheetPlayhead.style.left = `${SHEET_TIME_PADDING + state.playhead * tickWidth}px`;
+  const text=scorePositionText(state.playhead);
+  document.querySelector('#score-position-readout').textContent=text;
+  const label=elements.sheetPlayhead.querySelector('.score-playhead-label');
+  label.textContent=text;
+  elements.sheetPlayhead.dataset.tick=state.playhead;
+  if (scoreLayout && state.editorMode === 'sheet') {
+    const point=scoreLayout.locate(state.playhead);
+    elements.sheetPlayhead.style.cssText=`left:${point.x}px;top:${point.y-46}px;height:${point.height+50}px`;
+    const labelWidth=label.offsetWidth || 220;
+    label.style.left=`${Math.max(4,Math.min(parseFloat(elements.sheetScore.style.width)-labelWidth-4,point.x))-point.x}px`;
+    scoreLayout.setCurrentBeat(state.playhead);
+  }
 }
 
 function revealPlayhead() {
-  const sheet = state.editorMode === "sheet";
-  const scroll = sheet ? elements.sheetScroll : elements.gridScroll;
-  const left = state.playhead * tickWidth + (sheet ? SHEET_TIME_PADDING : 0);
-  const viewportStart = scroll.scrollLeft;
-  const viewportEnd = viewportStart + scroll.clientWidth;
-  if (left >= viewportStart + 36 && left <= viewportEnd - 36) return;
-  const scrollLeft = Math.max(0, left - 52);
-  scroll.scrollLeft = scrollLeft;
-  if (!sheet) elements.timelineScroll.scrollLeft = scrollLeft;
+  if (state.editorMode === 'sheet') {
+    if (!scoreLayout) return;
+    const point=scoreLayout.locate(state.playhead), scroll=elements.sheetScroll;
+    if (point.y < scroll.scrollTop + 30 || point.y + point.height > scroll.scrollTop + scroll.clientHeight) scroll.scrollTop=Math.max(0, point.y-50);
+    if (point.x < scroll.scrollLeft + 30 || point.x > scroll.scrollLeft + scroll.clientWidth - 30) scroll.scrollLeft=Math.max(0,point.x-50);
+    return;
+  }
+  const scroll=elements.gridScroll, left=state.playhead*tickWidth;
+  if (left < scroll.scrollLeft+36 || left > scroll.scrollLeft+scroll.clientWidth-36) scroll.scrollLeft=Math.max(0,left-52);
+  elements.timelineScroll.scrollLeft=scroll.scrollLeft;
 }
 
 function renderAll() {
@@ -1790,12 +2037,11 @@ function deleteTimeRange() {
 
 function deleteSelectedNotes() {
   if (!state.selectedNoteIds.size) return;
-  const selectedIds = new Set(state.selectedNoteIds);
+  if (state.isPlaying || audio.starting) stopPlayback();
+  const selectedIds = new Set(state.selectedNoteIds), count=selectedIds.size;
   clearNoteSelection();
-  commitTracks((tracks) => tracks.map((track) => ({
-    ...track,
-    notes: track.notes.filter((note) => !selectedIds.has(note.id)),
-  })));
+  commitTracks(tracks => tracks.map(track => track.id === state.activeTrackId ? { ...track, notes:track.notes.filter(note=>!selectedIds.has(note.id)) } : track));
+  notify(`${count} ${count === 1 ? 'note' : 'notes'} deleted. Time kept in place.`, true);
 }
 
 function storeSelectedNotes(showMessage = true) {
@@ -1840,7 +2086,7 @@ function loadNoteClipboardPayload(raw) {
     const payload = JSON.parse(raw);
     if (payload?.format !== "mabiscore-notes" || !Array.isArray(payload.notes) || !payload.notes.length) return false;
     noteClipboard.notes = payload.notes.map((note) => ({
-      pitch: Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(Number(note.pitch) || 60))),
+      pitch: Math.max(PITCH_MIN, Math.min(PITCH_MAX, (Number.isFinite(Number(note.pitch)) ? Math.round(Number(note.pitch)) : 60))),
       start: Math.max(0, Math.round(Number(note.start) || 0)),
       duration: Math.max(1, Math.round(Number(note.duration) || 1)),
       velocity: Math.max(1, Math.min(127, Math.round(Number(note.velocity) || 96))),
@@ -1933,6 +2179,7 @@ function setKeyboardOctave(delta) {
   const next = Math.max(1, Math.min(6, state.keyboardOctave + delta));
   if (next === state.keyboardOctave) return;
   state.keyboardOctave = next;
+  savePreferences();
   renderRollHeading();
   notify(`Musical typing octave: C${state.keyboardOctave}`);
 }
@@ -1941,7 +2188,7 @@ function toggleMusicalTyping(force) {
   state.keyboardInput = typeof force === "boolean" ? force : !state.keyboardInput;
   renderRollHeading();
   notify(state.keyboardInput
-    ? `Musical typing on · A–K notes · Z/X octave · C${state.keyboardOctave}`
+    ? `Musical typing on · ${state.keyboardLayout === "letters" ? "C–B letters" : "Piano keys"} · Z/X octave · C${state.keyboardOctave}`
     : "Musical typing off.");
 }
 
@@ -1966,6 +2213,9 @@ function addKeyboardNote(pitch) {
     ? { ...item, notes: [...item.notes, note] }
     : item);
   selectOnlyNote(note.id);
+  state.lastTypedNoteId = note.id;
+  note.staffBasePitch = staffNoteSpelling(note).basePitch;
+  note.staffAccidental = staffNoteSpelling(note).accidental;
   state.playhead = start + state.noteDuration;
   markUnsaved();
   renderAll();
@@ -1975,28 +2225,45 @@ function addKeyboardNote(pitch) {
 
 function handleMusicalTyping(event) {
   if (!state.keyboardInput || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return false;
-  const key = event.key.toLowerCase();
-  if (key === "z" || key === "x") {
-    event.preventDefault();
-    setKeyboardOctave(key === "z" ? -1 : 1);
-    return true;
+  const key=event.key.toLowerCase();
+  if (event.shiftKey && (['Equal','Minus','NumpadAdd','NumpadSubtract'].includes(event.code) || key === '_')) {
+    event.preventDefault(); setKeyboardOctave(event.code === 'Minus' || event.code === 'NumpadSubtract' || key === '_' ? -1 : 1); return true;
+  }
+  if (key === 'z' || key === 'x') { event.preventDefault(); setKeyboardOctave(key === 'z' ? -1 : 1); return true; }
+  if (key === 'r') { event.preventDefault(); insertTypingRest(); return true; }
+  if (state.keyboardLayout === 'letters') {
+    if (['+','=','-','0'].includes(key)) { event.preventDefault(); applyTypingAccidental(key === '-' ? 'flat' : key === '0' ? 'natural' : 'sharp'); return true; }
+    const pitches={c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+    if (!(key in pitches)) return false;
+    event.preventDefault(); addKeyboardNote((state.keyboardOctave+1)*12+pitches[key]); return true;
   }
   if (!(key in MUSICAL_KEY_OFFSETS)) return false;
-  event.preventDefault();
-  addKeyboardNote((state.keyboardOctave + 1) * 12 + MUSICAL_KEY_OFFSETS[key]);
-  return true;
+  event.preventDefault(); addKeyboardNote((state.keyboardOctave+1)*12+MUSICAL_KEY_OFFSETS[key]); return true;
+}
+
+function applyTypingAccidental(accidental) {
+  const track=activeTrack(), note=track?.notes.find(n=>n.id===state.lastTypedNoteId && state.selectedNoteIds.has(n.id));
+  if (!note) { notify('Type a note first, then choose sharp or flat.'); return; }
+  const base=Number.isFinite(note.staffBasePitch) ? note.staffBasePitch : staffNoteSpelling(note).basePitch;
+  const pitch=base+(accidental==='sharp'?1:accidental==='flat'?-1:0);
+  if (pitch<0 || pitch>127 || pitch===note.pitch && note.staffAccidental===accidental) return;
+  commitTracks(tracks=>tracks.map(t=>t.id===track.id?{...t,notes:t.notes.map(n=>n.id===note.id?{...n,pitch,staffBasePitch:base,staffAccidental:accidental}:n)}:t));
+  auditionPitch(pitch,activeTrack());
+}
+
+function insertTypingRest() {
+  if (state.isPlaying || audio.starting) stopPlayback();
+  const track=activeTrack(); if(!track) return;
+  const next=Math.round(state.playhead)+state.noteDuration;
+  commitTracks(tracks=>tracks.map(t=>t.id===track.id?{...t,endTick:Math.max(trackEndTick(t),next)}:t));
+  clearNoteSelection(); state.lastTypedNoteId=null; state.playhead=next;
+  renderAll(); revealPlayhead();
 }
 
 function changeSelectedNoteLength(event) {
-  const track = activeTrack();
-  const note = track?.notes.find((item) => item.id === state.selectedNoteId);
-  if (!track || !note) return;
-  const duration = Math.max(1, Math.min(totalTicks - note.start, Math.round(Number(event.target.value) || 1)));
-  if (duration === note.duration) return;
-  commitTracks((tracks) => tracks.map((item) => item.id === track.id ? {
-    ...item,
-    notes: item.notes.map((candidate) => candidate.id === note.id ? { ...candidate, duration } : candidate),
-  } : item));
+  const duration=Number(event.target.value);
+  if (!Number.isFinite(duration) || duration<=0) return;
+  editSelectedNotes({duration});
 }
 
 function addNoteAtPoint(clientX, clientY) {
@@ -2017,6 +2284,8 @@ function addNoteAtPoint(clientX, clientY) {
     duration: state.noteDuration,
     velocity: volumeToVelocity(track.volume),
   };
+  const existing=track.notes.find(n=>n.pitch===note.pitch && n.start===note.start);
+  if(existing) { selectOnlyNote(existing.id); renderAll(); return; }
   selectOnlyNote(note.id);
   commitTracks((tracks) => tracks.map((item) => item.id === track.id ? { ...item, notes: [...item.notes, note] } : item));
   auditionColumn(start);
@@ -2029,7 +2298,14 @@ function addNoteFromPointer(event) {
   }
   if (event.button !== 0 || event.pointerType === "touch") return;
   if (event.target.closest(".note-block")) return;
-  addNoteAtPoint(event.clientX, event.clientY);
+  handleBlankRollPoint(event.clientX, event.clientY);
+}
+
+function handleBlankRollPoint(x,y) {
+  if (state.editorTool === "draw") { if(state.isPlaying || audio.starting) stopPlayback(); addNoteAtPoint(x,y); return; }
+  clearNoteSelection();
+  setPlayheadAtPoint(x);
+  renderRollHeading(); renderNoteEditors();
 }
 
 function pointInNoteGrid(clientX, clientY) {
@@ -2156,6 +2432,8 @@ function beginRollTouch(event) {
   rollGesture.points.set(event.pointerId, { x: event.clientX, y: event.clientY });
   const blankGrid = event.target.closest("#note-grid") && !event.target.closest(".note-block");
   const timelineRuler = event.target.closest("#timeline-scroll");
+  if (rollGesture.points.size === 1 && blankGrid) rollGesture.pan = { pointerId:event.pointerId, x:event.clientX, y:event.clientY, left:elements.gridScroll.scrollLeft, top:elements.gridScroll.scrollTop };
+
   if (rollGesture.points.size === 1 && (blankGrid || timelineRuler)) {
     rollGesture.pendingTap = {
       kind: blankGrid ? "note" : "playhead",
@@ -2174,6 +2452,7 @@ function beginRollTouch(event) {
   event.stopPropagation();
   rollGesture.pinching = true;
   rollGesture.pendingTap = null;
+  rollGesture.pan = null;
   rollGesture.startDistance = Math.max(1, rollTouchDistance());
   rollGesture.startTickWidth = tickWidth;
   cancelNoteDragForPinch();
@@ -2192,6 +2471,15 @@ function moveRollTouch(event) {
     return;
   }
   const pending = rollGesture.pendingTap;
+  const pan=rollGesture.pan;
+  if(pan?.pointerId===event.pointerId && Math.hypot(event.clientX-pan.x,event.clientY-pan.y)>8) {
+    rollGesture.pendingTap=null;
+    elements.gridScroll.scrollLeft=pan.left+pan.x-event.clientX;
+    elements.gridScroll.scrollTop=pan.top+pan.y-event.clientY;
+    elements.timelineScroll.scrollLeft=elements.gridScroll.scrollLeft;
+    elements.keyScroll.scrollTop=elements.gridScroll.scrollTop;
+    event.preventDefault(); event.stopPropagation(); return;
+  }
   if (pending?.pointerId !== event.pointerId) return;
   pending.x = event.clientX;
   pending.y = event.clientY;
@@ -2210,13 +2498,14 @@ function endRollTouch(event, cancelled = false) {
   }
   rollGesture.points.delete(event.pointerId);
   if (shouldCommitTap) {
-    if (pending.kind === "note") addNoteAtPoint(pending.x, pending.y);
+    if (pending.kind === "note") handleBlankRollPoint(pending.x, pending.y);
     if (pending.kind === "playhead") setPlayheadAtPoint(pending.x);
   }
   if (rollGesture.points.size === 0) {
     rollGesture.pinching = false;
     rollGesture.pendingTap = null;
     rollGesture.startDistance = 0;
+    rollGesture.pan = null;
   }
 }
 
@@ -2233,6 +2522,7 @@ function beginNoteDrag(event) {
   const track = state.tracks.find((item) => item.id === trackId);
   const note = track?.notes.find((item) => item.id === noteId);
   if (!note) return;
+  if (state.editorTool === "erase") { state.activeTrackId=trackId; selectOnlyNote(noteId); deleteSelectedNotes(); return; }
   if (trackId !== state.activeTrackId) {
     state.activeTrackId = trackId;
     selectOnlyNote(noteId);
@@ -2240,6 +2530,7 @@ function beginNoteDrag(event) {
     auditionPitch(note.pitch, track, note.duration);
     return;
   }
+  if (state.isPlaying || audio.starting) stopPlayback();
   const additiveSelection = event.shiftKey || event.metaKey || event.ctrlKey || state.multiSelectMode;
   const resizeHandle = event.target.closest(".note-resize-handle");
   if (additiveSelection && !resizeHandle) {
@@ -2251,6 +2542,7 @@ function beginNoteDrag(event) {
   if (!state.selectedNoteIds.has(noteId)) selectOnlyNote(noteId);
   else state.selectedNoteId = noteId;
   drag.active = true;
+  drag.pointerId = event.pointerId;
   drag.mode = resizeHandle ? "resize" : "move";
   drag.changed = false;
   drag.noteId = noteId;
@@ -2270,7 +2562,8 @@ function beginNoteDrag(event) {
 }
 
 function moveNoteDrag(event) {
-  if (!drag.active) return;
+  if (!drag.active || event.pointerId !== drag.pointerId) return;
+  if (!drag.changed && Math.hypot(event.clientX - drag.originX, event.clientY - drag.originY) < 5) return;
   const track = activeTrack();
   const note = track.notes.find((item) => item.id === drag.noteId);
   if (!note) return;
@@ -2286,7 +2579,7 @@ function moveNoteDrag(event) {
     const lowestPitch = Math.min(...drag.originalNotes.map((item) => item.pitch));
     const highestPitch = Math.max(...drag.originalNotes.map((item) => item.pitch));
     const tickDelta = Math.max(-earliestStart, Math.min(totalTicks - latestEnd, requestedTickDelta));
-    const pitchDelta = Math.max(PITCH_MIN - lowestPitch, Math.min(PITCH_MAX - highestPitch, requestedPitchDelta));
+    const pitchDelta = Math.max(-lowestPitch, Math.min(127 - highestPitch, requestedPitchDelta));
     const originals = new Map(drag.originalNotes.map((item) => [item.id, item]));
     track.notes.forEach((item) => {
       const original = originals.get(item.id);
@@ -2301,8 +2594,8 @@ function moveNoteDrag(event) {
   renderNoteEditors();
 }
 
-function endNoteDrag() {
-  if (!drag.active) return;
+function endNoteDrag(event) {
+  if (!drag.active || event && event.pointerId !== drag.pointerId) return;
   if (drag.changed) pushHistory(drag.snapshot);
   drag.active = false;
   drag.changed = false;
@@ -2337,14 +2630,28 @@ function redo() {
 }
 
 function songEnd() {
-  return Math.max(TICKS_PER_WHOLE * 4, ...state.tracks.map(trackEndTick));
+  return Math.max(TICKS_PER_WHOLE, ...state.tracks.map(trackEndTick));
+}
+
+function createTempoTimeline(events = [], fallback = 120) {
+  const map = [{tick:0,tempo:fallback},...events].filter(event=>Number.isFinite(event.tick) && Number.isFinite(event.tempo) && event.tempo>0)
+    .sort((a,b)=>a.tick-b.tick).filter((event,index,all)=>index===all.length-1 || event.tick!==all[index+1].tick);
+  let seconds=0;
+  const segments=map.map((event,index)=>{
+    if(index) seconds+=(event.tick-map[index-1].tick)*60/map[index-1].tempo/TICKS_PER_BEAT;
+    return {...event,seconds};
+  });
+  return {
+    tickToSeconds(tick) { const segment=[...segments].reverse().find(s=>s.tick<=tick)||segments[0];return segment.seconds+(tick-segment.tick)*60/segment.tempo/TICKS_PER_BEAT; },
+    secondsToTick(time) { const segment=[...segments].reverse().find(s=>s.seconds<=time)||segments[0];return segment.tick+(time-segment.seconds)*segment.tempo*TICKS_PER_BEAT/60; },
+  };
 }
 
 function currentPlaybackTick() {
   if (!state.isPlaying || !audio.context) return state.playhead;
-  const secondsPerTick = 60 / state.tempo / TICKS_PER_BEAT;
-  const elapsed = audio.context.currentTime - audio.startedAt;
-  return Math.max(0, Math.min(songEnd(), audio.origin + elapsed / secondsPerTick));
+  const timeline=audio.playbackTimeline || createTempoTimeline([],state.tempo);
+  const elapsed=audio.context.currentTime-audio.startedAt;
+  return Math.max(0,Math.min(songEnd(),timeline.secondsToTick(timeline.tickToSeconds(audio.origin)+elapsed)));
 }
 
 function setTrackMuted(trackId, muted) {
@@ -2375,6 +2682,7 @@ function setTrackMuted(trackId, muted) {
 
 function stopPlayback(reset = false) {
   audio.mobilePreview = false;
+  audio.scoreSecondsAtTick = null;
   audio.playRequest += 1;
   audio.starting = false;
   audio.timers.forEach((timer) => clearTimeout(timer));
@@ -2534,13 +2842,19 @@ async function startPlayback() {
   const request = ++audio.playRequest;
   elements.playToggle.textContent = "…";
   const mode = await ensureAudio();
-  if (request !== audio.playRequest || mode === "unavailable") return;
+  if (request !== audio.playRequest) return;
   audio.starting = false;
+  if(mode === "unavailable") {elements.playToggle.textContent="▶";return;}
   const context = audio.context;
-  const secondsPerTick = 60 / state.tempo / TICKS_PER_BEAT;
+  const timeline = createTempoTimeline(state.tracks[0]?.tempoEvents, state.tempo);
+  audio.playbackTimeline = timeline;
   const origin = state.playhead >= songEnd() ? 0 : state.playhead;
   audio.origin = origin;
   audio.startedAt = context.currentTime;
+  const playbackSeconds=Math.max(timeline.tickToSeconds(songEnd())-timeline.tickToSeconds(origin), ...state.tracks.map(track=>{
+    const map=createTempoTimeline(track.tempoEvents,state.tempo);
+    return map.tickToSeconds(trackEndTick(track))-map.tickToSeconds(origin);
+  }));
   state.isPlaying = true;
   elements.playToggle.textContent = "❚❚";
   elements.playToggle.setAttribute("aria-label", "Pause playback");
@@ -2554,10 +2868,12 @@ async function startPlayback() {
   state.tracks.filter((track) => !track.muted).forEach((track) => {
     const channel = synthChannelForTrack(track);
     if (mode === "soundfont") audio.synth.programChange(channel, instrumentByName(track.instrument).program);
+    const trackTimeline=createTempoTimeline(track.tempoEvents,state.tempo);
+    const originSeconds=trackTimeline.tickToSeconds(origin);
     track.notes.forEach((note) => {
       if (note.start + note.duration <= origin) return;
-      const start = context.currentTime + Math.max(0, note.start - origin) * secondsPerTick;
-      const end = context.currentTime + Math.max(0.04, note.start + note.duration - origin) * secondsPerTick;
+      const start = context.currentTime + Math.max(0, trackTimeline.tickToSeconds(note.start)-originSeconds);
+      const end = context.currentTime + Math.max(0.001, trackTimeline.tickToSeconds(note.start+note.duration)-originSeconds);
       if (mode === "soundfont") {
         const startDelay = Math.max(0, (start - context.currentTime) * 1000);
         const endDelay = Math.max(35, (end - context.currentTime) * 1000);
@@ -2575,8 +2891,8 @@ async function startPlayback() {
   });
 
   function update() {
-    const position = audio.origin + (context.currentTime - audio.startedAt) / secondsPerTick;
-    if (position >= songEnd()) {
+    const position = timeline.secondsToTick(timeline.tickToSeconds(audio.origin) + context.currentTime - audio.startedAt);
+    if (context.currentTime - audio.startedAt >= playbackSeconds) {
       if (state.loop) {
         stopPlayback(true);
         setTimeout(startPlayback, 30);
@@ -2585,7 +2901,7 @@ async function startPlayback() {
       }
       return;
     }
-    state.playhead = position;
+    state.playhead = Math.min(songEnd(),position);
     renderPlayhead();
     revealPlayhead();
     audio.animationFrame = requestAnimationFrame(update);
@@ -2594,6 +2910,7 @@ async function startPlayback() {
 }
 
 function tickLength(denominator, dots = 0) {
+  if (!Number.isFinite(denominator) || denominator <= 0) throw new Error("MML note lengths must be positive numbers.");
   let value = TICKS_PER_WHOLE / denominator;
   let addition = value / 2;
   for (let index = 0; index < dots; index += 1) {
@@ -2676,13 +2993,9 @@ function parseMml(source) {
         const numberPitch = readNumber();
         if (numberPitch !== null) {
           const duration = tickLength(defaultLength, defaultDots);
-          notes.push({
-            id: uid("note"),
-            pitch: numberPitch + 12,
-            start: cursor,
-            duration,
-            velocity: volumeToVelocity(volume),
-          });
+          const previous=notes.at(-1);
+          if(pendingTie && previous && previous.pitch===numberPitch+12 && previous.start+previous.duration===cursor) previous.duration+=duration;
+          else notes.push({id:uid('note'),pitch:numberPitch+12,start:cursor,duration,velocity:volumeToVelocity(volume)});
           cursor += duration;
         }
         pendingTie = part[index] === "&";
@@ -2723,6 +3036,7 @@ function parseMml(source) {
       if (pendingTie) index += 1;
     }
 
+    if(notes.some(note=>!Number.isFinite(note.pitch) || note.pitch<0 || note.pitch>127)) throw new Error("The MML contains a note outside the MIDI pitch range (0–127).");
     const track = {
       id: uid("track"),
       name: parts.length === 1 ? "Imported melody" : `MML part ${partIndex + 1}`,
@@ -2814,7 +3128,13 @@ function compactMmlAtoms(atoms, prefix = "") {
   ), "");
 }
 
+function mmlPitchProblem(track) {
+  return track.notes.some(note=>note.pitch<12) ? 'Transpose notes below C0 before exporting' : '';
+}
+
 function trackToMml(track, tempo) {
+  const pitchProblem=mmlPitchProblem(track);
+  if(pitchProblem) throw new Error(pitchProblem);
   const sourceTempoUnchanged = track.sourceTempo === null
     || track.sourceTempo === undefined
     || normalizeMmlTempo(track.sourceTempo) === normalizeMmlTempo(tempo);
@@ -2829,7 +3149,7 @@ function trackToMml(track, tempo) {
   const pitchNames = ["c", "c+", "d", "d+", "e", "f", "f+", "g", "g+", "a", "a+", "b"];
   const notes = [...track.notes].sort((a, b) => a.start - b.start || b.pitch - a.pitch);
   const tempoEvents = Array.isArray(track.tempoEvents)
-    ? [...track.tempoEvents].sort((a, b) => a.tick - b.tick || (a.order ?? 0) - (b.order ?? 0))
+    ? track.tempoEvents.map(event=>({...event,tick:Math.round(event.tick)})).sort((a, b) => a.tick - b.tick || (a.order ?? 0) - (b.order ?? 0))
     : [];
   const preserveTempo = tempoEvents.length > 0;
   let cursor = 0;
@@ -2865,14 +3185,17 @@ function trackToMml(track, tempo) {
       currentVolume = noteVolume;
     }
     const pitchName = pitchNames[note.pitch % 12];
-    splitDuration(note.duration).forEach((length, index) => atoms.push({
-      type: "note",
-      pitch: note.pitch,
-      name: pitchName,
-      length,
-      tie: index > 0,
-    }));
-    cursor = Math.round(note.start + note.duration);
+    const noteEnd = Math.round(note.start + note.duration);
+    let continuing = false;
+    while(cursor < noteEnd) {
+      const nextTempoTick = tempoIndex < tempoEvents.length ? Math.round(Number(tempoEvents[tempoIndex].tick)) : Infinity;
+      const boundary = Math.min(noteEnd, Math.max(cursor, nextTempoTick));
+      if(boundary > cursor) {
+        splitDuration(boundary-cursor).forEach((length,index)=>atoms.push({type:'note',pitch:note.pitch,name:pitchName,length,tie:continuing || index>0}));
+        continuing=true; cursor=boundary;
+      }
+      writeTempoEventsThrough(cursor);
+    }
   }
   const endTick = trackEndTick(track);
   writeTempoEventsThrough(endTick);
@@ -3090,9 +3413,22 @@ function syncTempoControl() {
 }
 
 function openModal(name, conversionNote = "") {
+  clearScorePlacement();
+  if (elements.modalBackdrop.hidden) modalReturnFocus = document.activeElement;
   elements.modalBackdrop.hidden = false;
   document.querySelectorAll(".modal-view").forEach((view) => { view.hidden = true; });
   document.querySelector(`#${name}-modal`).hidden = false;
+  const heading = document.querySelector(`#${name}-modal h2`);
+  document.querySelector('.modal-card').setAttribute('aria-labelledby', heading.id || (heading.id = `${name}-heading`));
+  if(name==='settings') {
+    document.querySelector(`[name="keyboard-layout"][value="${state.keyboardLayout}"]`).checked=true;
+    const spacing=document.querySelector('#score-spacing');
+    spacing.querySelector('[data-custom]')?.remove();
+    if(![...spacing.options].some(option=>Number(option.value)===state.scoreSpacing)) {
+      const custom=document.createElement('option');custom.value=state.scoreSpacing;custom.textContent=`Custom (${Math.round(state.scoreSpacing/38*100)}%)`;custom.dataset.custom='true';spacing.append(custom);
+    }
+    spacing.value=state.scoreSpacing;
+  }
   if (name === "cut-time") {
     const start = Math.min(state.playhead, Math.max(0, songEnd()-TICKS_PER_WHOLE));
     document.querySelector('#cut-time-start').value = 1 + start/TICKS_PER_WHOLE;
@@ -3100,7 +3436,7 @@ function openModal(name, conversionNote = "") {
     document.querySelector('#cut-time-error').textContent = '';
   }
   if (name === "export") {
-    state.exportSelection = new Set(state.tracks.filter((track) => !trackHasPolyphony(track)).map((track) => track.id));
+    state.exportSelection = new Set(state.tracks.filter((track) => !trackHasPolyphony(track) && !mmlPitchProblem(track)).map((track) => track.id));
     elements.exportConversionNote.textContent = conversionNote;
     elements.exportConversionNote.hidden = !conversionNote;
     renderExport();
@@ -3114,6 +3450,7 @@ function openModal(name, conversionNote = "") {
 
 function closeModal() {
   elements.modalBackdrop.hidden = true;
+  if (modalReturnFocus?.isConnected) modalReturnFocus.focus();
 }
 
 function mergeTracksSelected() {
@@ -3264,14 +3601,15 @@ function renderExport() {
   }
   elements.exportTrackList.innerHTML = state.tracks.map((track, index) => {
     const hasPolyphony = trackHasPolyphony(track);
-    const characters = trackToMml(track, state.tempo).length;
+    const pitchProblem=mmlPitchProblem(track);
+    const characters = pitchProblem ? 0 : trackToMml(track, state.tempo).length;
     const isTooLong = characters > 2400;
     return `
-      <label class="export-track ${hasPolyphony ? "has-warning" : ""} ${isTooLong ? "is-too-long" : ""}">
-        <input type="checkbox" value="${track.id}" ${state.exportSelection.has(track.id) ? "checked" : ""} ${hasPolyphony ? "disabled" : ""} />
+      <label class="export-track ${hasPolyphony || pitchProblem ? "has-warning" : ""} ${isTooLong ? "is-too-long" : ""}">
+        <input type="checkbox" value="${track.id}" ${state.exportSelection.has(track.id) ? "checked" : ""} ${hasPolyphony || pitchProblem ? "disabled" : ""} />
         <span class="export-track-dot" style="background:${track.color}"></span>
-        <span class="export-track-name"><strong>${escapeHtml(track.name)}</strong><small>${track.notes.length} notes</small></span>
-        <span class="export-track-length">${hasPolyphony ? "Overlapping notes" : `${characters} chars${isTooLong ? " · over 2400" : ""}`}</span>
+        <span class="export-track-name"><strong>${escapeHtml(track.name)}</strong><small>${track.notes.length} notes${pitchProblem ? ` · ${pitchProblem}` : ""}</small></span>
+        <span class="export-track-length">${hasPolyphony ? "Overlapping notes" : pitchProblem ? "Needs transposition" : `${characters} chars${isTooLong ? " · over 2400" : ""}`}</span>
         <span class="export-track-number">${index + 1}</span>
       </label>
     `;
@@ -3295,8 +3633,10 @@ function renderExportPreview() {
   document.querySelector('#mobile-fields').hidden = true;
   document.querySelector('#copy-export').disabled = false;
   document.querySelector('#download-export').disabled = false;
-  const selected = state.tracks.filter((track) => state.exportSelection.has(track.id));
-  const value = toMml(selected, state.tempo);
+  const selected = state.tracks.filter((track) => state.exportSelection.has(track.id) && !mmlPitchProblem(track));
+  document.querySelector('#copy-export').disabled = !selected.length;
+  document.querySelector('#download-export').disabled = !selected.length;
+  const value = selected.length ? toMml(selected, state.tempo) : '';
   elements.exportCode.value = value;
   elements.exportSummary.innerHTML = `
     <span>${selected.length} ${selected.length === 1 ? "track" : "tracks"}</span>
@@ -3332,7 +3672,7 @@ function renderMobileExport() {
       <textarea readonly spellcheck="false" aria-label="${escapeHtml(result.fields[i])}" style="width:100%;min-height:70px">${escapeHtml(p)}</textarea>
       <button type="button" class="secondary-button" data-mobile-copy="${i}" ${result.overLimit[i]?'disabled':''}>Copy ${escapeHtml(MobileMml.fields[i])}</button>
       <button type="button" class="secondary-button" data-mobile-play="${i}">▶ Audition part</button>`).join('')}`;
-    box.querySelectorAll('[data-mobile-copy]').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(result.parts[+b.dataset.mobileCopy]).then(()=>notify('Game field copied.')).catch(()=>notify('Select the field text and copy it manually.'))));
+    box.querySelectorAll('[data-mobile-copy]').forEach(b=>b.addEventListener('click',()=>copyTextWithFallback(result.parts[+b.dataset.mobileCopy],b.previousElementSibling,'Game field copied.')));
     box.querySelectorAll('[data-mobile-play]').forEach(b=>b.addEventListener('click',()=>previewMobileMml(b.dataset.mobilePlay)));
     box.querySelector('#stop-mobile-preview').addEventListener('click',()=>stopPlayback());
     document.querySelector('#copy-export').disabled = result.overLimit.some(Boolean);
@@ -3368,6 +3708,7 @@ async function previewMobileMml(part) {
     tempo: Math.max(32, Math.min(255, Math.round(event.tempo))),
   }));
   const secondsAtTick = MobileMml.timeline(playbackEvents, result.constantTempo ? state.tempo : result.tempo);
+  audio.scoreSecondsAtTick = secondsAtTick;
   const endTick = songEnd();
   const selectedSeconds = secondsAtTick(Math.max(0, state.playhead));
   const offsetSeconds = selectedSeconds >= result.duration ? 0 : selectedSeconds;
@@ -3473,7 +3814,9 @@ async function importMidiFile(file, convertToThree = false) {
     const arrangement = convertToThree
       ? arrangeMidiInThreeTracks(result.tracks, result.tempo ?? state.tempo, result.tempoEvents)
       : null;
-    const tracks = arrangement ? arrangement.tracks : result.tracks;
+    const tracks = arrangement ? arrangement.tracks : result.tracks.map(track=>({
+      ...track, preserveTempo:true, tempoEvents:result.tempoEvents.map(event=>({...event,tick:Math.round(event.tick)})),
+    }));
     mobileImportSession = arrangement ? {parsed:result,options:{melodySource:'',tidyRhythm:true},arrangement,fingerprint:JSON.stringify(tracks)} : null;
     stopPlayback(true);
     clearNoteSelection();
@@ -3484,7 +3827,7 @@ async function importMidiFile(file, convertToThree = false) {
     }
     state.activeTrackId = tracks[0].id;
     if (result.tempo) {
-      state.tempo = Math.min(240, Math.max(32, result.tempo));
+      state.tempo = arrangement ? result.tempo : normalizeMmlTempo(result.tempo);
       syncTempoControl();
     }
     renderAll();
@@ -3556,7 +3899,11 @@ function applyProjectData(project) {
   if (!project || !Array.isArray(project.tracks) || !project.tracks.length) {
     throw new Error("This file is not a valid MabiScore draft.");
   }
+  if(project.tracks.some(track=>!track || !Array.isArray(track.notes) || track.notes.some(note=>!note || !Number.isFinite(Number(note.start)) || !Number.isFinite(Number(note.duration)) || !Number.isFinite(Number(note.pitch))))) {
+    throw new Error('This draft contains invalid note data. The current score has been kept.');
+  }
   const previousResolution = Number(project.timingResolution) || 16;
+  if(previousResolution<=0) throw new Error("This draft has an invalid timing resolution.");
   const timingScale = TICKS_PER_WHOLE / previousResolution;
   state.tracks = project.tracks.map((track, index) => {
     const notes = Array.isArray(track.notes) ? track.notes : [];
@@ -3578,7 +3925,7 @@ function applyProjectData(project) {
       notes: notes.map((note) => ({
         ...note,
         id: note.id || uid("note"),
-        pitch: Math.max(track.mobileArrangement ? 0 : PITCH_MIN, Math.min(track.mobileArrangement ? 127 : PITCH_MAX, Math.round(Number(note.pitch) || 60))),
+        pitch: Math.max(track.mobileArrangement ? 0 : PITCH_MIN, Math.min(track.mobileArrangement ? 127 : PITCH_MAX, (Number.isFinite(Number(note.pitch)) ? Math.round(Number(note.pitch)) : 60))),
         start: Math.max(0, track.mobileArrangement ? (Number(note.start) || 0) * timingScale : Math.round((Number(note.start) || 0) * timingScale)),
         duration: track.mobileArrangement ? Math.max(0.001, Number(note.duration) * timingScale) : Math.max(1, Math.round((Number(note.duration) || 1) * timingScale)),
       })),
@@ -3623,7 +3970,10 @@ async function openProjectFile(file) {
   if (!file) return;
   try {
     if (state.isPlaying || audio.starting) stopPlayback(true);
-    applyProjectData(JSON.parse(await file.text()));
+    const incoming=JSON.parse(await file.text());
+    const before=createHistorySnapshot();
+    applyProjectData(incoming);
+    state.history=[before];
     try {
       localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(createProjectData()));
     } catch (error) {
@@ -3638,13 +3988,20 @@ async function openProjectFile(file) {
   }
 }
 
+async function copyTextWithFallback(text, textarea, message) {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard access unavailable.');
+    await navigator.clipboard.writeText(text);
+    notify(message);
+  } catch {
+    textarea.focus();
+    textarea.select();
+    notify('MML selected—copy it from the text box.');
+  }
+}
+
 function copyExport() {
-  navigator.clipboard.writeText(elements.exportCode.value)
-    .then(() => notify("MML copied to clipboard."))
-    .catch(() => {
-      elements.exportCode.select();
-      notify("MML selected—copy it from the text box.");
-    });
+  return copyTextWithFallback(elements.exportCode.value, elements.exportCode, 'MML copied to clipboard.');
 }
 
 function downloadExport() {
@@ -3656,6 +4013,24 @@ function downloadExport() {
 
 function bindEvents() {
   let projectTitleSnapshot = null;
+  for(const tool of ['select','draw','erase']) document.querySelector(`#tool-${tool}`).addEventListener('click',()=>setEditorTool(tool));
+  document.querySelector('#octave-down').addEventListener('click',()=>setKeyboardOctave(-1));
+  document.querySelector('#octave-up').addEventListener('click',()=>setKeyboardOctave(1));
+  document.querySelector('#keyboard-rest').addEventListener('click',insertTypingRest);
+  document.querySelectorAll('[name="keyboard-layout"]').forEach(input=>input.addEventListener('change',()=>{
+    state.keyboardLayout=input.value; state.lastTypedNoteId=null; savePreferences(); renderKeyboardDock();
+  }));
+  document.querySelector('#score-spacing').addEventListener('change',event=>{
+    state.scoreSpacing=Number(event.target.value); savePreferences(); renderSheetScore(); renderPlayhead();
+  });
+  const zoomSheet=factor=>{state.scoreSpacing=Math.max(22,Math.min(80,Math.round(state.scoreSpacing*factor)));savePreferences();renderSheetScore();renderPlayhead();};
+  document.querySelector('#sheet-zoom-out').addEventListener('click',()=>zoomSheet(1/1.2));
+  document.querySelector('#sheet-zoom-in').addEventListener('click',()=>zoomSheet(1.2));
+  window.addEventListener('pagehide',flushDraft);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden) flushDraft();});
+  window.addEventListener('beforeunload',event=>{ if(!flushDraft()) {event.preventDefault();event.returnValue='';} });
+  let resizeTimer;
+  window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{renderSheetScore();renderPlayhead();},150);});
   document.querySelectorAll("[data-modal]").forEach((button) => {
     button.addEventListener("click", () => openModal(button.dataset.modal));
   });
@@ -3669,6 +4044,8 @@ function bindEvents() {
   document.querySelector("#open-project").addEventListener("click", () => elements.projectFile.click());
   elements.projectFile.addEventListener("change", () => openProjectFile(elements.projectFile.files[0]));
   document.querySelector("#save-project").addEventListener("click", saveProject);
+  document.querySelector('#settings-save-draft').addEventListener('click',saveProject);
+  document.querySelector('#import-project').addEventListener('click',()=>{closeModal();elements.projectFile.click();});
   document.querySelector("#return-start").addEventListener("click", () => stopPlayback(true));
   elements.pianoRollMode.addEventListener("click", () => setEditorMode("roll"));
   elements.sheetMode.addEventListener("click", () => setEditorMode("sheet"));
@@ -3676,10 +4053,12 @@ function bindEvents() {
     state.sheetAccidental = ["natural", "sharp", "flat"].includes(elements.sheetAccidental.value)
       ? elements.sheetAccidental.value
       : "natural";
+    renderScorePlacement();
   });
   elements.keyboardInputToggle.addEventListener("click", () => toggleMusicalTyping());
   elements.toggleOtherTracks.addEventListener("click", () => {
     state.showOtherTracks = !state.showOtherTracks;
+    savePreferences();
     renderRollHeading();
     renderNoteEditors();
   });
@@ -3694,10 +4073,16 @@ function bindEvents() {
     const tempo = Number(elements.tempo.value);
     if (tempo === state.tempo) return;
     const before = createHistorySnapshot();
+    const wasPlaying=state.isPlaying;
+    if(wasPlaying || audio.starting) stopPlayback();
+    const ratio=tempo/state.tempo;
+    state.tracks=state.tracks.map(track=>({...track,tempoEvents:track.tempoEvents?.map(event=>({...event,tempo:normalizeMmlTempo(event.tempo*ratio)}))}));
     state.tempo = tempo;
     pushHistory(before);
     markUnsaved();
     renderHistory();
+    renderSheetScore();renderPlayhead();
+    if(wasPlaying) startPlayback();
   });
   elements.snap.addEventListener("change", () => {
     const snap = Number(elements.snap.value);
@@ -3708,15 +4093,10 @@ function bindEvents() {
     markUnsaved();
     renderHistory();
   });
-  elements.noteDuration.addEventListener("change", () => {
-    const noteDuration = Number(elements.noteDuration.value);
-    if (noteDuration === state.noteDuration) return;
-    const before = createHistorySnapshot();
-    state.noteDuration = noteDuration;
-    pushHistory(before);
-    markUnsaved();
-    renderHistory();
-  });
+  elements.noteDuration.addEventListener('change',()=>setNewNoteDuration(elements.noteDuration.value));
+  document.querySelector('#score-note-duration').addEventListener('change',event=>setNewNoteDuration(event.target.value));
+  document.querySelector('#confirm-score-note').addEventListener('click',placeScorePlacement);
+  document.querySelector('#cancel-score-note').addEventListener('click',clearScorePlacement);
   elements.instrumentSelect.addEventListener("change", () => {
     const track = activeTrack();
     if (!track) return;
@@ -3755,10 +4135,12 @@ function bindEvents() {
   let convertMidiToThree = false;
   document.querySelector("#import-midi").addEventListener("click", () => {
     convertMidiToThree = false;
+    closeModal();
     elements.midiFile.click();
   });
   document.querySelector("#convert-midi-3").addEventListener("click", () => {
     convertMidiToThree = true;
+    closeModal();
     elements.midiFile.click();
   });
   elements.midiFile.addEventListener("change", () => importMidiFile(elements.midiFile.files[0], convertMidiToThree));
@@ -3779,15 +4161,45 @@ function bindEvents() {
   elements.timelineWrap.addEventListener("pointerup", endRollTouch, { capture: true });
   elements.timelineWrap.addEventListener("pointercancel", (event) => endRollTouch(event, true), { capture: true });
   elements.noteGrid.addEventListener("pointerdown", addNoteFromPointer);
-  elements.sheetScore.addEventListener("click", (event) => {
-    if (event.target.closest(".staff-note")) return;
-    addStaffNoteAtPoint(event.clientX, event.clientY);
+  const scoreControl=target=>target.closest('.engraved-hit,.score-bar-seek,.score-beat-seek,.score-time-ruler');
+  elements.sheetScore.addEventListener('pointermove',event=>{
+    if(event.pointerType==='touch') {
+      if(scoreTouchGesture && event.pointerId===scoreTouchGesture.pointerId && Math.hypot(event.clientX-scoreTouchGesture.x,event.clientY-scoreTouchGesture.y)>8) scoreTouchGesture.moved=true;
+      return;
+    }
+    if(scoreTouchPointers.size || state.editorTool!=='draw') return;
+    if(scoreControl(event.target)) {clearScorePlacement();return;}
+    previewStaffNoteAtPoint(event.clientX,event.clientY);
+  });
+  elements.sheetScore.addEventListener('pointerleave',()=>{if(!scorePlacement?.touch) clearScorePlacement();});
+  elements.sheetScore.addEventListener('pointerdown',event=>{
+    if(event.pointerType!=='touch') return;
+    scoreTouchPointers.add(event.pointerId);
+    scoreTouchGesture=scoreTouchPointers.size===1 && !scoreControl(event.target)?{pointerId:event.pointerId,x:event.clientX,y:event.clientY,moved:false}:null;
+  });
+  elements.sheetScore.addEventListener('pointerup',event=>{
+    if(event.pointerType!=='touch') return;
+    suppressScoreClickUntil=Date.now()+800;
+    scoreTouchPointers.delete(event.pointerId);
+    const gesture=scoreTouchGesture;scoreTouchGesture=null;
+    if(gesture && !gesture.moved && gesture.pointerId===event.pointerId && !scoreTouchPointers.size && state.editorTool==='draw') previewStaffNoteAtPoint(event.clientX,event.clientY,true);
+  });
+  elements.sheetScore.addEventListener('pointercancel',event=>{scoreTouchPointers.delete(event.pointerId);scoreTouchGesture=null;clearScorePlacement();});
+  elements.sheetScroll.addEventListener('scroll',clearScorePlacement);
+  elements.sheetScore.addEventListener('click',event=>{
+    if(scoreControl(event.target) || Date.now()<suppressScoreClickUntil) return;
+    addStaffNoteAtPoint(event.clientX,event.clientY);
   });
   window.addEventListener("pointermove", moveNoteDrag);
   window.addEventListener("pointermove", moveBoxSelection);
   window.addEventListener("pointerup", endNoteDrag);
   window.addEventListener("pointerup", endBoxSelection);
-  window.addEventListener("pointercancel", endNoteDrag);
+  window.addEventListener('pointercancel', event=>{
+    if(!drag.active || event.pointerId!==drag.pointerId) return;
+    if(drag.snapshot) restoreHistorySnapshot(drag.snapshot);
+    drag.active=false; drag.changed=false; drag.snapshot=null; drag.originalNotes=[];
+    renderAll();
+  });
   window.addEventListener("pointercancel", cancelBoxSelection);
   elements.gridScroll.addEventListener("scroll", () => {
     elements.timelineScroll.scrollLeft = elements.gridScroll.scrollLeft;
@@ -3795,8 +4207,6 @@ function bindEvents() {
   });
   document.querySelector("#zoom-out").addEventListener("click", () => setTimeZoom(tickWidth / 1.25));
   document.querySelector("#zoom-in").addEventListener("click", () => setTimeZoom(tickWidth * 1.25));
-  document.querySelector("#sheet-zoom-out").addEventListener("click", () => setTimeZoom(tickWidth / 1.25));
-  document.querySelector("#sheet-zoom-in").addEventListener("click", () => setTimeZoom(tickWidth * 1.25));
   elements.timelineWrap.addEventListener("wheel", (event) => {
     const overRuler = event.target.closest(".timeline-scroll, .timeline-corner");
     if (overRuler || event.ctrlKey || event.metaKey || event.altKey) zoomRollFromWheel(event);
@@ -3817,46 +4227,42 @@ function bindEvents() {
   document.addEventListener("copy", handleCopyEvent);
   document.addEventListener("cut", handleCutEvent);
   document.addEventListener("paste", handlePasteEvent);
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      if (!elements.modalBackdrop.hidden) closeModal();
-      else if (state.keyboardInput) toggleMusicalTyping(false);
-    }
-    if (event.target.matches("input, textarea, select")) return;
-    if (!elements.modalBackdrop.hidden) return;
-    const commandKey = event.metaKey || event.ctrlKey;
-    const key = event.key.toLowerCase();
-    if (commandKey && key === "k") {
-      event.preventDefault();
-      toggleMusicalTyping();
+  document.addEventListener('keydown', event => {
+    if (!elements.modalBackdrop.hidden) {
+      if (event.key==='Escape') { event.preventDefault(); closeModal(); return; }
+      if (event.key==='Tab') {
+        const focusable=[...elements.modalBackdrop.querySelectorAll('button,input,select,textarea,a[href]')].filter(node=>!node.disabled && !node.closest('[hidden]'));
+        const first=focusable[0],last=focusable.at(-1);
+        if(event.shiftKey && (document.activeElement===first || !elements.modalBackdrop.contains(document.activeElement))) {event.preventDefault();last?.focus();}
+        else if(!event.shiftKey && (document.activeElement===last || !elements.modalBackdrop.contains(document.activeElement))) {event.preventDefault();first?.focus();}
+      }
       return;
     }
-    if (commandKey && key === "a") {
+    if (event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    const command=event.metaKey || event.ctrlKey, key=event.key.toLowerCase();
+    if(command && key==='s') {event.preventDefault();saveProject();return;}
+    if(event.key==='Escape') {
       event.preventDefault();
-      selectAllNotesInActiveTrack();
+      if(scorePlacement) {clearScorePlacement();return;}
+      if(state.selectedNoteIds.size || state.boxSelectMode || state.multiSelectMode) {clearNoteSelection();renderAll();}
+      else if(state.keyboardInput) toggleMusicalTyping(false);
+      else setEditorTool('select');
       return;
     }
-    if ((event.key === "Delete" || event.key === "Backspace") && state.selectedNoteIds.size) {
+    if(command && key==='k') {event.preventDefault();toggleMusicalTyping();return;}
+    if(command && key==='a') {event.preventDefault();selectAllNotesInActiveTrack();return;}
+    if((event.key==='Delete' || event.key==='Backspace') && state.selectedNoteIds.size) {event.preventDefault();deleteSelectedNotes();return;}
+    if(command && key==='z') {event.preventDefault();event.shiftKey?redo():undo();return;}
+    if(command && key==='y') {event.preventDefault();redo();return;}
+    if(event.code==='Space' && !event.target.closest('button')) {event.preventDefault();startPlayback();return;}
+    if(!command && !event.altKey && state.selectedNoteIds.size && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) {
       event.preventDefault();
-      deleteSelectedNotes();
+      moveSelectedNotes(event.key==='ArrowLeft'?-(event.shiftKey?16:state.snap):event.key==='ArrowRight'?(event.shiftKey?16:state.snap):0,
+        event.key==='ArrowUp'?(event.shiftKey?12:1):event.key==='ArrowDown'?-(event.shiftKey?12:1):0);
       return;
     }
-    if (event.code === "Space") {
-      event.preventDefault();
-      startPlayback();
-      return;
-    }
-    if (commandKey && key === "z") {
-      event.preventDefault();
-      event.shiftKey ? redo() : undo();
-      return;
-    }
-    if (commandKey && key === "y") {
-      event.preventDefault();
-      redo();
-      return;
-    }
-    handleMusicalTyping(event);
+    if(handleMusicalTyping(event)) return;
+    if(!command && !event.altKey && !state.keyboardInput && ['v','n','e'].includes(key)) {event.preventDefault();setEditorTool({v:'select',n:'draw',e:'erase'}[key]);}
   });
 }
 
@@ -3864,6 +4270,7 @@ buildInstrumentOptions();
 buildVolumeOptions();
 buildStaticGrid();
 loadProject();
+loadPreferences();
 bindEvents();
 renderAll();
 requestAnimationFrame(() => {

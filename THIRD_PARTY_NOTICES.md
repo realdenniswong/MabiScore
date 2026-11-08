@@ -11,3 +11,11 @@
 ## Independent regression parser
 
 The development-only `mml-iterator` 1.1.0 package by mohayonao is MIT-licensed and installed through `npm ci`. It is used to cross-check exported notes and elapsed timing in tests; it is not shipped in the browser bundle. Its license is included in the installed package.
+
+## VexFlow
+
+`vendor/vexflow-bravura.js` is the VexFlow 4.2.5 Bravura build, used to engrave the editable grand staff. It is bundled locally so notation works without a CDN. VexFlow is copyright Mohit Muthanna Cheppudira and contributors and distributed under the MIT License; the complete notice is in `vendor/LICENSE-vexflow.txt`. The matching pinned development package supplies the same runtime for verification.
+
+## Editor verification
+
+The development-only `jsdom` and `@napi-rs/canvas` packages run complete editor workflows and render score previews without a browser or audio device. Their licenses are included in their installed packages; neither is shipped to the web app.
