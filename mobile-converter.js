@@ -108,11 +108,15 @@
         h.median-g.median>=14 && g.upper<=h.lower+2 &&
         Math.min(g.end,h.end)-Math.max(g.begin,h.begin)>=Math.min(g.end-g.begin,h.end-h.begin)*.7);
     }
+    const melodyPlan=options.melodyPlan||[];
+    if(!Array.isArray(melodyPlan) || melodyPlan.some((p,i)=>!Number.isFinite(p.start)||!Number.isFinite(p.end)||p.start<0||p.end<=p.start||!groups.has(p.source)||(i>0&&p.start<melodyPlan[i-1].end)))throw new Error('Invalid AI melody plan.');
     const changes={shortened:0,doublings:0};
     function line(role) {
       const candidates=[];
       for(const g of groups.values()) for(const n of g.notes) {
-        if(role==='melody' && (options.melodySource ? g.key!==options.melodySource : g.accompanies))continue;
+        const planned=melodyPlan.find(p=>n.start>=p.start&&n.start<p.end)?.source;
+        const selected=options.melodySource||planned;
+        if(role==='melody' && (selected ? g.key!==selected : g.accompanies))continue;
         const sig=`${n.pitch}:${n.start}:${n.duration}`;
         if(used.has(n.sourceId)||signatures.has(sig)) continue;
         // Remove upper orchestral octave doublings, but never remove the bass foundation.

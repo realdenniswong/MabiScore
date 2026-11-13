@@ -21,7 +21,8 @@ module.exports = function app(preferences) {
   window.eval(engraving);
   window.eval(fs.readFileSync(path.join(root, 'score-engraver.js'), 'utf8'));
   window.eval(fs.readFileSync(path.join(root, 'mobile-converter.js'), 'utf8'));
-  window.eval(script + '\nglobalThis.__app = {state, audio, elements, getScoreLayout:()=>scoreLayout};');
+  window.eval(fs.readFileSync(path.join(root, 'ai-arranger.js'), 'utf8'));
+  window.eval(script + '\nglobalThis.__app = {state, audio, elements, getScoreLayout:()=>scoreLayout, getMobileSession:()=>mobileImportSession, setMobileSession:session=>{mobileImportSession=session;state.tracks=session.arrangement.tracks;renderMobileArrangementOptions();}};');
   const click = selector => window.document.querySelector(selector).click();
   const key = (key, options = {}) => window.document.body.dispatchEvent(new window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...options }));
   const change = (selector, value) => {

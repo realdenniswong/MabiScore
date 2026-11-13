@@ -756,6 +756,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
               <div id="mobile-arrangement-options" hidden>
                 <label>Main melody source: <select id="mobile-melody-source" aria-label="Main melody source"><option value="">Automatic</option></select></label><br>
                 <label><input id="mobile-tidy-rhythm" type="checkbox" checked> Simplify consistent short key releases into musical note lengths (changes articulation)</label>
+                <details><summary>AI arrangement settings</summary>
+                  <p>Enter your own API key to use AI. Requests go directly to the HTTPS provider below and use your account’s quota. Your key stays in memory for this page session and is not saved by MabiScore. Reload the page or clear the key when finished. Musical phrase summaries are sent when you click Analyze.</p>
+                  <label>Endpoint <input id="ai-endpoint" type="url" value="https://tianyuai.lol/v1/responses"></label><br>
+                  <label>Model <input id="ai-model" value="gpt-6.1-sol"></label><br>
+                  <label>Protocol <select id="ai-protocol"><option value="responses">Responses</option><option value="chat-completions">Chat completions</option></select></label><br>
+                  <label>Your API key <input id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="Enter your own API key"></label>
+                  <button id="ai-clear-key" type="button" class="secondary-button">Clear API key</button>
+                </details>
+                <button id="ai-analyze" class="secondary-button">Analyze melody with AI</button>
+                <button id="ai-cancel" class="secondary-button" hidden>Cancel AI</button>
+                <button id="ai-reset" class="secondary-button">Use automatic arrangement</button>
+                <p id="ai-status" role="status" aria-live="polite"></p>
                 <p id="mobile-arrangement-summary" class="modal-intro"></p>
               </div>
               <label><input id="mobile-compatibility" type="checkbox"> Mobile playback compatibility — delay middle accompaniment (nearest supported duration)</label><br>
@@ -796,6 +808,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     </main>
     <script src="./vendor/spessasynth.min.js"></script>
     <script src="./mobile-converter.js"></script>
+    <script src="./ai-arranger.js"></script>
     <script src="./vendor/vexflow-bravura.js"></script>
     <script src="./score-engraver.js?v=20261108-time-ruler"></script>
     <script>
@@ -3570,6 +3583,7 @@ function updateMobileArrangement() {
   const options = {
     melodySource: document.querySelector('#mobile-melody-source').value,
     tidyRhythm: document.querySelector('#mobile-tidy-rhythm').checked,
+    ...(session.options.melodyPlan ? {melodyPlan:session.options.melodyPlan} : {}),
   };
   try {
     const arrangement = arrangeMidiInThreeTracks(session.parsed.tracks, session.parsed.tempo ?? state.tempo, session.parsed.tempoEvents, options);
@@ -3584,9 +3598,11 @@ function updateMobileArrangement() {
     elements.exportConversionNote.textContent = mobileArrangementSummary(arrangement);
     renderAll();
     renderExport();
+    return true;
   } catch (error) {
     renderMobileArrangementOptions();
     notify(error.message || 'The arrangement could not be updated.');
+    return false;
   }
 }
 function renderExport() {
@@ -3754,6 +3770,55 @@ async function previewMobileMml(part) {
 }
 
 ['mobile-compatibility','mobile-melody-slot','mobile-constant-tempo','mobile-playback-tempo','mobile-volume-boost','mobile-fit-limit'].forEach(id=>document.getElementById(id).addEventListener('change',renderExportPreview));
+// Credentials never enter drafts, score history, or exported files.
+let aiController = null;
+if (typeof AiArranger !== 'undefined') {
+  const config = AiArranger.defaults;
+  for (const field of ['endpoint','model','protocol']) document.getElementById('ai-'+field).value = config[field];
+  document.getElementById('ai-key').value = config.apiKey || '';
+}
+document.getElementById('ai-clear-key').addEventListener('click',()=>{
+  aiController?.abort();
+  document.getElementById('ai-key').value='';
+  document.getElementById('ai-status').textContent='API key cleared.';
+});
+window.addEventListener('pagehide',()=>{
+  aiController?.abort();
+  document.getElementById('ai-key').value='';
+});
+document.getElementById('ai-cancel').addEventListener('click',()=>aiController?.abort());
+document.getElementById('ai-reset').addEventListener('click',()=>{
+  aiController?.abort();
+  if (!mobileImportSession || mobileImportSession.fingerprint !== JSON.stringify(state.tracks)) return;
+  delete mobileImportSession.options.melodyPlan;
+  document.getElementById('mobile-melody-source').value='';
+  updateMobileArrangement();
+  document.getElementById('ai-status').textContent='Automatic arrangement restored.';
+});
+document.getElementById('ai-analyze').addEventListener('click',async()=>{
+  const session=mobileImportSession, status=document.getElementById('ai-status');
+  if (!session || session.fingerprint!==JSON.stringify(state.tracks)) {status.textContent='Re-import MIDI before AI analysis; the score has been edited.';return;}
+  if(aiController)return;
+  const fingerprint=session.fingerprint, previousOptions=JSON.stringify(session.options);
+  const controller=new AbortController(); aiController=controller;
+  const timeout=setTimeout(()=>controller.abort(),120000);
+  document.getElementById('ai-analyze').disabled=true;
+  document.getElementById('ai-cancel').hidden=false;
+  status.textContent='Analyzing melody sources and phrase handoffs…';
+  try {
+    const config=Object.fromEntries(['endpoint','model','protocol'].map(k=>[k,document.getElementById('ai-'+k).value.trim()]));
+    config.apiKey=document.getElementById('ai-key').value.trim();
+    const summary=AiArranger.summarize(session.parsed.tracks,session.arrangement.sources);
+    const melodyPlan=await AiArranger.plan(config,summary,controller.signal);
+    if(controller.signal.aborted)throw new Error('AI analysis cancelled or timed out.');
+    if(mobileImportSession!==session || JSON.stringify(state.tracks)!==fingerprint || JSON.stringify(session.options)!==previousOptions)throw new Error('Score or settings changed during analysis. Run AI again.');
+    session.options.melodyPlan=melodyPlan;
+    document.getElementById('mobile-melody-source').value='';
+    if (!updateMobileArrangement()) {session.options=JSON.parse(previousOptions);throw new Error('The AI plan could not be applied.');}
+    status.textContent=`AI melody plan applied to ${melodyPlan.length} phrases. Preview the MML below. Manual source selection overrides the plan. Undo is available.`;
+  } catch(error) {status.textContent=controller.signal.aborted?'AI analysis cancelled or timed out.':error.message;}
+  finally {clearTimeout(timeout);aiController=null;document.getElementById('ai-analyze').disabled=false;document.getElementById('ai-cancel').hidden=true;}
+});
 ['mobile-melody-source','mobile-tidy-rhythm'].forEach(id=>document.getElementById(id).addEventListener('change',updateMobileArrangement));
 document.getElementById('mobile-playback-tempo').addEventListener('input', renderExportPreview);
 
